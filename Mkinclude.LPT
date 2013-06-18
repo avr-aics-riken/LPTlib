@@ -1,0 +1,18 @@
+#PATH settings
+PMLIB_DIR=$(HOME)/.sogo/WORK/FrontFlowViolet/ffv_r963_withLPT/src/PMlib-1.7
+
+LPT_DIR=$(HOME)/.sogo/WORK/LPT/LPT
+LIBNAME=libLPT.a
+
+#include $(LPT_DIR)/Mkinclude.Intel_IntelMPI
+#include $(LPT_DIR)/Mkinclude.GNU_OpenMPI
+#include $(LPT_DIR)/Mkinclude.Intel_OpenMPI
+include $(LPT_DIR)/Mkinclude.FX10
+
+#Additional Options
+DEBUG_OPTS= -DLPT_LOG_ENABLE #-O0 -DDEBUG
+CXXFLAGS += -DREAL_TYPE=float -DCACHE_CONTAINER=deque $(DEBUG_OPTS)
+CXXFLAGS += -I$(LPT_DIR)/include
+
+#for PMlib
+CXXFLAGS += -DUSE_PMLIB -I$(PMLIB_DIR)/include

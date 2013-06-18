@@ -1,0 +1,21 @@
+
+
+LPT/
+|-- FileConverter/                  Converter from LPT native output to FieldView ParticlePath format
+|-- doc/                            User's guide and reference guide
+|-- include/                        include files
+|-- src/                            LPT library's source code
+|-- bin/                            
+|-- lib/                            
+|-- GPATH                           DB for GNU Global
+|-- GRTAGS
+|-- GTAGS
+|-- BUILD                           How to build LPT library
+|-- Makefile                        Makefile
+|-- Mkinclude.GNU_OpenMPI           Make settings for g++ and OpenMPI
+|-- Mkinclude.Intel_IntelMPI        Make settings for Intel Compiler and Intel MPI library
+|-- Mkinclude.Intel_OpenMPI         Make settings for Intel Compiler and OpenMPI
+|-- Mkinclude.LPT                   Path settings
+`-- README                          This file
+
+6 directories, 10 files

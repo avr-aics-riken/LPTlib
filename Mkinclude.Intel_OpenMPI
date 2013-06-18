@@ -1,0 +1,15 @@
+######################################################################
+#
+#  environment specific options
+#
+######################################################################
+# for OpenMPI
+FC       = env OMPI_FC=ifort OMPI_F77=ifort mpif90
+FFLAGS   = -g -O3 -ipo -warn -traceback #-vec-report5
+CC       = env OMPI_CC=icc mpicc
+CCFLAGS  = -g -O3 -ipo -Wall -traceback #-vec-report5
+CXX      = env OMPI_CXX=icpc mpicxx
+CXXFLAGS = $(CCFLAGS) -I./
+LINKER   = $(CXX)
+LDFLAGS  = 
+AR       = xiar rc -qopt-report=3
