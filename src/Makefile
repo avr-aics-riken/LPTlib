@@ -1,38 +1,49 @@
-include ../Mkinclude.LPT
-CXXFLAGS += -I$(LPT_DIR)/src/LPT/ -I$(LPT_DIR)/src/DSlib/ -I$(LPT_DIR)/src/PPlib/
+##############################################################################
+#
+# LPTlib - Lagrangian Particle Tracking library
+# 
+# Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN.
+# All right reserved.
+#
+##############################################################################
+
+include ../make_setting
+
+CXXFLAGS += -I./LPT -I./DS -I./PP
 
 #source files for LPT library
-LIB_SRCS_CPP=\
-LPT/LPT.C \
-LPT/FileManager.C \
-LPT/LPT_ParticleOutput.C \
-LPT/LPT_ParticleInput.C  \
-LPT/FV_ParticlePathOutput.C \
-LPT/FV_ParticlePathBinaryOutput.C \
-LPT/CSV_Output.C \
-DSlib/Communicator.C \
-DSlib/DecompositionManager.C \
-DSlib/DSlib.C \
-DSlib/DataBlock.C \
-DSlib/DV3.C \
-PPlib/ParticleData.C \
-PPlib/Utility.C \
-PPlib/StartPoint.C \
-PPlib/MovingPoints.C \
-PPlib/Line.C \
-PPlib/Rectangle.C \
-PPlib/Cuboid.C \
-PPlib/Circle.C \
-PPlib/PPlib.C \
-PPlib/PP_Integrator.C \
-PPlib/PP_Transport.C \
-PPlib/Interpolator.C \
+LIB_SRCS_CPP = \
+               LPT/LPT.C \
+               LPT/FileManager.C \
+               LPT/LPT_ParticleOutput.C \
+               LPT/LPT_ParticleInput.C  \
+               LPT/FV_ParticlePathOutput.C \
+               LPT/FV_ParticlePathBinaryOutput.C \
+               LPT/CSV_Output.C \
+               DS/Communicator.C \
+               DS/DecompositionManager.C \
+               DS/DSlib.C \
+               DS/DataBlock.C \
+               DS/DV3.C \
+               PP/ParticleData.C \
+               PP/Utility.C \
+               PP/StartPoint.C \
+               PP/MovingPoints.C \
+               PP/Line.C \
+               PP/Rectangle.C \
+               PP/Cuboid.C \
+               PP/Circle.C \
+               PP/PPlib.C \
+               PP/PP_Integrator.C \
+               PP/PP_Transport.C \
+               PP/Interpolator.C \
 
 
-LIBDIR=$(LPT_DIR)/lib
-INCDIR=$(LPT_DIR)/include
+LIBDIR = $(LPT_DIR)/lib
+INCDIR = $(LPT_DIR)/include
 
-LIB_OBJS=$(LIB_SRCS_CPP:%.C=%.o)
+LIB_OBJS = $(LIB_SRCS_CPP:%.C=%.o)
+
 all: $(LIBNAME)
 
 depend:
@@ -42,16 +53,15 @@ doc:
 	doxygen Doxyfile
 
 $(LIBNAME):$(LIB_OBJS)
-	-mkdir -p $(LIBDIR)
 	$(AR) $(LIBNAME) $(LIB_OBJS)
+	$(RANLIB) $(LIBNAME)
+	-mkdir -p $(LIBDIR)
 	mv $(LIBNAME) $(LIBDIR)
 	-mkdir -p $(INCDIR)
 	cp LPT/LPT.h LPT/LPT_Args.h $(INCDIR)
 
 
 clean:
-	-rm -rf $(LIB_OBJS) $(LIBDIR)/$(LIBNAME)
-
-
+	-rm -rf $(LIB_OBJS) $(LIBNAME)
 
 include depend.inc

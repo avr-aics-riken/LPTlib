@@ -1,22 +1,30 @@
-include ../Mkinclude.LPT
+##############################################################################
+#
+# LPTlib - Lagrangian Particle Tracking library
+# 
+# Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN.
+# All right reserved.
+#
+##############################################################################
 
-CXXFLAGS += -I$(LPT_DIR)/src/LPT/ -I$(LPT_DIR)/src/DSlib/ -I$(LPT_DIR)/src/PPlib/
+include ../make_setting
 
-LDFLAGS+=-L$(LPT_DIR)/lib -lLPT
-#PMlibを使用する場合は、以下の一行のコメントアウトを外して有効にする
-LDFLAGS+= -L$(PMLIB_DIR)/lib -lpmlib
+CXXFLAGS += -I../src/LPT -I../src/DS -I../src/PP
 
-SRCS_CPP=FileConverterID.C FileConverterTime.C main.C
+LDFLAGS += -L$(LPT_DIR)/lib -lLPT
+LDFLAGS += -L$(PMLIB_DIR)/lib -lPM
+
+SRCS_CPP = FileConverterID.C FileConverterTime.C main.C
 OBJS=$(SRCS_CPP:%.C=%.o)
 
-LM=FileConverter
+LM = FileConverter
 
 all:$(LM)
 
 $(LM):$(OBJS)
 	$(LINKER) $(OBJS) $(LDFLAGS) -o$@ 
-	-mkdir -p ../bin
-	mv $(LM) ../bin/
+	-mkdir -p $(LPT_DIR)/bin
+	mv $(LM) $(LPT_DIR)/bin
 
 clean:
-	-rm -rf $(OBJS) ../bin/$(LM)
+	-rm -rf $(OBJS) $(LM)

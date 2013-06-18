@@ -1,147 +1,75 @@
 # DO NOT DELETE
 
-LPT/LPT.o: LPT/LPT.h
-LPT/LPT.o: LPT/LPT_Args.h
-LPT/LPT.o: DSlib/DSlib.h
-LPT/LPT.o: DSlib/DataBlock.h
-LPT/LPT.o: DSlib/Cache.h
-LPT/LPT.o: DSlib/CommDataBlock.h
-LPT/LPT.o: DSlib/Communicator.h
-LPT/LPT.o: PPlib/PPlib.h
-LPT/LPT.o: PPlib/StartPoint.h
-LPT/LPT.o: DSlib/DV3.h
-LPT/LPT.o: PPlib/Line.h
-LPT/LPT.o: PPlib/Rectangle.h
-LPT/LPT.o: PPlib/Cuboid.h
-LPT/LPT.o: PPlib/Circle.h
-LPT/LPT.o: DSlib/DecompositionManager.h
-LPT/LPT.o: LPT/LPT_LogOutput.h
-LPT/LPT.o: LPT/FileManager.h
-LPT/LPT.o: PPlib/ParticleData.h
-LPT/LPT.o: LPT/LPT_ParticleOutput.h LPT/FileOutput.h
-LPT/LPT.o: PPlib/PP_Transport.h
-LPT/LPT.o: PPlib/Interpolator.h
-LPT/LPT.o: LPT/PMlibWrapper.h
-LPT/FileManager.o: LPT/FileManager.h
-LPT/LPT_ParticleOutput.o: LPT/LPT_ParticleOutput.h
-LPT/LPT_ParticleOutput.o: LPT/FileManager.h
-LPT/LPT_ParticleOutput.o: LPT/FileOutput.h
-LPT/LPT_ParticleOutput.o: PPlib/ParticleData.h
-LPT/LPT_ParticleInput.o: LPT/LPT_ParticleInput.h
-LPT/LPT_ParticleInput.o: LPT/FileManager.h
-LPT/LPT_ParticleInput.o: PPlib/ParticleData.h
-LPT/FV_ParticlePathOutput.o: LPT/FV_ParticlePathOutput.h
-LPT/FV_ParticlePathOutput.o: LPT/FileManager.h
-LPT/FV_ParticlePathOutput.o: LPT/FileOutput.h
-LPT/FV_ParticlePathOutput.o: PPlib/ParticleData.h
+LPT/LPT.o: LPT/LPT.h LPT/LPT_Args.h ./DS/DSlib.h ./DS/DataBlock.h
+LPT/LPT.o: ./DS/Cache.h ./DS/CommDataBlock.h ./DS/Communicator.h
+LPT/LPT.o: /usr/local/PMlib/include/PerfMonitor.h
+LPT/LPT.o: /usr/local/PMlib/include/PerfWatch.h ./PP/PPlib.h
+LPT/LPT.o: ./PP/StartPoint.h ./DS/DV3.h ./PP/Line.h ./PP/Rectangle.h
+LPT/LPT.o: ./PP/Cuboid.h ./PP/Circle.h ./DS/DecompositionManager.h
+LPT/LPT.o: ./LPT/LPT_LogOutput.h ./LPT/FileManager.h ./PP/ParticleData.h
+LPT/LPT.o: LPT/LPT_ParticleOutput.h LPT/FileOutput.h ./PP/PP_Transport.h
+LPT/LPT.o: ./PP/Interpolator.h LPT/PMlibWrapper.h
+LPT/FileManager.o: ./LPT/FileManager.h
+LPT/LPT_ParticleOutput.o: LPT/LPT_ParticleOutput.h ./LPT/FileManager.h
+LPT/LPT_ParticleOutput.o: LPT/FileOutput.h ./PP/ParticleData.h
+LPT/LPT_ParticleInput.o: LPT/LPT_ParticleInput.h ./LPT/FileManager.h
+LPT/LPT_ParticleInput.o: ./PP/ParticleData.h
+LPT/FV_ParticlePathOutput.o: LPT/FV_ParticlePathOutput.h ./LPT/FileManager.h
+LPT/FV_ParticlePathOutput.o: LPT/FileOutput.h ./PP/ParticleData.h
 LPT/FV_ParticlePathBinaryOutput.o: LPT/FV_ParticlePathBinaryOutput.h
-LPT/FV_ParticlePathBinaryOutput.o: LPT/FileManager.h
-LPT/FV_ParticlePathBinaryOutput.o: LPT/FileOutput.h
-LPT/FV_ParticlePathBinaryOutput.o: PPlib/ParticleData.h
-LPT/CSV_Output.o: LPT/CSV_Output.h
-LPT/CSV_Output.o: LPT/FileManager.h
-LPT/CSV_Output.o: LPT/FileOutput.h
-LPT/CSV_Output.o: PPlib/ParticleData.h
-DSlib/Communicator.o: DSlib/Cache.h
-DSlib/Communicator.o: DSlib/Communicator.h
-DSlib/Communicator.o: DSlib/CommDataBlock.h
-DSlib/Communicator.o: DSlib/DecompositionManager.h
-DSlib/Communicator.o: DSlib/DV3.h
-DSlib/Communicator.o: LPT/LPT_LogOutput.h
-DSlib/Communicator.o: LPT/FileManager.h
-DSlib/Communicator.o: DSlib/DSlib.h
-DSlib/Communicator.o: DSlib/DataBlock.h
-DSlib/DecompositionManager.o: DSlib/DecompositionManager.h
-DSlib/DecompositionManager.o: DSlib/DV3.h
-DSlib/DecompositionManager.o: LPT/LPT_LogOutput.h
-DSlib/DecompositionManager.o: LPT/FileManager.h
-DSlib/DecompositionManager.o: DSlib/Communicator.h
-DSlib/DecompositionManager.o: DSlib/CommDataBlock.h
-DSlib/DSlib.o: DSlib/DSlib.h
-DSlib/DSlib.o: DSlib/DataBlock.h
-DSlib/DSlib.o: DSlib/Cache.h
-DSlib/DSlib.o: DSlib/CommDataBlock.h
-DSlib/DSlib.o: DSlib/Communicator.h
-DSlib/DSlib.o: LPT/LPT_LogOutput.h
-DSlib/DSlib.o: LPT/FileManager.h
-DSlib/DataBlock.o: DSlib/DataBlock.h
-PPlib/ParticleData.o: PPlib/ParticleData.h
-PPlib/Utility.o: PPlib/Utility.h
-PPlib/StartPoint.o: PPlib/StartPoint.h
-PPlib/StartPoint.o: DSlib/DV3.h
-PPlib/StartPoint.o: PPlib/ParticleData.h
-PPlib/StartPoint.o: PPlib/Line.h
-PPlib/StartPoint.o: PPlib/Rectangle.h
-PPlib/StartPoint.o: LPT/FileManager.h
-PPlib/StartPoint.o: LPT/LPT_ParticleOutput.h LPT/FileOutput.h
-PPlib/MovingPoints.o: PPlib/MovingPoints.h
-PPlib/MovingPoints.o: PPlib/StartPoint.h
-PPlib/MovingPoints.o: DSlib/DV3.h
-PPlib/Line.o: PPlib/Line.h
-PPlib/Line.o: PPlib/StartPoint.h
-PPlib/Line.o: DSlib/DV3.h
-PPlib/Line.o: PPlib/ParticleData.h
-PPlib/Rectangle.o: PPlib/Rectangle.h
-PPlib/Rectangle.o: PPlib/StartPoint.h
-PPlib/Rectangle.o: DSlib/DV3.h
-PPlib/Rectangle.o: PPlib/Utility.h
-PPlib/Rectangle.o: LPT/LPT_LogOutput.h
-PPlib/Rectangle.o: LPT/FileManager.h
-PPlib/Cuboid.o: PPlib/Cuboid.h
-PPlib/Cuboid.o: PPlib/StartPoint.h
-PPlib/Cuboid.o: DSlib/DV3.h
-PPlib/Circle.o: PPlib/Circle.h
-PPlib/Circle.o: PPlib/StartPoint.h
-PPlib/Circle.o: DSlib/DV3.h
-PPlib/Circle.o: LPT/LPT_LogOutput.h
-PPlib/Circle.o: LPT/FileManager.h
-PPlib/PPlib.o: PPlib/PPlib.h
-PPlib/PPlib.o: PPlib/Interpolator.h
-PPlib/PPlib.o: DSlib/DataBlock.h
-PPlib/PPlib.o: PPlib/PP_Integrator.h
-PPlib/PPlib.o: PPlib/ParticleData.h
-PPlib/PPlib.o: DSlib/DecompositionManager.h
-PPlib/PPlib.o: DSlib/DV3.h
-PPlib/PPlib.o: LPT/LPT_LogOutput.h
-PPlib/PPlib.o: LPT/FileManager.h
-PPlib/PPlib.o: DSlib/DSlib.h
-PPlib/PPlib.o: DSlib/Cache.h
-PPlib/PPlib.o: DSlib/CommDataBlock.h
-PPlib/PPlib.o: DSlib/Communicator.h
-PPlib/PPlib.o: PPlib/StartPoint.h
-PPlib/PPlib.o: PPlib/MovingPoints.h
-PPlib/PPlib.o: PPlib/Line.h
-PPlib/PPlib.o: PPlib/Rectangle.h
-PPlib/PPlib.o: PPlib/Cuboid.h
-PPlib/PPlib.o: PPlib/Circle.h
-PPlib/PPlib.o: LPT/LPT_ParticleOutput.h LPT/FileOutput.h
-PPlib/PP_Integrator.o: PPlib/Interpolator.h
-PPlib/PP_Integrator.o: DSlib/DataBlock.h
-PPlib/PP_Integrator.o: PPlib/PP_Integrator.h
-PPlib/PP_Transport.o: PPlib/PPlib.h
-PPlib/PP_Transport.o: PPlib/Interpolator.h
-PPlib/PP_Transport.o: DSlib/DataBlock.h
-PPlib/PP_Transport.o: PPlib/PP_Integrator.h
-PPlib/PP_Transport.o: PPlib/ParticleData.h
-PPlib/PP_Transport.o: DSlib/DecompositionManager.h
-PPlib/PP_Transport.o: DSlib/DV3.h
-PPlib/PP_Transport.o: LPT/LPT_LogOutput.h
-PPlib/PP_Transport.o: LPT/FileManager.h
-PPlib/PP_Transport.o: DSlib/DSlib.h
-PPlib/PP_Transport.o: DSlib/Cache.h
-PPlib/PP_Transport.o: DSlib/CommDataBlock.h
-PPlib/PP_Transport.o: DSlib/Communicator.h
-PPlib/PP_Transport.o: PPlib/StartPoint.h
-PPlib/PP_Transport.o: PPlib/MovingPoints.h
-PPlib/PP_Transport.o: PPlib/Line.h
-PPlib/PP_Transport.o: PPlib/Rectangle.h
-PPlib/PP_Transport.o: PPlib/Cuboid.h
-PPlib/PP_Transport.o: PPlib/Circle.h
-PPlib/PP_Transport.o: LPT/LPT_ParticleOutput.h LPT/FileOutput.h
-PPlib/PP_Transport.o: PPlib/PP_Transport.h
-PPlib/Interpolator.o: PPlib/Interpolator.h
-PPlib/Interpolator.o: DSlib/DataBlock.h
-PPlib/Interpolator.o: DSlib/DecompositionManager.h
-PPlib/Interpolator.o: DSlib/DV3.h
-PPlib/Interpolator.o: LPT/LPT_LogOutput.h
-PPlib/Interpolator.o: LPT/FileManager.h
+LPT/FV_ParticlePathBinaryOutput.o: ./LPT/FileManager.h LPT/FileOutput.h
+LPT/FV_ParticlePathBinaryOutput.o: ./PP/ParticleData.h
+LPT/CSV_Output.o: LPT/CSV_Output.h ./LPT/FileManager.h LPT/FileOutput.h
+LPT/CSV_Output.o: ./PP/ParticleData.h
+DS/Communicator.o: ./DS/Cache.h ./DS/Communicator.h ./DS/CommDataBlock.h
+DS/Communicator.o: /usr/local/PMlib/include/PerfMonitor.h
+DS/Communicator.o: /usr/local/PMlib/include/PerfWatch.h
+DS/Communicator.o: ./DS/DecompositionManager.h ./DS/DV3.h
+DS/Communicator.o: ./LPT/LPT_LogOutput.h ./LPT/FileManager.h ./DS/DSlib.h
+DS/Communicator.o: ./DS/DataBlock.h
+DS/DecompositionManager.o: ./DS/DecompositionManager.h ./DS/DV3.h
+DS/DecompositionManager.o: ./LPT/LPT_LogOutput.h ./LPT/FileManager.h
+DS/DecompositionManager.o: ./DS/Communicator.h ./DS/CommDataBlock.h
+DS/DecompositionManager.o: /usr/local/PMlib/include/PerfMonitor.h
+DS/DecompositionManager.o: /usr/local/PMlib/include/PerfWatch.h
+DS/DSlib.o: ./DS/DSlib.h ./DS/DataBlock.h ./DS/Cache.h ./DS/CommDataBlock.h
+DS/DSlib.o: ./DS/Communicator.h /usr/local/PMlib/include/PerfMonitor.h
+DS/DSlib.o: /usr/local/PMlib/include/PerfWatch.h ./LPT/LPT_LogOutput.h
+DS/DSlib.o: ./LPT/FileManager.h
+DS/DataBlock.o: ./DS/DataBlock.h
+DS/DV3.o: ./DS/DV3.h
+PP/ParticleData.o: ./PP/ParticleData.h
+PP/Utility.o: PP/Utility.h
+PP/StartPoint.o: ./PP/StartPoint.h ./DS/DV3.h ./PP/ParticleData.h ./PP/Line.h
+PP/StartPoint.o: ./PP/Rectangle.h ./PP/Circle.h ./PP/Cuboid.h
+PP/StartPoint.o: ./LPT/FileManager.h
+PP/MovingPoints.o: PP/MovingPoints.h ./PP/StartPoint.h ./DS/DV3.h
+PP/Line.o: ./PP/Line.h ./PP/StartPoint.h ./DS/DV3.h ./PP/ParticleData.h
+PP/Rectangle.o: ./PP/Rectangle.h ./PP/StartPoint.h ./DS/DV3.h PP/Utility.h
+PP/Rectangle.o: ./LPT/LPT_LogOutput.h ./LPT/FileManager.h
+PP/Cuboid.o: ./PP/Cuboid.h ./PP/StartPoint.h ./DS/DV3.h ./LPT/LPT_LogOutput.h
+PP/Cuboid.o: ./LPT/FileManager.h
+PP/Circle.o: ./PP/Circle.h ./PP/StartPoint.h ./DS/DV3.h ./LPT/LPT_LogOutput.h
+PP/Circle.o: ./LPT/FileManager.h
+PP/PPlib.o: ./PP/PPlib.h /usr/local/PMlib/include/PerfMonitor.h
+PP/PPlib.o: /usr/local/PMlib/include/PerfWatch.h ./PP/Interpolator.h
+PP/PPlib.o: ./DS/DataBlock.h PP/PP_Integrator.h ./PP/ParticleData.h
+PP/PPlib.o: ./DS/DecompositionManager.h ./DS/DV3.h ./LPT/LPT_LogOutput.h
+PP/PPlib.o: ./LPT/FileManager.h ./DS/DSlib.h ./DS/Cache.h
+PP/PPlib.o: ./DS/CommDataBlock.h ./DS/Communicator.h ./PP/StartPoint.h
+PP/PPlib.o: PP/MovingPoints.h ./PP/Line.h ./PP/Rectangle.h ./PP/Cuboid.h
+PP/PPlib.o: ./PP/Circle.h LPT/LPT_ParticleOutput.h LPT/FileOutput.h
+PP/PP_Integrator.o: ./PP/Interpolator.h ./DS/DataBlock.h PP/PP_Integrator.h
+PP/PP_Transport.o: ./PP/PPlib.h /usr/local/PMlib/include/PerfMonitor.h
+PP/PP_Transport.o: /usr/local/PMlib/include/PerfWatch.h ./PP/Interpolator.h
+PP/PP_Transport.o: ./DS/DataBlock.h PP/PP_Integrator.h ./PP/ParticleData.h
+PP/PP_Transport.o: ./DS/DecompositionManager.h ./DS/DV3.h
+PP/PP_Transport.o: ./LPT/LPT_LogOutput.h ./LPT/FileManager.h ./DS/DSlib.h
+PP/PP_Transport.o: ./DS/Cache.h ./DS/CommDataBlock.h ./DS/Communicator.h
+PP/PP_Transport.o: ./PP/StartPoint.h PP/MovingPoints.h ./PP/Line.h
+PP/PP_Transport.o: ./PP/Rectangle.h ./PP/Cuboid.h ./PP/Circle.h
+PP/PP_Transport.o: LPT/LPT_ParticleOutput.h LPT/FileOutput.h
+PP/PP_Transport.o: ./PP/PP_Transport.h
+PP/Interpolator.o: ./PP/Interpolator.h ./DS/DataBlock.h
+PP/Interpolator.o: ./DS/DecompositionManager.h ./DS/DV3.h
+PP/Interpolator.o: ./LPT/LPT_LogOutput.h ./LPT/FileManager.h

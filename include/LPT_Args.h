@@ -86,16 +86,16 @@ namespace LPT
 
     //! @brief ファイル入出力メソッドで使われるファイル名のprefix
     //! この後にRank番号を付け加えたものが実際のファイル名となる
-      std::string OutputFileName;
+    std::string OutputFileName;
 
     //!  FFV-Cで使用しているビットマスクの配列
     int *d_bcv;
 
     //!  PMlibの情報を出力するファイル名
-      std::string PMlibOutputFileName;
+    std::string PMlibOutputFileName;
 
     //! PMlibの詳細情報を出力するファイル名
-      std::string PMlibDetailedOutputFileName;
+    std::string PMlibDetailedOutputFileName;
 
     //! 代入オペレータ
     void operator=(const LPT_InitializeArgs & org)

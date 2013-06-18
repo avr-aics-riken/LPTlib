@@ -1,0 +1,34 @@
+##############################################################################
+#
+# LPTlib - Lagrangian Particle Tracking library
+# 
+# Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN.
+# All right reserved.
+#
+##############################################################################
+
+FC       = env OMPI_FC=ifort OMPI_F77=ifort mpif90
+FFLAGS   = -O3 -ipo -warn -traceback #-vec-report5
+CC       = env OMPI_CC=icc mpicc
+CCFLAGS  = -O3 -ipo -Wall -traceback #-vec-report5
+CXX      = env OMPI_CXX=icpc mpicxx
+CXXFLAGS = $(CCFLAGS) -I./
+LINKER   = $(CXX)
+LDFLAGS  = 
+AR       = xiar rc
+#AR      = xiar rc -qopt-report=3
+RANLIB   = ranlib
+
+# PATH settings
+PMLIB_DIR = /usr/local/PMlib
+LPT_DIR   = /usr/local/LPTlib
+
+LIBNAME   = libLPT.a
+
+#Additional Options
+DEBUG_OPTS  = -DLPT_LOG_ENABLE #-O0 -DDEBUG
+CXXFLAGS   += -DREAL_TYPE=float -DCACHE_CONTAINER=deque $(DEBUG_OPTS)
+CXXFLAGS   += -I./include
+
+#for PMlib
+CXXFLAGS   += -DUSE_PMLIB -I$(PMLIB_DIR)/include

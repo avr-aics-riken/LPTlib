@@ -1,21 +1,29 @@
+/*
+ * LPTlib
+ * Lagrangian Particle Tracking library
+ *
+ * Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN. 
+ * All rights reserved.
+ *
+ */
+ 
+ 
+Ingredients
+===========
 
+AUTHORS                Contributors
+ChangeLog              History of modification
+COPYING                Copyright
+doc/                   Document
+  Doxyfile             Configuration file to generate a doxygen file
+  LPTlib.pdf           User's manual (in Japanese)
+FileConverter          Source files of file converter, 
+                       which transform from LPT native output to FieldView 
+include/               Header files
+INSTALL                Description of how to install
+LICENSE                License to apply
+NEWS                   Release note
+Makefile_hand          Building LPTlib by hand compile
+README                 This document
+src/                   Source codes
 
-LPT/
-|-- FileConverter/                  Converter from LPT native output to FieldView ParticlePath format
-|-- doc/                            User's guide and reference guide
-|-- include/                        include files
-|-- src/                            LPT library's source code
-|-- bin/                            
-|-- lib/                            
-|-- GPATH                           DB for GNU Global
-|-- GRTAGS
-|-- GTAGS
-|-- BUILD                           How to build LPT library
-|-- Makefile                        Makefile
-|-- Mkinclude.GNU_OpenMPI           Make settings for g++ and OpenMPI
-|-- Mkinclude.Intel_IntelMPI        Make settings for Intel Compiler and Intel MPI library
-|-- Mkinclude.Intel_OpenMPI         Make settings for Intel Compiler and OpenMPI
-|-- Mkinclude.LPT                   Path settings
-`-- README                          This file
-
-6 directories, 10 files
