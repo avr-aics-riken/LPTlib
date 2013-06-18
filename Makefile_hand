@@ -11,24 +11,24 @@
 all: lib FileConverter
 
 lib:
-	$(MAKE) -C src
+	$(MAKE) -f Makefile_hand -C src
 
 FileConverter: lib
-	$(MAKE) -C FileConverter
+	$(MAKE) -f Makefile_hand -C FileConverter
 
 doc:
-	$(MAKE) doc -C src
+	$(MAKE) -f Makefile_hand doc -C src
 
 clean: cleanlib cleanFileConverter
 
 cleanlib:
-	$(MAKE) clean -C src
+	$(MAKE) -f Makefile_hand clean -C src
 
 cleanFileConverter:
-	$(MAKE) clean -C FileConverter
+	$(MAKE) -f Makefile_hand clean -C FileConverter
   
 depend:
-	$(MAKE) depend -C src
+	$(MAKE) -f Makefile_hand depend -C src
 
 .SUFFIXES:.c .f .F .f90 .F90
 

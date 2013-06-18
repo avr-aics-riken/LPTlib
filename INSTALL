@@ -11,86 +11,88 @@
 Prerequisite
 ============
 - MPI library
-- PMlib is required if a timing report option is selected.
+- Performance Monitor library is required if a timing report option is selected.
 
 
 
 How to compile
 ==============
 
-1. パスの設定
-   make_setting.LPTを編集し、以下の変数を設定します。
-     PMLIB_DIR: PMlibのインストール先ディレクトリ
-     LPT_DIR:   LPTのアーカイブを展開したディレクトリ(このファイルが存在するディレクトリ)
+1. with configure
+
+$ ./configure [options]
+$ make
+# make install
 
 
-2. Buildに使用するコンパイラ, MPIライブラリ等の設定
-   Mkinclude.LPT内でインクルードしているファイルを変更し、
-   コンパイラ名, コンパイルオプション等を指定します。
-   本アーカイブ内には、参考として以下の3種類の環境向けの設定ファイルを同梱しています。 
-      Mkinclude.GNU_OpenMPI     gcc version 4.4 + OpenMPI  (CentOS 5.5)
-      Mkinclude.Intel_IntelMPI  Intel Cluster Toolkit version 12.
-      Mkinclude.Intel_OpenMPI   Inte C++ Compiler ver. 12 + OpenMPI
+Configure options:
 
-   これらのファイル内ではFortranおよびCコンパイラに関しても設定していますが
-   本ライブラリのビルド時にはC++コンパイラしか使用していません。
+ --prefix=INSTALL_DIR
+ Specify a directory to be installed. The default directory is /usr/local/LPTlib.
 
+ --with-mpich=MPICH_DIR
+ If you will use a MPICH library, specify the directory that MPICH library is installed.
+ Either --with-mpich of --with-ompi option will be required except. If the wrapper compiler,
+ e.g., mpic++ or mpicxx is used to compile, both options can be eliminated.
 
-3. ライブラリおよびファイルコンバータのbuild
-   以下のコマンドを実行すると、libディレクトリ内にLPTライブラリ(libLPT.a)が、
-   binディレクトリ内にファイルコンバータの実行ファイル(FileConverter)が生成されます。
+ --with-ompi=OPENMPI_DIR
+ If you will use an OpenMPI library, specify the directory path of OpenMPI.
 
-     >make clean; make depend;make
+ --with-comp=(INTEL|FJ)
+ If Intel compiler is used, choose INTEL, and if Fujitsu compiler, specify FJ.
 
+ --with-pm=PMLIB_DIR
+ Specify the directory path that Performance Monitor library is installed. This option is 
+ required if only you need a performance report.
 
-4. ref
+ --with-log=(disable|enable)
+ If a log file is demanded, specify enable.
 
-Intel openMPI
-FC       = env OMPI_FC=ifort OMPI_F77=ifort mpif90
-FFLAGS   = -O3 -ipo -warn -traceback #-vec-report5
-CC       = env OMPI_CC=icc mpicc
-CCFLAGS  = -O3 -ipo -Wall -traceback #-vec-report5
-CXX      = env OMPI_CXX=icpc mpicxx
-CXXFLAGS = $(CCFLAGS) -I./
-LINKER   = $(CXX)
-LDFLAGS  = 
-AR       = xiar rc
-#AR      = xiar rc -qopt-report=3
-RANLIB   = ranlib
+ --with-realtype=(float|double)
+ Specify floating type. Default is float.
 
+ --with-container=(deque|list)
+ Specify a container type of STL that is used to this program.
 
-Intel IntelMPI
-FC       = mpiifort
-FFLAGS   = -g -O2 -warn -traceback -opt-report 2 -vec-report5
-CC       = mpiicc
-CCFLAGS  = -g -O2 -Wall -traceback -opt-report 2 -vec-report5
-CXX      = mpiicpc
-CXXFLAGS = $(CCFLAGS) -I./ -DMPICH_SKIP_MPICXX
-LINKER   = $(CXX)
-LDFLAGS  = 
-AR       = ar rc
-RANLIB   = ranlib
+ --host=hostname
+ Specify in case of cross-compilation.
 
+ CXX=CXX_COMPILER
+ Specify a C++ compiler, e.g., g++, icpc, xlc++ or others.
 
-FC       = env OMPI_FC=gfortran OMPI_F77=gfortran mpif90
-FFLAGS   = -g -O2 -march=native
-CC       = env OMPI_CC=gcc mpicc
-CCFLAGS  = -g -O2 -march=native
-CXX      = env OMPI_CXX=g++ mpicxx
-CXXFLAGS = $(CCFLAGS) -I./
-LINKER   = $(CXX)
-LDFLAGS  = 
-AR       = ar rc
-RANLIB   = ranlib
+ FC=FORTRAN90_COMPILER
+ Specify a fortran compiler.
+
+ CXXFLAGS=CXX_OPTIONS
+ Specify compiler options.
+
+Compiled library and a FileConverter program will be installed at the specified directory.
+
+Here is a example for Intel compile and OpenMPI.
+
+$.configure --with-pm=/usr/local/PMlib \
+            --with-comp=INTEL \
+            --with-ompi=/opt/openmpi \
+            --with-log=enable \
+            CXXFLAGS=-O3 \
+            CXX=icpc \
+            FC=ifort
 
 
-FC       = mpifrtpx
-FFLAGS   = -g -O3 -Kfast -Kocl -Koptmsg=2
-CC       = mpifccpx
-CCFLAGS  = -g -O3 -Kfast -Kocl -Koptmsg=2 -Nsrc -Nsta -Krestp=arg
-CXX      = mpiFCCpx
-CXXFLAGS = $(CCFLAGS) -I./
-LINKER   = $(CXX)
-LDFLAGS  = $(CXXFLAGS)
-AR       = ar rc
-RANLIB   = ranlib
+Following example is for K-computer.
+
+$./configure --prefix=$1 \
+	     --with-pm=/hogehoge \
+             --with-comp=FJ \
+             --with-log=enable \
+             --host=sparc64-unknown-linux-gnu \
+             CXX=mpiFCCpx \
+             CXXFLAGS=-Kfast \
+	     FC=
+
+
+
+2. Hand compile
+
+If a provided configure does not work, use Makefile_hand to build this library. At first,
+edit a make_setting file to tell your machine environment.
