@@ -3,17 +3,20 @@
 
 namespace PPlib
 {
-  std::ostream & operator <<(std::ostream & stream, Cuboid & obj)
+  std::ostream & operator <<(std::ostream & stream, const Cuboid& obj)
   {
-    stream << "Coord1          = " << obj.Coord1[0] << "," << obj.Coord1[1] << "," << obj.Coord1[2] << std::endl;
-    stream << "Coord2          = " << obj.Coord2[0] << "," << obj.Coord2[1] << "," << obj.Coord2[2] << std::endl;
-    stream << "SumStartPoints  = " << obj.GetSumStartPoints() << std::endl;
-    stream << "NumStartPoints  = " << obj.NumStartPoints[0] << "," << obj.NumStartPoints[1] << "," << obj.NumStartPoints[2] << std::endl;
-    stream << "StartTime       = " << obj.StartTime << std::endl;
-    stream << "ReleaseTime     = " << obj.ReleaseTime << std::endl;
-    stream << "TimeSpan        = " << obj.TimeSpan << std::endl;
-    stream << "LatestEmitTime  = " << obj.LatestEmitTime << std::endl;
-    stream << "ID              = " << obj.ID[0] << "," << obj.ID[1] << std::endl;
+    stream << obj.TextPrint(stream);
+    return stream;
+  }
+
+  std::istream & operator >>(std::istream & stream, Cuboid& obj)
+  {
+    stream >> obj.Coord1[0] >> obj.Coord1[1] >> obj.Coord1[2];
+    stream >> obj.Coord2[0] >> obj.Coord2[1] >> obj.Coord2[2];
+    stream >> obj.SumStartPoints;
+    stream >> obj.NumStartPoints[0] >> obj.NumStartPoints[1] >> obj.NumStartPoints[2];
+    stream >> obj.StartTime >> obj.ReleaseTime >> obj.TimeSpan >> obj.ParticleLifeTime;
+
     return stream;
   }
 

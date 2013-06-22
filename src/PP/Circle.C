@@ -6,54 +6,45 @@
 
 namespace PPlib
 {
-  std::ostream & operator <<(std::ostream & stream, Circle & obj)
+  std::ostream & operator <<(std::ostream & stream, const Circle& obj)
   {
-    stream << "Coord1          = " << obj.Coord1[0] << "," << obj.Coord1[1] << "," << obj.Coord1[2] << std::endl;
-    stream << "NormalVector    = " << obj.NormalVector[0] << "," << obj.NormalVector[1] << "," << obj.NormalVector[2] << std::endl;
-    stream << "Radius          = " << obj.Radius << std::endl;
-    stream << "SumStartPoints  = " << obj.GetSumStartPoints() << std::endl;
-    stream << "StartTime       = " << obj.StartTime << std::endl;
-    stream << "ReleaseTime     = " << obj.ReleaseTime << std::endl;
-    stream << "TimeSpan        = " << obj.TimeSpan << std::endl;
-    stream << "LatestEmitTime  = " << obj.LatestEmitTime << std::endl;
-    stream << "ID              = " << obj.ID[0] << "," << obj.ID[1] << std::endl;
+    stream << obj.TextPrint(stream);
     return stream;
   }
 
-  bool Circle::Initialize(void)
+  std::istream & operator >>(std::istream & stream, Circle & obj)
   {
-    //指定された開始点数を元にN(=半径方向の分割数)と
-    //a(=円周方向に並べる開始点数にかける係数)を決める
-    for(int i = 1; i < GetSumStartPoints(); i++) {
-      N = i;
-      a = GetSumStartPoints() / (N * (N + 1) / 2);
-      REAL_TYPE dr = GetRadius() / N;
-      REAL_TYPE dl = 2 * GetRadius() * std::sin(2 * M_PI / (a * N) / 2);
+    stream >> obj.Coord1[0] >> obj.Coord1[1] >> obj.Coord1[2];
+    stream >> obj.NormalVector[0] >> obj.NormalVector[1] >> obj.NormalVector[2];
+    stream >> obj.Radius;
+    stream >> obj.SumStartPoints;
+    stream >> obj.StartTime >> obj.ReleaseTime >> obj.TimeSpan >>obj.LatestEmitTime>>  obj.ParticleLifeTime;
 
-      if(0.5 < dr / dl && dr / dl < 1.5)
-        break;
-    }
-    if(a == GetSumStartPoints() || N == GetSumStartPoints() - 1) {
-      LPT::LPT_LOG::GetInstance()->WARN("Couldn't find reasonable a and N");
-      return false;
-    }
-    SetSumStartPoints(a * N * (N + 1) / 2 + 1);
+    return stream;
+  }
 
-    //NormalVectorを単位ベクトルに変換する
-    REAL_TYPE length = std::sqrt(NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1] + NormalVector[2] * NormalVector[2]);
-
+  void Circle::NormalizeVector(REAL_TYPE * v)
+  {
+    REAL_TYPE length = std::sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     if(length != 0.0) {
-      NormalVector[0] = NormalVector[0] / length;
-      NormalVector[1] = NormalVector[1] / length;
-      NormalVector[2] = NormalVector[2] / length;
+      v[0] = v[0] / length;
+      v[1] = v[1] / length;
+      v[2] = v[2] / length;
     }
+  }
+
+  void Circle::ConvertNormalVector(void)
+  {
     //zが負の時はNormalVectorを逆向きにする
     if(NormalVector[2] < 0) {
       NormalVector[0] = -NormalVector[0];
       NormalVector[1] = -NormalVector[1];
       NormalVector[2] = -NormalVector[2];
     }
-    //z軸と法線ベクトルの外積を求める
+    NormalizeVector(NormalVector);
+  }
+  void Circle::MakeOuterProducts(REAL_TYPE* OuterProducts)
+  {
     //z軸方向の単位ベクトルを Vz={0,0,1}とすると
     //OuterProducts[0] = Vz[1]*NormalVector[2]-Vz[2]*NormalVector[1];
     //OuterProducts[1] = Vz[2]*NormalVector[0]-Vz[0]*NormalVector[2];
@@ -61,15 +52,15 @@ namespace PPlib
     //
     //0となる項を消すと次行のようになる。
 
-    REAL_TYPE OuterProducts[3] = { -NormalVector[1], NormalVector[0], 0 };
+    OuterProducts[0] = -NormalVector[1];
+    OuterProducts[1] =  NormalVector[0];
+    OuterProducts[2] =  0;
 
-    length = std::sqrt(OuterProducts[0] * OuterProducts[0] + OuterProducts[1] * OuterProducts[1] + OuterProducts[2] * OuterProducts[2]);
-    if(length != 0.0) {
-      OuterProducts[0] = OuterProducts[0] / length;
-      OuterProducts[1] = OuterProducts[1] / length;
-      OuterProducts[2] = OuterProducts[2] / length;
-    }
-    //OuterProductsまわりの回転行列を求める
+    NormalizeVector(OuterProducts);
+  }
+
+  void Circle::MakeRotationMatrix(REAL_TYPE * OuterProducts)
+  {
     REAL_TYPE cos = (NormalVector[2]);
     REAL_TYPE sin = std::sqrt(1 - cos * cos);
 
@@ -84,9 +75,52 @@ namespace PPlib
     R[6] = OuterProducts[2] * OuterProducts[0] * (1 - cos) - OuterProducts[1] * sin;
     R[7] = OuterProducts[2] * OuterProducts[1] * (1 - cos) + OuterProducts[0] * sin;
     R[8] = OuterProducts[2] * OuterProducts[2] * (1 - cos) + cos;
+  }
+
+  bool Circle::isReasonable_N_and_a(void)
+  {
+      REAL_TYPE dr = GetRadius() / N;
+      REAL_TYPE dl = 2 * GetRadius() * std::sin(2 * M_PI / (a * N) / 2);
+      if(0.5 < dr / dl && dr / dl < 1.5)
+      {
+        return true;
+      } else{
+        return false;
+      }
+  }
+
+  bool Circle::Make_N_and_a(void)
+  {
+    for(int i = 1; i < SumStartPoints; i++) {
+      N = i;
+      a = SumStartPoints / (N * (N + 1) / 2);
+
+      if(isReasonable_N_and_a())
+        break;
+    }
+    LPT::LPT_LOG::GetInstance()->LOG("N = ", N);
+    LPT::LPT_LOG::GetInstance()->LOG("a = ", a);
+    SetSumStartPoints(a * N * (N + 1) / 2 );
+    return isReasonable_N_and_a();
+  }
+
+  bool Circle::Initialize(void)
+  {
+    if(! Make_N_and_a())
+    {
+      LPT::LPT_LOG::GetInstance()->WARN("Couldn't find reasonable a and N");
+      return false;
+    }
+
+    ConvertNormalVector();
+
+    REAL_TYPE OuterProducts[3];
+    MakeOuterProducts(OuterProducts);
+
+    MakeRotationMatrix(OuterProducts);
 
     //開始点の密度 開始点数/円の面積(無次元) を計算してログに出力
-    LPT::LPT_LOG::GetInstance()->LOG("Start point density = ", GetSumStartPoints() / (M_PI * Radius * Radius));
+    LPT::LPT_LOG::GetInstance()->INFO("Start point density = ", GetSumStartPoints() / (M_PI * Radius * Radius));
     return true;
   }
 
@@ -111,8 +145,11 @@ namespace PPlib
         }
       }
     }
-    DSlib::DV3 tmpCoord(Coord1[0], Coord1[1], Coord1[2]);
-    Coords.push_back(tmpCoord);
+    //円の中心の座標はtheta_min=0の領域のみに含める
+    if (theta_min == 0 ){
+      DSlib::DV3 tmpCoord(Coord1[0], Coord1[1], Coord1[2]);
+      Coords.push_back(tmpCoord);
+    }
 
   }
 

@@ -29,6 +29,8 @@ libLPT_a_SOURCES = \
    LPT/FV_ParticlePathBinaryOutput.C \
    PP/Circle.C \
    PP/StartPoint.C \
+   PP/SimpleStartPointFactory.C \
+   PP/Point.C \
    PP/PPlib.C \
    PP/Line.C \
    PP/MovingPoints.C \

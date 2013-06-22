@@ -1,5 +1,5 @@
-#ifndef PPLIB_LINE_H
-#define PPLIB_LINE_H
+#ifndef PPLIB_POINT_H
+#define PPLIB_POINT_H
 
 #include <iostream>
 #include <vector>
@@ -9,25 +9,19 @@
 namespace PPlib
 {
 //forward declaration
-  class ParticleData;
-  //! @brief 線分型で定義された開始点の情報を保持するクラス
-  class Line:public StartPoint
+  struct ParticleData;
+  //! @brief 1点で定義された開始点の情報を保持するクラス
+  class Point:public StartPoint
   {
-  private:
-    //! @brief 開始点が存在する線分の端点の座標
-    //!  Coord2とは異なる座標でなければならない
+    //! @brief 開始点を定義する座標
+    //! 配列の先頭から順にx,y,zの各成分を意味する
     REAL_TYPE Coord1[3];
 
-    //! @brief 開始点が存在する線分の端点の座標
-    //!  Coord1とは異なる座標でなければならない
-    REAL_TYPE Coord2[3];
-
-  public:
+    public:
     //! テキスト出力を行う
     std::ostream & TextPrint(std::ostream & stream) const
     {
       stream << "Coord1          = " << this->Coord1[0] << "," << this->Coord1[1] << "," << this->Coord1[2] << std::endl;
-      stream << "Coord2          = " << this->Coord2[0] << "," << this->Coord2[1] << "," << this->Coord2[2] << std::endl;
       stream << "SumStartPoints  = " << this->SumStartPoints << std::endl;
       stream << "StartTime       = " << this->StartTime << std::endl;
       stream << "ReleaseTime     = " << this->ReleaseTime << std::endl;
@@ -44,55 +38,38 @@ namespace PPlib
     //! @ret   分割後の開始点オブジェクトを格納したコンテナ
     std::vector < StartPoint * >*Divider(const int &AveNumStartPoints);
 
-    //! 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
+    //! @brief 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標
     void GetGridPointCoord(std::vector < DSlib::DV3 > &Coords);
 
-    //! Setter/Getter
     void SetCoord1(REAL_TYPE * Coord)
     {
       for(int i = 0; i < 3; i++) {
         this->Coord1[i] = Coord[i];
     }};
-    void SetCoord2(REAL_TYPE * Coord)
-    {
-      for(int i = 0; i < 3; i++) {
-        this->Coord2[i] = Coord[i];
-    }};
-    void GetCoord2(REAL_TYPE * Coord)
-    {
-      for(int i = 0; i < 3; i++) {
-        Coord[i] = this->Coord2[i];
-      }};
-
     //!  Constructor
-    Line()
+    Point()
     {
       for(int i = 0; i < 3; i++)
       {
         this->Coord1[i] = 0.0;
-        this->Coord2[i] = 0.0;
       }
     }
 
     //! Copy Constructor
-    Line(const Line & org):StartPoint(org)
+    Point(const Point& org):StartPoint(org)
     {
       for(int i = 0; i < 3; i++) {
         Coord1[i] = org.Coord1[i];
-        Coord2[i] = org.Coord2[i];
       }
     }
 
     //! 比較演算子のオーバーロード
-    bool operator==(const Line & obj) const
+    bool operator==(const Point& obj) const
     {
       return (this->Coord1[0]         == obj.Coord1[0] &&
               this->Coord1[1]         == obj.Coord1[1] &&
               this->Coord1[2]         == obj.Coord1[2] &&
-              this->Coord2[0]         == obj.Coord2[0] &&
-              this->Coord2[1]         == obj.Coord2[1] &&
-              this->Coord2[2]         == obj.Coord2[2] &&
               this->SumStartPoints    == obj.SumStartPoints &&
               this->StartTime         == obj.StartTime &&
               this->ReleaseTime       == obj.ReleaseTime &&
@@ -101,11 +78,10 @@ namespace PPlib
     }
 
     //! 代入演算子オーバーロード
-    Line & operator=(const Line & org)
+    Point& operator=(const Point& org)
     {
       for(int i = 0; i < 3; i++) {
         Coord1[i] = org.Coord1[i];
-        Coord2[i] = org.Coord2[i];
       }
       SumStartPoints = org.SumStartPoints;
       StartTime = org.StartTime;
@@ -119,11 +95,10 @@ namespace PPlib
     }
 
     //! 出力演算子オーバーロード
-    friend std::ostream & operator <<(std::ostream & stream, const Line& obj);
+    friend std::ostream & operator <<(std::ostream & stream, const Point& obj);
 
     //! 入力演算子オーバーロード
-    friend std::istream & operator >>(std::istream & stream, Line & obj);
-
+    friend std::istream & operator >>(std::istream & stream, Point& obj);
 
   };
 

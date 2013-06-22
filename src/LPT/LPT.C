@@ -9,11 +9,7 @@
 #include "DSlib.h"
 #include "PPlib.h"
 #include "Communicator.h"
-#include "StartPoint.h"
-#include "Line.h"
-#include "Rectangle.h"
-#include "Cuboid.h"
-#include "Circle.h"
+#include "StartPointAll.h"
 #include "DecompositionManager.h"
 #include "ParticleData.h"
 #include "Cache.h"
@@ -23,6 +19,7 @@
 #include "LPT_LogOutput.h"
 #include "PP_Transport.h"
 #include "PMlibWrapper.h"
+#include "SimpleStartPointFactory.h"
 
 namespace LPT
 {
@@ -49,18 +46,39 @@ namespace LPT
     return stream;
   }
 
-  //TODO この辺のメソッド内の処理をHogeSimpleFactory classへ変更
   bool LPT::LPT_SetStartPoint(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
   {
-    // StartPoints.push_back(PPlib::StartPointSimpleFactory(Coord1, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime)); みたいなイメージ
-    PPlib::StartPoint * tmpStartPoint = new PPlib::StartPoint;
-    tmpStartPoint->SetCoord1(Coord1);
-    tmpStartPoint->SetSumStartPoints(1);
-    tmpStartPoint->SetStartTime(StartTime);
-    tmpStartPoint->SetReleaseTime(ReleaseTime);
-    tmpStartPoint->SetTimeSpan(TimeSpan);
-    tmpStartPoint->SetParticleLifeTime(ParticleLifeTime);
-    StartPoints.push_back(tmpStartPoint);
+    StartPoints.push_back(PPlib::PointFactory::create(Coord1, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+    return true;
+  }
+
+  bool LPT::LPT_SetStartPointLine(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+  {
+    StartPoints.push_back(PPlib::LineFactory::create(Coord1, Coord2, SumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+    return true;
+  }
+
+  bool LPT::LPT_SetStartPointRectangle(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+  {
+    PPlib::StartPoint *tmpStartPoint = PPlib::RectangleFactory::create(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
+    if (tmpStartPoint == NULL)
+    {
+      return false;
+    }else{
+      StartPoints.push_back(tmpStartPoint);
+      return true;
+    }
+  }
+
+  bool LPT::LPT_SetStartPointCuboid(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+  {
+    StartPoints.push_back(PPlib::CuboidFactory::create(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+    return true;
+  }
+
+  bool LPT::LPT_SetStartPointCircle(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE Radius, REAL_TYPE NormalVector[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+  {
+    StartPoints.push_back(PPlib::CircleFactory::create(Coord1, SumStartPoints, Radius, NormalVector, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     return true;
   }
 
@@ -69,83 +87,6 @@ namespace LPT
     return false;
   }
 
-  bool LPT::LPT_SetStartPointLine(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    PPlib::Line * tmpStartPoint = new PPlib::Line;
-    tmpStartPoint->SetCoord1(Coord1);
-    tmpStartPoint->SetCoord2(Coord2);
-    tmpStartPoint->SetSumStartPoints(SumStartPoints);
-    tmpStartPoint->SetStartTime(StartTime);
-    tmpStartPoint->SetReleaseTime(ReleaseTime);
-    tmpStartPoint->SetTimeSpan(TimeSpan);
-    tmpStartPoint->SetParticleLifeTime(ParticleLifeTime);
-    StartPoints.push_back(tmpStartPoint);
-    return true;
-  }
-
-  bool LPT::LPT_SetStartPointRectangle(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    if(Coord1[0] == Coord2[0]) {
-      if(NumStartPoints[0] != 1)
-        return false;
-    } else if(Coord1[1] == Coord2[1]) {
-      if(NumStartPoints[1] != 1)
-        return false;
-    } else if(Coord1[2] == Coord2[2]) {
-      if(NumStartPoints[2] != 1)
-        return false;
-    } else {
-      return false;
-    }
-
-    PPlib::Rectangle * tmpStartPoint = new PPlib::Rectangle;
-    tmpStartPoint->SetCoord1(Coord1);
-    tmpStartPoint->SetCoord2(Coord2);
-    tmpStartPoint->SetSumStartPoints(NumStartPoints[0] * NumStartPoints[1] * NumStartPoints[2]);
-    tmpStartPoint->SetNumStartPoints(NumStartPoints);
-    tmpStartPoint->SetStartTime(StartTime);
-    tmpStartPoint->SetReleaseTime(ReleaseTime);
-    tmpStartPoint->SetTimeSpan(TimeSpan);
-    tmpStartPoint->SetParticleLifeTime(ParticleLifeTime);
-    StartPoints.push_back(tmpStartPoint);
-    return true;
-  }
-
-  bool LPT::LPT_SetStartPointCuboid(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    PPlib::Rectangle * tmpStartPoint = new PPlib::Rectangle;
-    tmpStartPoint->SetCoord1(Coord1);
-    tmpStartPoint->SetCoord2(Coord2);
-    tmpStartPoint->SetSumStartPoints(NumStartPoints[0] * NumStartPoints[1] * NumStartPoints[2]);
-    tmpStartPoint->SetNumStartPoints(NumStartPoints);
-    tmpStartPoint->SetStartTime(StartTime);
-    tmpStartPoint->SetReleaseTime(ReleaseTime);
-    tmpStartPoint->SetTimeSpan(TimeSpan);
-    tmpStartPoint->SetParticleLifeTime(ParticleLifeTime);
-    StartPoints.push_back(tmpStartPoint);
-    return true;
-  }
-
-  bool LPT::LPT_SetStartPointCircle(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE Radius, REAL_TYPE NormalVector[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    PPlib::Circle * tmpStartPoint = new PPlib::Circle;
-    tmpStartPoint->SetCoord1(Coord1);
-    tmpStartPoint->SetSumStartPoints(SumStartPoints);
-    tmpStartPoint->SetRadius(Radius);
-    tmpStartPoint->SetNormalVector(NormalVector);
-    tmpStartPoint->SetStartTime(StartTime);
-    tmpStartPoint->SetReleaseTime(ReleaseTime);
-    tmpStartPoint->SetTimeSpan(TimeSpan);
-    tmpStartPoint->SetParticleLifeTime(ParticleLifeTime);
-    if(tmpStartPoint->Initialize()) {
-      StartPoints.push_back(tmpStartPoint);
-      return true;
-    } else {
-      delete tmpStartPoint;
-
-      return false;
-    }
-  }
 
   int LPT::LPT_OutputParticleData()
   {

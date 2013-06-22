@@ -1,18 +1,12 @@
 #include "Line.h"
 #include "ParticleData.h"
+#include "SimpleStartPointFactory.h"
 
 namespace PPlib
 {
-  std::ostream & operator <<(std::ostream & stream, Line & obj)
+  std::ostream & operator <<(std::ostream & stream, const Line& obj)
   {
-    stream << "Coord1          = " << obj.Coord1[0] << "," << obj.Coord1[1] << "," << obj.Coord1[2] << std::endl;
-    stream << "Coord2          = " << obj.Coord2[0] << "," << obj.Coord2[1] << "," << obj.Coord2[2] << std::endl;
-    stream << "SumStartPoints  = " << obj.GetSumStartPoints() << std::endl;
-    stream << "StartTime       = " << obj.StartTime << std::endl;
-    stream << "ReleaseTime     = " << obj.ReleaseTime << std::endl;
-    stream << "TimeSpan        = " << obj.TimeSpan << std::endl;
-    stream << "LatestEmitTime  = " << obj.LatestEmitTime << std::endl;
-    stream << "ID              = " << obj.ID[0] << "," << obj.ID[1] << std::endl;
+    stream << obj.TextPrint(stream);
     return stream;
   }
 
@@ -53,50 +47,25 @@ namespace PPlib
     //分割後のオブジェクトが持つ格子点数
     int NumGridPoints = NumParts > 1 ? (GetSumStartPoints() - NumReminder) / NumParts : -1;
 
-    for(int i = 0; i < NumParts; i++) {
-      Line *tmp = new Line;
-
-      tmp->SetSumStartPoints(NumGridPoints);
-      tmp->SetStartTime(GetStartTime());
-      tmp->SetReleaseTime(GetReleaseTime());
-      tmp->SetTimeSpan(GetTimeSpan());
-      tmp->SetParticleLifeTime(GetParticleLifeTime());
-      (*StartPoints).push_back(tmp);
-    }
+    //NumGridPoints個づつCoord1から数えて、ptrLineのCoord1, Coord2に入れる
 
     std::vector < DSlib::DV3 > Coords;
     GetGridPointCoord(Coords);
-
-    //NumGridPoints個づつCoord1から数えて、ptrLineのCoord1, Coord2に入れる
-    int index = 0;
-
     std::vector < DSlib::DV3 >::iterator itCoords = Coords.begin();
-    for(std::vector < StartPoint * >::iterator it = (*StartPoints).begin(); it != (*StartPoints).end(); it++) {
+    for(int i = 0; i < NumParts; i++)
+    {
       REAL_TYPE Coord1[3] = { (*itCoords).x, (*itCoords).y, (*itCoords).z };
-      (*it)->SetCoord1(Coord1);
       itCoords += NumGridPoints - 1;
-
       REAL_TYPE Coord2[3] = { (*itCoords).x, (*itCoords).y, (*itCoords).z };
-      (*it)->SetCoord2(Coord2);
       ++itCoords;
+
+      StartPoints->push_back(LineFactory::create(Coord1, Coord2, NumGridPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     }
-    if(NumReminder != 0) {
-      Line *tmp = new Line;
 
-      tmp->SetSumStartPoints(NumReminder);
-      tmp->SetStartTime(GetStartTime());
-      tmp->SetReleaseTime(GetReleaseTime());
-      tmp->SetTimeSpan(GetTimeSpan());
-      tmp->SetParticleLifeTime(GetParticleLifeTime());
-
+    if(NumReminder != 0)
+    {
       REAL_TYPE Coord1[3] = { (*itCoords).x, (*itCoords).y, (*itCoords).z };
-      tmp->SetCoord1(Coord1);
-
-      REAL_TYPE Coord2[3];
-
-      GetCoord2(Coord2);
-      tmp->SetCoord2(Coord2);
-      (*StartPoints).push_back(tmp);
+      StartPoints->push_back(LineFactory::create(Coord1, this->Coord2, NumReminder, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     }
     return StartPoints;
   }

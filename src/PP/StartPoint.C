@@ -18,55 +18,8 @@
 
 namespace PPlib
 {
-
-  std::ostream & operator <<(std::ostream & stream, StartPoint & obj)
-  {
-    stream << "Coord1           = " << obj.Coord1[0] << "," << obj.Coord1[1] << "," << obj.Coord1[2] << std::endl;
-    stream << "SumStartPoints   = " << obj.GetSumStartPoints() << std::endl;
-    stream << "StartTime        = " << obj.StartTime << std::endl;
-    stream << "ReleaseTime      = " << obj.ReleaseTime << std::endl;
-    stream << "TimeSpan         = " << obj.TimeSpan << std::endl;
-    stream << "ParticleLifeTime = " << obj.ParticleLifeTime << std::endl;
-    stream << "LatestEmitTime   = " << obj.LatestEmitTime << std::endl;
-    stream << "ID               = " << obj.ID[0] << "," << obj.ID[1] << std::endl;
-    return stream;
-  }
-
-  std::istream & operator >>(std::istream & stream, StartPoint & obj)
-  {
-    stream >> obj.Coord1[0] >> obj.Coord1[1] >> obj.Coord1[2];
-    stream >> obj.SumStartPoints;
-    stream >> obj.StartTime >> obj.ReleaseTime >> obj.TimeSpan >> obj.ParticleLifeTime;
-
-    return stream;
-  }
-
   std::ostream & operator <<(std::ostream & stream, StartPoint * obj) {
-    //TODO publicなメンバ関数Debug()を用意して、この中ではDebug()を呼ぶように変更する
-    // つまり
-    //   stream << obj->Debug();
-    // だけにする
-    if(typeid(Line) == typeid(*obj)) {
-      stream << std::endl;
-      stream << "Line" << std::endl;
-      stream << *(dynamic_cast < Line * >(obj));
-    } else if(typeid(Rectangle) == typeid(*obj)) {
-      stream << std::endl;
-      stream << "Rectangle" << std::endl;
-      stream << *(dynamic_cast < Rectangle * >(obj));
-    } else if(typeid(Cuboid) == typeid(*obj)) {
-      stream << std::endl;
-      stream << "Cuboid" << std::endl;
-      stream << *(dynamic_cast < Cuboid * >(obj));
-    } else if(typeid(Circle) == typeid(*obj)) {
-      stream << std::endl;
-      stream << "Circle" << std::endl;
-      stream << *(dynamic_cast < Circle * >(obj));
-    } else {
-      stream << std::endl;
-      stream << "StartPoint" << std::endl;
-      stream << *obj;
-    }
+    stream << obj->TextPrint(stream);
     return stream;
   }
 
@@ -146,15 +99,6 @@ namespace PPlib
     }
   }
 
-  void StartPoint::GetGridPointCoord(std::vector < DSlib::DV3 > &Coords)
-  {
-    DSlib::DV3 tmpCoord;
-    tmpCoord.x = Coord1[0];
-    tmpCoord.y = Coord1[1];
-    tmpCoord.z = Coord1[2];
-    Coords.push_back(tmpCoord);
-  }
-
   bool StartPoint::CheckReleasetime(const double &CurrentTime)
   {
     if(ReleaseTime <= 0) {
@@ -162,15 +106,6 @@ namespace PPlib
     } else {
       return (StartTime + ReleaseTime) > CurrentTime ? false : true;
     }
-  }
-
-  std::vector < StartPoint * >*StartPoint::Divider(const int &NumParts) {
-    std::vector < StartPoint * >*NewStartPoints = new std::vector < StartPoint * >;
-    StartPoint *tmpStartPoint = new StartPoint;
-
-    tmpStartPoint = this;
-    NewStartPoints->push_back(tmpStartPoint);
-    return NewStartPoints;
   }
 
 } // namespace PPlib
