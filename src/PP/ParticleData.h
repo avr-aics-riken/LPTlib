@@ -48,6 +48,11 @@ namespace PPlib
     //! どの時点の粒子データかを格納する(タイムステップ)
     unsigned int CurrentTimeStep;
 
+    ///////////////////////////////////////////////////////////////////////////////////
+    //
+    // Method
+    //
+    //////////////////////////////////////////////////////////////////////////////////
     //!  引数で指定されたファイルストリームに対して、粒子データを出力
     void BinaryWrite(std::ofstream & out);
 
@@ -85,12 +90,16 @@ namespace PPlib
     {
       return (this->ParticleID == obj.ParticleID &&
               this->StartPointID[0] == obj.StartPointID[0] &&
-              this->StartPointID[1] == obj.StartPointID[1] && this->Coord[0] == obj.Coord[0] && this->Coord[1] == obj.Coord[1] && this->Coord[2] == obj.Coord[2] && this->StartTime == obj.StartTime) ? true : false;
+              this->StartPointID[1] == obj.StartPointID[1] &&
+              this->Coord[0] == obj.Coord[0] &&
+              this->Coord[1] == obj.Coord[1] &&
+              this->Coord[2] == obj.Coord[2] &&
+              this->StartTime == obj.StartTime) ? true : false;
     }
 
   };
 
-//!BlockID順にソートするためのファンクタ
+  //!BlockID順にソートするためのファンクタ
   struct CompareBlockID
   {
     bool operator() (const ParticleData * left, const ParticleData * right)const
@@ -99,7 +108,7 @@ namespace PPlib
     }
   };
 
-//!タイムステップ順にソートするためのファンクタ
+  //!タイムステップ順にソートするためのファンクタ
   struct CompareTimeStep
   {
     bool operator() (const ParticleData * left, const ParticleData * right)const
@@ -108,7 +117,7 @@ namespace PPlib
     }
   };
 
-//!粒子のID順にソートするためのファンクタ
+  //!粒子のID順にソートするためのファンクタ
   struct CompareID
   {
     bool operator() (const ParticleData * left, const ParticleData * right)const
