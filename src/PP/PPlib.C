@@ -9,12 +9,7 @@
 #include "ParticleData.h"
 #include "DecompositionManager.h"
 #include "DSlib.h"
-#include "StartPoint.h"
-#include "MovingPoints.h"
-#include "Line.h"
-#include "Rectangle.h"
-#include "Cuboid.h"
-#include "Circle.h"
+#include "StartPointAll.h"
 #include "LPT_LogOutput.h"
 #include "LPT_ParticleOutput.h"
 
