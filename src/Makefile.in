@@ -645,7 +645,7 @@ libLPT_a-StartPoint.obj: PP/StartPoint.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-StartPoint.obj `if test -f 'PP/StartPoint.C'; then $(CYGPATH_W) 'PP/StartPoint.C'; else $(CYGPATH_W) '$(srcdir)/PP/StartPoint.C'; fi`
 
-libLPT_a-SimpleStartPointFactoryy.o: PP/SimpleStartPointFactory.C
+libLPT_a-SimpleStartPointFactory.o: PP/SimpleStartPointFactory.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-SimpleStartPointFactory.o -MD -MP -MF $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Tpo -c -o libLPT_a-SimpleStartPointFactory.o `test -f 'PP/SimpleStartPointFactory.C' || echo '$(srcdir)/'`PP/SimpleStartPointFactory.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Tpo $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PP/SimpleStartPointFactory.C' object='libLPT_a-SimpleStartPointFactory.o' libtool=no @AMDEPBACKSLASH@
