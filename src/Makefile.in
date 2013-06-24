@@ -112,8 +112,9 @@ am_libLPT_a_OBJECTS = libLPT_a-Communicator.$(OBJEXT) \
 	libLPT_a-LPT_ParticleInput.$(OBJEXT) \
 	libLPT_a-FV_ParticlePathBinaryOutput.$(OBJEXT) \
 	libLPT_a-Circle.$(OBJEXT) libLPT_a-StartPoint.$(OBJEXT) \
-	libLPT_a-PPlib.$(OBJEXT) libLPT_a-Line.$(OBJEXT) \
-	libLPT_a-MovingPoints.$(OBJEXT) \
+	libLPT_a-SimpleStartPointFactory.$(OBJEXT) \
+	libLPT_a-Point.$(OBJEXT) libLPT_a-PPlib.$(OBJEXT) \
+	libLPT_a-Line.$(OBJEXT) libLPT_a-MovingPoints.$(OBJEXT) \
 	libLPT_a-PP_Transport.$(OBJEXT) libLPT_a-Cuboid.$(OBJEXT) \
 	libLPT_a-Rectangle.$(OBJEXT) libLPT_a-Utility.$(OBJEXT) \
 	libLPT_a-Interpolator.$(OBJEXT) \
@@ -281,6 +282,8 @@ libLPT_a_SOURCES = \
    LPT/FV_ParticlePathBinaryOutput.C \
    PP/Circle.C \
    PP/StartPoint.C \
+   PP/SimpleStartPointFactory.C \
+   PP/Point.C \
    PP/PPlib.C \
    PP/Line.C \
    PP/MovingPoints.C \
@@ -311,6 +314,8 @@ libLPT_a_SOURCES = \
    LPT/PMlibWrapper.h \
    PP/Circle.h \
    PP/StartPoint.h \
+   PP/SimpleStartPointFactory.h \
+   PP/Point.h \
    PP/PPlib.h \
    PP/Line.h \
    PP/MovingPoints.h \
@@ -424,7 +429,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-PP_Transport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-PPlib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-ParticleData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-Point.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-Rectangle.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-SimpleStartPointFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-StartPoint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-Utility.Po@am__quote@
 
@@ -637,6 +644,34 @@ libLPT_a-StartPoint.obj: PP/StartPoint.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PP/StartPoint.C' object='libLPT_a-StartPoint.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-StartPoint.obj `if test -f 'PP/StartPoint.C'; then $(CYGPATH_W) 'PP/StartPoint.C'; else $(CYGPATH_W) '$(srcdir)/PP/StartPoint.C'; fi`
+
+libLPT_a-SimpleStartPointFactoryy.o: PP/SimpleStartPointFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-SimpleStartPointFactory.o -MD -MP -MF $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Tpo -c -o libLPT_a-SimpleStartPointFactory.o `test -f 'PP/SimpleStartPointFactory.C' || echo '$(srcdir)/'`PP/SimpleStartPointFactory.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Tpo $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PP/SimpleStartPointFactory.C' object='libLPT_a-SimpleStartPointFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-SimpleStartPointFactory.o `test -f 'PP/SimpleStartPointFactory.C' || echo '$(srcdir)/'`PP/SimpleStartPointFactory.C
+
+libLPT_a-SimpleStartPointFactory.obj: PP/SimpleStartPointFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-SimpleStartPointFactory.obj -MD -MP -MF $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Tpo -c -o libLPT_a-SimpleStartPointFactory.obj `if test -f 'PP/SimpleStartPointFactory.C'; then $(CYGPATH_W) 'PP/SimpleStartPointFactory.C'; else $(CYGPATH_W) '$(srcdir)/PP/SimpleStartPointFactory.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Tpo $(DEPDIR)/libLPT_a-SimpleStartPointFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PP/SimpleStartPointFactory.C' object='libLPT_a-SimpleStartPointFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-SimpleStartPointFactory.obj `if test -f 'PP/SimpleStartPointFactory.C'; then $(CYGPATH_W) 'PP/SimpleStartPointFactory.C'; else $(CYGPATH_W) '$(srcdir)/PP/SimpleStartPointFactory.C'; fi`
+
+libLPT_a-Point.o: PP/Point.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-Point.o -MD -MP -MF $(DEPDIR)/libLPT_a-Point.Tpo -c -o libLPT_a-Point.o `test -f 'PP/Point.C' || echo '$(srcdir)/'`PP/Point.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-Point.Tpo $(DEPDIR)/libLPT_a-Point.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PP/Point.C' object='libLPT_a-Point.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-Point.o `test -f 'PP/Point.C' || echo '$(srcdir)/'`PP/Point.C
+
+libLPT_a-Point.obj: PP/Point.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-Point.obj -MD -MP -MF $(DEPDIR)/libLPT_a-Point.Tpo -c -o libLPT_a-Point.obj `if test -f 'PP/Point.C'; then $(CYGPATH_W) 'PP/Point.C'; else $(CYGPATH_W) '$(srcdir)/PP/Point.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-Point.Tpo $(DEPDIR)/libLPT_a-Point.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PP/Point.C' object='libLPT_a-Point.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-Point.obj `if test -f 'PP/Point.C'; then $(CYGPATH_W) 'PP/Point.C'; else $(CYGPATH_W) '$(srcdir)/PP/Point.C'; fi`
 
 libLPT_a-PPlib.o: PP/PPlib.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-PPlib.o -MD -MP -MF $(DEPDIR)/libLPT_a-PPlib.Tpo -c -o libLPT_a-PPlib.o `test -f 'PP/PPlib.C' || echo '$(srcdir)/'`PP/PPlib.C

@@ -61,6 +61,8 @@ libLPT_a_SOURCES = \
    LPT/PMlibWrapper.h \
    PP/Circle.h \
    PP/StartPoint.h \
+   PP/SimpleStartPointFactory.h \
+   PP/Point.h \
    PP/PPlib.h \
    PP/Line.h \
    PP/MovingPoints.h \
