@@ -81,28 +81,48 @@ namespace PPlib
   {
       REAL_TYPE dr = GetRadius() / N;
       REAL_TYPE dl = 2 * GetRadius() * std::sin(2 * M_PI / (a * N) / 2);
-      if(0.5 < dr / dl && dr / dl < 1.5)
-      {
-        return true;
-      } else{
-        return false;
-      }
+
+      return (0.5 < dr / dl && dr / dl < 1.5);
   }
 
   bool Circle::Make_N_and_a(void)
   {
-    for(int i = 1; i < SumStartPoints; i++) {
+    int NumStartPointsWithoutCenter = SumStartPoints-1;
+    //半径方向の分割数(N)を決める
+    for(int i = 1; i < NumStartPointsWithoutCenter; i++) {
       N = i;
-      a = SumStartPoints / (N * (N + 1) / 2);
+      a = NumStartPointsWithoutCenter / (N * (N + 1) / 2);
 
       if(isReasonable_N_and_a())
+      {
+        LPT::LPT_LOG::GetInstance()->LOG("N = ", N);
+        LPT::LPT_LOG::GetInstance()->LOG("a = ", a);
         break;
+      }
     }
-    LPT::LPT_LOG::GetInstance()->LOG("N = ", N);
-    LPT::LPT_LOG::GetInstance()->LOG("a = ", a);
-    SetSumStartPoints(a * N * (N + 1) / 2 );
+    SetSumStartPoints(CalcSumStartPoints());
     return isReasonable_N_and_a();
   }
+
+  int Circle::CalcSumStartPoints()
+  {
+    int tmpSumStartPoints=0;
+    for(int i = Istart; i <= Iend; i++) {
+      for(int j = 0; j < i * a; j++) {
+        double theta = 2 * M_PI / (i * a) * j;
+        if(theta_min <= theta && theta < theta_max) {
+          ++tmpSumStartPoints;
+        }
+      }
+    }
+    //円の中心の座標はtheta_min=0の領域のみに含める
+    if (theta_min == 0 )
+    {
+      ++tmpSumStartPoints;
+    }
+    return tmpSumStartPoints;
+  }
+
 
   bool Circle::Initialize(void)
   {
@@ -120,7 +140,8 @@ namespace PPlib
     MakeRotationMatrix(OuterProducts);
 
     //開始点の密度 開始点数/円の面積(無次元) を計算してログに出力
-    LPT::LPT_LOG::GetInstance()->INFO("Start point density = ", GetSumStartPoints() / (M_PI * Radius * Radius));
+    LPT::LPT_LOG::GetInstance()->INFO("Number of Start point = ", GetSumStartPoints());
+    LPT::LPT_LOG::GetInstance()->INFO("Start point density   = ", GetSumStartPoints() / (M_PI * Radius * Radius));
     return true;
   }
 
@@ -153,17 +174,71 @@ namespace PPlib
 
   }
 
-  std::vector < StartPoint * >*Circle::Divider(const int &AveNumStartPoints)
+  void Circle::Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints)
   {
-    std::vector < StartPoint * >*StartPoints = new std::vector < StartPoint * >;
+    //オブジェクトの開始点数が引数で指定された数以下の場合は、自分自身のコピー(へのポインタ)を
+    //vectorに格納して終了
+    if(MaxNumStartPoints >= GetSumStartPoints()) {
+      Circle *NewCircle = new Circle(*this);
+      StartPoints->push_back(NewCircle);
+      LPT::LPT_LOG::GetInstance()->LOG("GetSumStartPoints = ", GetSumStartPoints());
+      LPT::LPT_LOG::GetInstance()->LOG("MaxNumStartPoints= ", MaxNumStartPoints);
+      return;
+    } else if(MaxNumStartPoints <= 0){
+      // MaxNumStartPointsが0以下の時はエラーメッセージを出力して終了
+      LPT::LPT_LOG::GetInstance()->WARN("illegal MaxNumStartPoints. this StartPointSetting will be deleted ", this);
+      return;
+    }
 
-    //オブジェクトの開始点数が引数で指定された数以下の場合は、自分自身のコピーを格納したvectorを返す
-    if(AveNumStartPoints >= GetSumStartPoints()) {
+    //余りオブジェクトが持つ開始点数
+    int NumReminder = GetSumStartPoints() % MaxNumStartPoints;
+
+    //余りオブジェクトを除いた分割後のオブジェクトの数
+    int NumParts = GetSumStartPoints() / MaxNumStartPoints;
+    LPT::LPT_LOG::GetInstance()->LOG("NumParts = ",NumParts );
+    LPT::LPT_LOG::GetInstance()->LOG("Reminder = ",NumReminder);
+
+    //分割後のオブジェクトが持つ開始点数
+    int NumGridPoints = (GetSumStartPoints() - NumReminder) / NumParts;
+
+    //余りオブジェクトの中心角はオブジェクトに含まれる開始点数の比を元に
+    //初期値を決めて、オブジェクトに含まれる開始点数がNumReminderよりも少ない場合は
+    //すこしづつ中心角を広げる
+    //逆に余りオブジェクトに余計に開始点が含まれている場合はそのままにする
+    double ReminderCentralAngle=0.0;
+    if (NumReminder != 0)
+    {
+      ReminderCentralAngle=((double)NumReminder/(double)SumStartPoints) * 2 * M_PI;
+      Circle *NewCircle = new Circle(*this);
+      NewCircle->theta_min = 2 * M_PI - ReminderCentralAngle;
+      double tick = (2 * M_PI - ReminderCentralAngle)/NumParts/NumGridPoints;
+ 
+      while(NumReminder > NewCircle->CalcSumStartPoints())
+      {
+        NewCircle->theta_min -= tick;
+      }
+      LPT::LPT_LOG::GetInstance()->LOG("theta_min = ",NewCircle->theta_min);
+      LPT::LPT_LOG::GetInstance()->LOG("theta_max = ",NewCircle->theta_max);
+      LPT::LPT_LOG::GetInstance()->LOG("ReminderCentralAngle = ",ReminderCentralAngle);
+      NewCircle->SetSumStartPoints(NewCircle->CalcSumStartPoints());
+      StartPoints->push_back(NewCircle);
+    }
+
+    const double CentralAngle=(2*M_PI-ReminderCentralAngle)/NumParts;
+    LPT::LPT_LOG::GetInstance()->LOG("ReminderCentralAngle = ",ReminderCentralAngle);
+    LPT::LPT_LOG::GetInstance()->LOG("CentralAngle = ",CentralAngle);
+    for (int i=0;i<NumParts;++i)
+    {
       Circle *NewCircle = new Circle(*this);
 
+      NewCircle->theta_min=i*CentralAngle;
+      NewCircle->theta_max=(i+1)*CentralAngle;
+      LPT::LPT_LOG::GetInstance()->LOG("theta_min = ",NewCircle->theta_min);
+      LPT::LPT_LOG::GetInstance()->LOG("theta_max = ",NewCircle->theta_max);
+      NewCircle->SetSumStartPoints(NewCircle->CalcSumStartPoints());
       StartPoints->push_back(NewCircle);
-      return StartPoints;
     }
   }
+
 
 } // namespace PPlib
