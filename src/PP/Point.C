@@ -1,5 +1,6 @@
 #include "Point.h"
 #include "ParticleData.h"
+#include "LPT_LogOutput.h"
 
 namespace PPlib
 {
@@ -24,16 +25,16 @@ namespace PPlib
     Coords.push_back(DV3Coord);
   }
 
-  std::vector < StartPoint * >*Point::Divider(const int &AveNumStartPoints)
+  void Point::Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints)
   {
-    std::vector < StartPoint * >*StartPoints = new std::vector < StartPoint * >;
-
-    if(AveNumStartPoints >= GetSumStartPoints()) {
+    if(MaxNumStartPoints >= GetSumStartPoints()) {
       Point *NewPoint= new Point(*this);
-
       StartPoints->push_back(NewPoint);
+    } else {
+      // MaxNumStartPointsがGetSumStartPoints() (=必ず1)より小さい場合はwarnningを出力するだけ
+      LPT::LPT_LOG::GetInstance()->WARN("illegal MaxNumStartPoints. this StartPointSetting will be deleted ", this);
     }
-    return StartPoints;
+    return;
   }
 
 

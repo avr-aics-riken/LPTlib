@@ -64,7 +64,7 @@ namespace PPlib
     void DividePoints(std::vector < DSlib::DV3 > *Coords, const int &NumPoints, DSlib::DV3 & Coord1, DSlib::DV3 & Coord2);
 
     //! @brief LatestEmitTimeからTimeSpan時間経過していた場合に、新しく粒子を放出する
-    std::list < ParticleData * >*EmitNewParticle(const double &CurrentTime, const unsigned int &CurrentTimeStep);
+    void EmitNewParticle(std::list < ParticleData * >* ParticleList, const double &CurrentTime, const unsigned int &CurrentTimeStep);
 
     //! テキスト出力を行う
     virtual std::ostream & TextPrint(std::ostream & stream) const =0;
@@ -76,13 +76,12 @@ namespace PPlib
     {
     };
 
-    //! @brief 開始点オブジェクトをAveNumStartPointsで指定した開始点数以下のオブジェクトに分割する。
+    //! @brief 開始点オブジェクトをMaxNumStartPointsで指定した開始点数以下のオブジェクトに分割する。
     //! 余りが生じた場合は1つ余計にオブジェクトを生成し、そのオブジェクトに余り領域を入れて返す
     //! @attention 分割前のオブジェクトは残っているので、このメソッド実行後に破棄すること
-    //! @param AveNumStartPoints [in]  分割後のオブジェクトが持つ最大の開始点数
+    //! @param MaxNumStartPoints [in]  分割後のオブジェクトが持つ最大の開始点数
     //! @ret   分割後の開始点オブジェクトを格納したコンテナ
-    //TODO vectorを確保する責任は呼び出し側に移す
-    virtual std::vector < StartPoint * >*Divider(const int &AveNumStartPoints)=0;
+    virtual void Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints)=0;
 
     //! @brief 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標

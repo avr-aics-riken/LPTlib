@@ -17,15 +17,16 @@ namespace PPlib
 {
   void PPlib::EmitNewParticles(const double &CurrentTime, const unsigned int &CurrentTimeStep)
   {
+    std::list < ParticleData * > tmpParticles;
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end(); it++)
     {
       (*it)->UpdateStartPoint(CurrentTime);
-      std::list < ParticleData * >*tmp_Particles = (*it)->EmitNewParticle(CurrentTime, CurrentTimeStep);
-      if(tmp_Particles != NULL)
-      {
-        LPT::LPT_LOG::GetInstance()->INFO("Number of New Particles = ", tmp_Particles->size());
-        Particles.splice(Particles.end(), *tmp_Particles);
-      }
+      (*it)->EmitNewParticle(&tmpParticles, CurrentTime, CurrentTimeStep);
+    }
+    if(! tmpParticles.empty())
+    {
+      LPT::LPT_LOG::GetInstance()->INFO("Number of New Particles = ", tmpParticles.size());
+      Particles.splice(Particles.end(), tmpParticles);
     }
   }
 
@@ -140,8 +141,9 @@ namespace PPlib
 
     //平均を越えている開始点領域を分割 (分割後の開始点は破棄)
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end();) {
-      std::vector < StartPoint * >*tmpStartPoints = (*it)->Divider(AveNumStartPoints);
-      NewStartPoints.insert(NewStartPoints.end(), tmpStartPoints->begin(), tmpStartPoints->end());
+      std::vector < StartPoint * > tmpStartPoints;
+      (*it)->Divider(&tmpStartPoints, AveNumStartPoints);
+      NewStartPoints.insert(NewStartPoints.end(), tmpStartPoints.begin(), tmpStartPoints.end());
       it = StartPoints.erase(it);
     }
 

@@ -23,7 +23,7 @@ namespace PPlib
     return stream;
   }
 
-  std::list < PPlib::ParticleData * >*StartPoint::EmitNewParticle(const double &CurrentTime, const unsigned int &CurrentTimeStep) {
+  void StartPoint::EmitNewParticle(std::list < ParticleData * >* ParticleList, const double &CurrentTime, const unsigned int &CurrentTimeStep) {
     static int id = 0;
     bool DoEmit = false;
 
@@ -37,29 +37,27 @@ namespace PPlib
       }
     }
 
-    std::list < PPlib::ParticleData * >*ParticleList = new std::list < PPlib::ParticleData * >;
+    std::list < PPlib::ParticleData * > tmpParticleList;
     if(DoEmit) {
       try {
         for(int i = 0; i < GetSumStartPoints(); i++) {
           PPlib::ParticleData * tmp = new ParticleData;
-          ParticleList->push_back(tmp);
+          tmpParticleList.push_back(tmp);
         }
       }
       catch(std::bad_alloc) {
-        for(std::list < PPlib::ParticleData * >::iterator it = ParticleList->begin(); it != ParticleList->end(); it++) {
+        for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); it++) {
           delete *it;
         }
-        delete ParticleList;
-
         std::cerr << "faild to allocate memory for ParticleData. particle emittion is skiped for this time step" << std::endl;
-        return NULL;
+        return;
       }
 
       std::vector < DSlib::DV3 > Coords;
       GetGridPointCoord(Coords);
 
       std::vector < DSlib::DV3 >::iterator itCoords = Coords.begin();
-      for(std::list < PPlib::ParticleData * >::iterator it = ParticleList->begin(); it != ParticleList->end(); it++) {
+      for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); it++) {
         (*it)->StartPointID[0] = ID[0];
         (*it)->StartPointID[1] = ID[1];
         (*it)->ParticleID = id++;
@@ -74,9 +72,7 @@ namespace PPlib
         ++itCoords;
       }
       this->LatestEmitTime = CurrentTime;
-      return ParticleList;
-    } else {
-      return NULL;
+      ParticleList->splice(ParticleList->end(), tmpParticleList);
     }
   }
 

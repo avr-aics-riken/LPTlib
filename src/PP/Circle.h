@@ -24,6 +24,7 @@ namespace PPlib
     REAL_TYPE NormalVector[3];
 
     //! 半径方向に並ぶ開始点数
+    // ただし中心点は除く(つまりN=1の時は領域の外周の円上+中心に開始点が存在する)
     int N;
 
     //! 円周方向に並ぶ開始点数の計算に使う係数
@@ -61,8 +62,8 @@ namespace PPlib
 
     //! @brief Nとaの値が妥当かどうかを判定する
     //! 開始点を配置した同心円の半径の差と、最外周の円上の開始点間の直線距離の比が
-    //! 0.5から1.5の間にあれば妥当
-  bool isReasonable_N_and_a(void);
+    //! 0.5から1.5の間にあれば妥当とみなしている
+    bool isReasonable_N_and_a(void);
 
   public:
     //! テキスト出力を行う
@@ -83,16 +84,33 @@ namespace PPlib
     //! 指定された開始点数からN, aの値を計算する
     bool Initialize(void);
 
+    //! 領域内に含まれる開始点数を計算して返す
+    int CalcSumStartPoints(void);
+
+    //! @brief オブジェクトを分割する 
+    // 円周方向のみを分割する
+    // 元の開始点数に対してMaxNumStartPointsで割ると余りがでる場合は
+    // 2*M_PIに近いところ(要するに一番最後)の部分を余りオブジェクトとする
+    void Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints);
+
+    //! 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
+    //! @param Coords [out] 格子点座標
+    void GetGridPointCoord(std::vector < DSlib::DV3 > &Coords);
+
     //! Accessor
     void SetCoord1(REAL_TYPE * Coord)
     {
-      for(int i = 0; i < 3; i++) {
+      for(int i = 0; i < 3; i++)
+      {
         this->Coord1[i] = Coord[i];
-    }};
+      }
+    };
+
     void SetRadius(REAL_TYPE Radius)
     {
       this->Radius = Radius;
     };
+
     REAL_TYPE GetRadius(void)
     {
       return this->Radius;
@@ -111,13 +129,6 @@ namespace PPlib
       argNormalVector[1] = this->NormalVector[1];
       argNormalVector[2] = this->NormalVector[2];
     };
-
-    //! オブジェクトを分割する 
-    std::vector < StartPoint * >*Divider(const int &AveNumStartPoints);
-
-    //! 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
-    //! @param Coords [out] 格子点座標
-    void GetGridPointCoord(std::vector < DSlib::DV3 > &Coords);
 
     //! Constructor
     Circle():StartPoint()

@@ -1,1 +1,15 @@
 *.[a,o]
+GPATH
+GRTAGS
+GTAGS
+tags
+Makefile
+FileConverter
+doc/reference
+autom4te.cache/
+config.h
+config.log
+config.status
+lpt-config
+src/.deps/
+stamp-h1
