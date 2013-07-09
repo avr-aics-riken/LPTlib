@@ -26,6 +26,9 @@ namespace PPlib
     //! x,y,z方向へ並ぶ開始点の個数
     int NumStartPoints[3];
 
+    //! メンバ変数として保持する2頂点の座標から全頂点の座標を生成する
+    void getAllVertexCoord(DSlib::DV3 *DV3Coord);
+
   public:
     //! テキスト出力を行う
     std::ostream & TextPrint(std::ostream & stream) const
@@ -67,12 +70,12 @@ namespace PPlib
       SumStartPoints = NumStartPoints[0] * NumStartPoints[1] * NumStartPoints[2];
     }
 
-    //! @brief 開始点オブジェクトをAveNumStartPointsで指定した開始点数以下のオブジェクトに分割する
+    //! @brief 開始点オブジェクトをMaxNumStartPointsで指定した開始点数以下のオブジェクトに分割する
     //! 扇型に(中心角の方向のみ分割)し半径方向には分割しない
     //! @attention 分割前のオブジェクトは残っているので、このメソッド実行後に破棄すること
-    //! @param AveNumStartPoints [in]  分割後のオブジェクトが持つ最大の開始点数
+    //! @param MaxNumStartPoints [in]  分割後のオブジェクトが持つ最大の開始点数
     //! @ret   分割後の開始点オブジェクトを格納したコンテナ
-    std::vector < StartPoint * >*Divider(const int &AveNumStartPoints);
+    void Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints);
 
     //! 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標

@@ -47,13 +47,13 @@ namespace PPlib
       return stream;
     }
 
-    //! @brief 開始点オブジェクトをAveNumStartPointsで指定した開始点数以下のオブジェクトに分割する
+    //! @brief 開始点オブジェクトをMaxNumStartPointsで指定した開始点数以下のオブジェクトに分割する
     //! NxM行列をNB, MBで2次元のブロック分割(余りあり)するようなイメージで
     //! 矩形領域をNBxMBの小領域+余り領域に分割する
     //! @attention 分割前のオブジェクトは残っているので、このメソッド実行後に破棄すること
-    //! @param AveNumStartPoints [in]  分割後のオブジェクトが持つ最大の開始点数
+    //! @param MaxNumStartPoints [in]  分割後のオブジェクトが持つ最大の開始点数
     //! @ret   分割後の開始点オブジェクトを格納したコンテナ
-    std::vector < StartPoint * >*Divider(const int &AveNumStartPoints);
+    void Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints);
 
     //! 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標

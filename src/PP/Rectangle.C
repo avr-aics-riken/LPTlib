@@ -3,6 +3,7 @@
 #include "Rectangle.h"
 #include "Utility.h"
 #include "LPT_LogOutput.h"
+#include "SimpleStartPointFactory.h"
 
 namespace PPlib
 {
@@ -93,16 +94,18 @@ namespace PPlib
     LPT::LPT_LOG::GetInstance()->LOG("Number of grid points = ", Coords.size());
   }
 
-  std::vector < StartPoint * >*Rectangle::Divider(const int &AveNumStartPoints)
+  void Rectangle::Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints)
   {
-    std::vector < StartPoint * >*StartPoints = new std::vector < StartPoint * >;
-
     //オブジェクトの開始点数が引数で指定された数以下の場合は、自分自身のコピーを格納したvectorを返す
-    if(AveNumStartPoints >= GetSumStartPoints()) {
+    if(MaxNumStartPoints >= GetSumStartPoints()) {
       Rectangle *NewRectangel = new Rectangle(*this);
 
       StartPoints->push_back(NewRectangel);
-      return StartPoints;
+      return;
+    } else if(MaxNumStartPoints <= 0){
+      // MaxNumStartPointsが0以下の時はエラーメッセージを出力して終了
+      LPT::LPT_LOG::GetInstance()->WARN("illegal MaxNumStartPoints. this StartPointSetting will be deleted ", this);
+      return;
     }
 
     int N;  //Coord1とCoord3の間の開始点数
@@ -112,14 +115,14 @@ namespace PPlib
     DSlib::DV3 Coord4(Coord4[0], Coord4[1], Coord4[2]);
     MakeCoord3_4(&Coord3, &N, &Coord4, &M);
 
-    //AveNumStartPointsを (2^Pow[0] * 3^Pow[1] * 5^Pow[2] * Rem) の形に因数分解
+    //MaxNumStartPointsを (2^Pow[0] * 3^Pow[1] * 5^Pow[2] * Rem) の形に因数分解
     int Pow[4];
 
-    Factorize235(AveNumStartPoints, Pow);
+    Factorize235(MaxNumStartPoints, Pow);
 
     //分割後の小領域のサイズを決める
     int NB = pow(2, (Pow[0] / 2 + Pow[0] % 2)) * pow(3, (Pow[1] / 2 + Pow[1] % 2)) * pow(5, (Pow[2] / 2));
-    int MB = pow(2, (Pow[0] / 2)) * pow(3, (Pow[1] / 2)) * pow(5, (Pow[2] / 2 + Pow[2] % 2));
+    int MB = pow(2, (Pow[0] / 2))              * pow(3, (Pow[1] / 2))              * pow(5, (Pow[2] / 2 + Pow[2] % 2));
 
     LPT::LPT_LOG::GetInstance()->LOG("initial NB = ", NB);
     LPT::LPT_LOG::GetInstance()->LOG("initial MB = ", MB);
@@ -324,7 +327,7 @@ namespace PPlib
       }
     }
 
-    return StartPoints;
+    return;
   }
 
 } // namespace PPlib
