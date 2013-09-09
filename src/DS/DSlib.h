@@ -37,6 +37,9 @@ namespace DSlib
     //!  CacheSize * 1024 * 1024 / sizeof(DataBlock)
     int CacheSize;
 
+    DSlib(const DSlib& obj);
+    DSlib& operator=(const DSlib& obj);
+
   public:
     //! CacheSizeを越えるデータブロックが必要となった時に、1回にキャッシュから追い出すサイズを決める
     int CommBufferSize;
@@ -57,7 +60,7 @@ namespace DSlib
     void PurgeAllCacheLists(void);
 
     //! CachedBlocksのエントリを登録する 
-    void AddCachedBlocks(const CommDataBlockManager & RecvData, const double &Time);
+    void AddCachedBlocks(CommDataBlockManager * RecvData, const double &Time);
 
     //!  RequestQueuesにブロックIDを登録する
     void AddRequestQueues(const int &SubDomainID, const long &BlockID);
@@ -79,17 +82,40 @@ namespace DSlib
 
     //! @brief Constructor
     //! @param CacheSize [in] データブロックのキャッシュエントリ数
-      DSlib(int argCacheSize):CacheSize(argCacheSize)
+    DSlib(int argCacheSize):CacheSize(argCacheSize)
     {
       int NumProcs;
-        MPI_Comm_size(MPI_COMM_WORLD, &NumProcs);
+      MPI_Comm_size(MPI_COMM_WORLD, &NumProcs);
       for(int i = 0; i < NumProcs; i++)
       {
         std::vector < long >*tmp = new std::vector < long >;
           RequestQueues.push_back(tmp);
       }
     }
-
+    ~DSlib()
+    {
+      int NumProcs;
+      MPI_Comm_size(MPI_COMM_WORLD, &NumProcs);
+      for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it!=RequestQueues.end(); ++it)
+      {
+        delete *it;
+      }
+    }
+    void PrintVectorSize(void)
+    {
+      int size=0;
+      int i=0;
+      for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it!=RequestQueues.end(); ++it)
+      {
+        size+=(*it)->capacity();
+        std::cerr << "RequestQueues["<<i<<"].capacity = "<<(*it)->capacity() << " ";
+        std::cerr << "RequestQueues["<<i<<"].size     = "<<(*it)->size() << std::endl;
+        i++;
+      }
+      std::cerr << "RequestQueues.capacity = "<<RequestQueues.capacity()<< " ";
+      std::cerr << "RequestQueues.size     = "<<RequestQueues.size()<< " ";
+      std::cerr << "Allocated vector size in DSlib = "<<size*sizeof(long) + RequestQueues.capacity()*sizeof(size_t)<<std::endl;
+    }
   };
 
 } // namespace DSlib

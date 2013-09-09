@@ -134,7 +134,8 @@ namespace LPT
 
   private:
     //Singletonパターンを適用
-    LPT() {
+    LPT()
+    {
       MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
       MPI_Comm_size(MPI_COMM_WORLD, &NProc);
       NumPolling = 10;
@@ -143,7 +144,8 @@ namespace LPT
     LPT & operator=(const LPT & obj);
 
     //! デストラクタ
-    ~LPT() {
+    ~LPT()
+    {
     }
 
   public:
@@ -153,6 +155,10 @@ namespace LPT
       return &instance;
     }
 
+    void PrintVectorSize(void)
+    {
+      std::cerr << "Allocated vector size in LPT = "<< StartPoints.capacity()*sizeof(size_t)<<std::endl;
+    }
   };
 
 } // namespace LPT

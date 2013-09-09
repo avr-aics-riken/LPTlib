@@ -48,6 +48,7 @@ namespace DSlib
 
     for(int rank = 0; rank < NumProcs; rank++) {
       RequestedBlockIDs.at(rank)->resize(RecvRequestCounts[rank]);
+      std::vector<long>(*(RequestedBlockIDs.at(rank))).swap(*(RequestedBlockIDs.at(rank)));
     }
 
     //粒子プロセスから流体プロセスに必要なデータブロックのID配列(RequestID)を送る
@@ -70,6 +71,8 @@ namespace DSlib
 
     MPI_Status *array_of_statuses = new MPI_Status[NumProcs];
 
+/// @attention  MPI_Waitallすると受信数が0の相手に対してIrecvを発行していないので、エラーになる。次行のようには書かないこと
+///  MPI_Waitall(NumProcs, array_of_requests, array_of_statuses);
     for(int rank = 0; rank < NumProcs; rank++) {
       int src = (MyRank + rank) >= NumProcs ? (MyRank + rank) - NumProcs : (MyRank + rank);
 
@@ -85,8 +88,6 @@ namespace DSlib
       }
     }
 
-/// @attention  MPI_Waitallすると受信数が0の相手に対してIrecvを発行していないので、エラーになる
-///  MPI_Waitall(NumProcs, array_of_requests, array_of_statuses);
     delete[]array_of_requests;
     delete[]array_of_requests2;
     delete[]array_of_statuses;
@@ -109,10 +110,7 @@ namespace DSlib
       int tag = 0;
 
       for(int i = 0; i < SendRequestCounts[src]; i++) {
-        CommDataBlockManager *tmp = new CommDataBlockManager;
-
-        tmp->Buff = new REAL_TYPE[count];
-        tmp->Header = new CommDataBlockHeader;
+        CommDataBlockManager *tmp = new CommDataBlockManager(count);
 
         RecvBuffMemSize += count;
         int ierr = Irecv(tmp->Buff, count, src, tag++, Comm, &(tmp->Request0));
@@ -137,14 +135,9 @@ namespace DSlib
       int tag = 0;
 
       for(int i = 0; i < RecvRequestCounts[dest]; i++) {
-        CommDataBlockManager *tmp = new CommDataBlockManager;
-
-        tmp->Buff = new REAL_TYPE[count];
-        tmp->Header = new CommDataBlockHeader;
+        CommDataBlockManager *tmp = new CommDataBlockManager(count);
         int SendSize;
-
         CommPacking(RequestedBlockIDs.at(dest)->at(i), Data, Mask, vlen, tmp->Buff, tmp->Header, &SendSize, MyRank);
-
         SendBuffMemSize += count;
         int ierr = Isend(tmp->Buff, SendSize, dest, tag++, Comm, &(tmp->Request0));
 
@@ -173,15 +166,15 @@ namespace DSlib
     int halo = ptrDM->GetGuideCellSize();
     int SubDomainSize[3];
 
-    SubDomainSize[0] = ptrDM->GetSubDomainSizeX(MyRank) + 2 * ptrDM->GetGuideCellSize();
-    SubDomainSize[1] = ptrDM->GetSubDomainSizeY(MyRank) + 2 * ptrDM->GetGuideCellSize();
-    SubDomainSize[2] = ptrDM->GetSubDomainSizeZ(MyRank) + 2 * ptrDM->GetGuideCellSize();
+    SubDomainSize[0] = ptrDM->GetSubDomainSizeX(MyRank) + 2 * halo;
+    SubDomainSize[1] = ptrDM->GetSubDomainSizeY(MyRank) + 2 * halo;
+    SubDomainSize[2] = ptrDM->GetSubDomainSizeZ(MyRank) + 2 * halo;
 
     Header->BlockID = BlockID;
     Header->SubDomainID = MyRank;
-    Header->BlockSize[0] = ptrDM->GetBlockSizeX(BlockID) + 2 * ptrDM->GetGuideCellSize();
-    Header->BlockSize[1] = ptrDM->GetBlockSizeY(BlockID) + 2 * ptrDM->GetGuideCellSize();
-    Header->BlockSize[2] = ptrDM->GetBlockSizeZ(BlockID) + 2 * ptrDM->GetGuideCellSize();
+    Header->BlockSize[0] = ptrDM->GetBlockSizeX(BlockID) + 2 * halo;
+    Header->BlockSize[1] = ptrDM->GetBlockSizeY(BlockID) + 2 * halo;
+    Header->BlockSize[2] = ptrDM->GetBlockSizeZ(BlockID) + 2 * halo;
     Header->Pitch[0] = ptrDM->Getdx();
     Header->Pitch[1] = ptrDM->Getdy();
     Header->Pitch[2] = ptrDM->Getdz();
@@ -202,7 +195,8 @@ namespace DSlib
         for(int k = 0; k < Header->BlockSize[1]; k++) {
 #pragma ivdep
           for(int j = 0; j < Header->BlockSize[0]; j++) {
-            SendBuff[indexS + j] = Data[BlockLocalOffset + ptrDM->Convert4Dto1D(j, k, l, i, SubDomainSize[0], SubDomainSize[1], SubDomainSize[2])] * Mask[BlockLocalOffset + ptrDM->Convert3Dto1D(j, k, l, SubDomainSize[0], SubDomainSize[1])];
+            SendBuff[indexS + j] = Data[BlockLocalOffset + ptrDM->Convert4Dto1D(j, k, l, i, SubDomainSize[0], SubDomainSize[1], SubDomainSize[2])] 
+                                 * Mask[BlockLocalOffset + ptrDM->Convert3Dto1D(j, k, l, SubDomainSize[0], SubDomainSize[1])];
           }
           indexS += Header->BlockSize[0];
         }

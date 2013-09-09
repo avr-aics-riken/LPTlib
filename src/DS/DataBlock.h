@@ -48,12 +48,16 @@ namespace DSlib
         Pitch[i] = org.Pitch[i];
       }
       Data = org.Data;
-        Time = org.Time;
+      Time = org.Time;
     }
 
     //!コンストラクタ
     DataBlock():Data(NULL), BlockID(-1), SubDomainID(-1)
     {
+    }
+    ~DataBlock()
+    {
+      delete [] Data;
     }
 
     //!  挿入子オーバーロード

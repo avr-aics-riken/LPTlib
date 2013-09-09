@@ -26,11 +26,14 @@ namespace LPT
 
   private:
     //Singletonパターンを適用
-      LPT_ParticleOutput()
+    LPT_ParticleOutput()
     {
     };
-      LPT_ParticleOutput(const FileOutput & obj);
-      LPT_ParticleOutput & operator=(const FileOutput & obj);
+    ~LPT_ParticleOutput()
+    {
+    };
+    LPT_ParticleOutput(const FileOutput & obj);
+    LPT_ParticleOutput & operator=(const FileOutput & obj);
   public:
     static LPT_ParticleOutput *GetInstance()
     {

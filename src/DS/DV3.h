@@ -19,6 +19,11 @@ namespace DSlib
     DV3(const REAL_TYPE & _x, const REAL_TYPE & _y, const REAL_TYPE & _z):x(_x), y(_y), z(_z)
     {
     }
+    //! デストラクタ
+    ~DV3()
+    {
+    }
+
 
     //! []オペレータ
     REAL_TYPE & operator[] (const size_t i)
@@ -31,7 +36,7 @@ namespace DSlib
       return (i == 0 ? x : (i == 1 ? y : z));
     }
     //! 等号オペレータ
-    // x,y,zが全て完全一致または相対誤差が1e-5以下であれば一致と見做す
+    // x,y,zが全て完全一致または相対誤差が1e-5以下であれば一致とみなす
     // 符号が異なる場合は誤差が非常に小さくても不一致とする
     // see http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm
     bool operator==(const DV3 & tgt)const
@@ -46,10 +51,11 @@ namespace DSlib
       REAL_TYPE divider_y=y > tgt.y? y: tgt.y;
       REAL_TYPE divider_z=z > tgt.z? z: tgt.z;
 
-      (std::abs(x-tgt.x)/divider_x < MaxRelativeError &&
-       std::abs(y-tgt.y)/divider_y < MaxRelativeError &&
-       std::abs(z-tgt.z)/divider_z < MaxRelativeError) ? true:false;
+      return (std::abs(x-tgt.x)/divider_x < MaxRelativeError &&
+              std::abs(y-tgt.y)/divider_y < MaxRelativeError &&
+              std::abs(z-tgt.z)/divider_z < MaxRelativeError) ? true:false;
     }
+
     //! 比較演算子
     bool operator<(const DV3 & tgt)const
     {

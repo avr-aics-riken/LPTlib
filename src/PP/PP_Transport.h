@@ -52,7 +52,6 @@ namespace PPlib
     //! 流速データは引数で受けとるDSlibのオブジェクトへのポインタから読み出す
     //!
     int Calc(ParticleData * Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const unsigned int &CurrentTimeStep);
-
   };
 
 } // namespace PPlib

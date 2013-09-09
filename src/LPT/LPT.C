@@ -21,6 +21,7 @@
 #include "PMlibWrapper.h"
 #include "SimpleStartPointFactory.h"
 
+
 namespace LPT
 {
   std::ostream & operator <<(std::ostream & stream, LPT_InitializeArgs args)
@@ -144,6 +145,12 @@ namespace LPT
 
 //開始点の分散処理 
     ptrPPlib->StartPoints = StartPoints;
+
+    // clear and minimize LPT.StartPoints
+    {
+      std::vector<PPlib::StartPoint *>().swap(StartPoints);
+    }
+
     ptrPPlib->DistributeStartPoints(NumParticleProcs);
     LPT_LOG::GetInstance()->LOG("Distribute StartPoints done");
 
@@ -162,6 +169,7 @@ namespace LPT
     delete ptrComm;
     delete ptrPPlib;
     delete ptrDSlib;
+    delete [] Mask;
 
     PM.stop(PM.tm_Post);
     PM.Finalize();
@@ -229,9 +237,12 @@ namespace LPT
     int NumEntryCommBufferSize = CommBufferSize / sizeof(DSlib::DataBlock);
     int NumComm = 0;
 
-    if(SumRequestCount < NumEntryCacheSize) { //このステップでこのRankは1回しか転送が要らない
+    if(SumRequestCount < NumEntryCacheSize)
+    {
+      //このステップでこのRankは1回しか転送が要らない
       NumComm = 1;
-    } else {  //このステップでこのRankは2回以上の転送が必要
+    } else { 
+      //このステップでこのRankは2回以上の転送が必要
       NumComm = 1 + (SumRequestCount - NumEntryCacheSize) / NumEntryCommBufferSize;
       if(1 > (SumRequestCount - NumEntryCacheSize) / NumEntryCommBufferSize) {
         NumComm++;
@@ -292,6 +303,7 @@ namespace LPT
       PM.stop(PM.tm_CommDataF2P);
 
       PM.start(PM.tm_CalcParticle);
+      NumPolling=0; //for DEBUG
       //polling & calc PP_Transport
       for(int i = 0; i < NumPolling; i++) {
         for(std::list < DSlib::CommDataBlockManager * >::iterator it2 = RecvBuff.begin(); it2 != RecvBuff.end();) {
@@ -312,14 +324,12 @@ namespace LPT
 
           if(flag0 && flag1) {
             PM.start(PM.tm_AddCache);
-            ptrDSlib->AddCachedBlocks(*(*it2), GetCurrentTime());
+            ptrDSlib->AddCachedBlocks((*it2), GetCurrentTime());
             LPT_LOG::GetInstance()->LOG("Arrived Block = ", (*it2)->Header->BlockID);
             PM.stop(PM.tm_AddCache);
 
             PM.start(PM.tm_MoveParticle);
             ptrPPlib->MoveParticleByBlockID((*it2)->Header->BlockID);
-            (*it2)->Buff = NULL;
-            delete(*it2)->Header;
             delete(*it2);
             it2 = RecvBuff.erase(it2);
             PM.stop(PM.tm_MoveParticle);
@@ -369,13 +379,11 @@ namespace LPT
         PM.stop(PM.tm_MPI_Wait);
 
         PM.start(PM.tm_AddCache);
-        ptrDSlib->AddCachedBlocks(*(*it2), GetCurrentTime());
+        ptrDSlib->AddCachedBlocks((*it2), GetCurrentTime());
         PM.stop(PM.tm_AddCache);
 
         PM.start(PM.tm_MoveParticle);
         ptrPPlib->MoveParticleByBlockID((*it2)->Header->BlockID);
-        (*it2)->Buff = NULL;
-        delete(*it2)->Header;
         delete(*it2);
         it2 = RecvBuff.erase(it2);
         PM.stop(PM.tm_MoveParticle);
@@ -409,8 +417,6 @@ namespace LPT
 
         MPI_Wait(&((*it2)->Request0), &status0);
         MPI_Wait(&((*it2)->Request1), &status1);
-        delete(*it2)->Buff;
-        delete(*it2)->Header;
         delete(*it2);
         it2 = SendBuff.erase(it2);
       }
@@ -426,6 +432,13 @@ namespace LPT
     PM.start(PM.tm_ExchangeParticleContainers);
     ptrPPlib->ExchangeParticleContainers();
     PM.stop(PM.tm_ExchangeParticleContainers);
+
+#ifdef DEBUG
+    this->PrintVectorSize();
+    ptrPPlib->PrintVectorSize();
+    ptrDSlib->PrintVectorSize();
+    ptrComm->PrintVectorSize();
+#endif
 
     return 0;
   }

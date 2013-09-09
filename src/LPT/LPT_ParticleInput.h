@@ -53,7 +53,7 @@ namespace LPT
     unsigned long RecordSize;
 
   public:
-      LPT_ParticleInput(std::ifstream * argIn)
+    LPT_ParticleInput(std::ifstream * argIn)
     {
       In = argIn;
       Particles = NULL;
@@ -63,6 +63,9 @@ namespace LPT
       BOM[3] = 0xef;
       ParticleDataFormatVersion = PARTICLE_DATA_FORMAT_VERSION;
       SizeOfRealType = sizeof(REAL_TYPE);
+    }
+    ~LPT_ParticleInput()
+    {
     }
 
     //! @brief ファイルのヘッダ部に書かれたBOMを読み込んで実行中の処理系とendianが同じかどうか確認する

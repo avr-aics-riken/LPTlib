@@ -25,7 +25,7 @@ namespace DSlib
     }
   }
 
-  template < class T > void DecompositionManager::IndexConvert1Dto3D(const T Index1D, int *Index3D, const int NumBlockX, const int NumBlockY)
+  template < typename T > void DecompositionManager::IndexConvert1Dto3D(const T Index1D, int *Index3D, const int NumBlockX, const int NumBlockY)
   {
     Index3D[0] = (Index1D % (NumBlockX * NumBlockY)) % NumBlockX;
     Index3D[1] = (Index1D % (NumBlockX * NumBlockY)) / NumBlockX;

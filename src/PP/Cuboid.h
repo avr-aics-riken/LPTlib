@@ -91,6 +91,10 @@ namespace PPlib
         NumStartPoints[i] = -1;
       }
     }
+    //! Destructor
+    ~Cuboid()
+    {
+    }
 
     //! 比較演算子のオーバーロード
     bool operator==(const Cuboid & obj) const
@@ -131,7 +135,6 @@ namespace PPlib
 
     //! 入力演算子オーバーロード
     friend std::istream & operator >>(std::istream & stream, Cuboid& obj);
-
   };
 
 } // namespace PPlib

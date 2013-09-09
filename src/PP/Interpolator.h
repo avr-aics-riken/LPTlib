@@ -41,6 +41,10 @@ namespace PPlib
       m_pitch[0] = m_pitch[1] = m_pitch[2] = 0.0;
       m_halo = 0;
     }
+    //! destructor
+    ~Interpolator()
+    {
+    }
 
     //! @brief DataBlockから補間に必要なデータを取り出してInterporaltorのメンバ変数に渡す
     //! @param DataBlock [in] DSlib::DataBlock構造体を参照のこと

@@ -18,11 +18,14 @@ namespace LPT
 
   private:
     //Singletonパターンを適用
-      FileManager()
+    FileManager()
     {
     }
     FileManager(const FileManager & obj);
-      FileManager & operator=(const FileManager & obj);
+    FileManager & operator=(const FileManager & obj);
+    ~FileManager()
+    {
+    }
 
   public:
     static FileManager *GetInstance()

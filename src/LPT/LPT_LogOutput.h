@@ -14,12 +14,18 @@ namespace LPT
     bool FileFlushFlag;
   private:
     //Singletonパターンを適用
-      LPT_LOG():FileFlushFlag(false)
+    LPT_LOG():FileFlushFlag(false)
     {
       logfile.open((FileManager::GetInstance()->GetFileName("log")).c_str());
+#ifdef DEBUG
+      FileFlushFlag=true;
+#endif
+    }
+    ~LPT_LOG()
+    {
     }
     LPT_LOG(const FileManager & obj);
-      LPT_LOG & operator=(const FileManager & obj);
+    LPT_LOG & operator=(const FileManager & obj);
   public:
     static LPT_LOG *GetInstance()
     {
@@ -52,7 +58,7 @@ namespace LPT
         logfile.flush();
 #endif
     }
-    template < class T > void LOG(std::string message, T value)
+    template < typename T > void LOG(std::string message, T value)
     {
 #ifdef LPT_LOG_ENABLE
       logfile << "LPT LOG  : " << message << value << "\n";
@@ -60,7 +66,7 @@ namespace LPT
         logfile.flush();
 #endif
     }
-    template < class T > void LOG(std::string message, T * value, int max)
+    template < typename T > void LOG(std::string message, T * value, int max)
     {
 #ifdef LPT_LOG_ENABLE
       logfile << "LPT LOG  : " << message;
@@ -81,13 +87,13 @@ namespace LPT
         logfile.flush();
     }
 
-    template < class T > void INFO(std::string message, T value)
+    template < typename T > void INFO(std::string message, T value)
     {
       logfile << "LPT INFO : " << message << value << "\n";
       if(FileFlushFlag)
         logfile.flush();
     }
-    template < class T > void INFO(std::string message, T * value, int max)
+    template < typename T > void INFO(std::string message, T * value, int max)
     {
       logfile << "LPT INFO : " << message;
       for(int i = 0; i < max - 1; i++) {
@@ -104,7 +110,7 @@ namespace LPT
       if(FileFlushFlag)
         logfile.flush();
     }
-    template < class T > void WARN(std::string message, T value)
+    template < typename T > void WARN(std::string message, T value)
     {
       logfile << "LPT WARN : " << message << value << "\n";
       if(FileFlushFlag)
@@ -116,7 +122,7 @@ namespace LPT
       logfile << "LPT ERROR: " << message << "\n";
       logfile.flush();
     }
-    template < class T > void ERROR(std::string message, T value)
+    template < typename T > void ERROR(std::string message, T value)
     {
       logfile << "LPT ERROR : " << message << value << "\n";
       logfile.flush();

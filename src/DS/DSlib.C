@@ -16,6 +16,7 @@ namespace DSlib
     for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); it++) {
       std::sort((*it)->begin(), (*it)->end());
       (*it)->erase(std::unique((*it)->begin(), (*it)->end()), (*it)->end());
+      std::vector<long>(**it).swap(**it);
     }
   }
 
@@ -24,8 +25,7 @@ namespace DSlib
     for(std::vector < long >::iterator it = RequestQueues.at(SubDomainID)->begin(); it != RequestQueues.at(SubDomainID)->end(); it++) {
       RequestedBlocks.insert(*it);
     }
-    RequestQueues.at(SubDomainID)->clear();
-
+    std::vector<long>().swap(*(RequestQueues.at(SubDomainID)));
   }
 
   void DSlib::RemoveRequestedBlocks(const long &BlockID)
@@ -33,25 +33,24 @@ namespace DSlib
     RequestedBlocks.erase(BlockID);
   }
 
-  void DSlib::AddCachedBlocks(const CommDataBlockManager & RecvData, const double &Time)
+  void DSlib::AddCachedBlocks(CommDataBlockManager * RecvData, const double &Time)
   {
     if(CachedBlocks.size() < (CacheSize * 1024 * 1024 / sizeof(DataBlock))) {
       DataBlock *tmp = new DataBlock;
-
-      tmp->BlockID = RecvData.Header->BlockID;
-      tmp->SubDomainID = RecvData.Header->SubDomainID;
+      tmp->BlockID = RecvData->Header->BlockID;
+      tmp->SubDomainID = RecvData->Header->SubDomainID;
       tmp->Time = Time;
       for(int i = 0; i < 3; i++) {
-        tmp->Origin[i] = RecvData.Header->Origin[i];
-        tmp->OriginCell[i] = RecvData.Header->OriginCell[i];
-        tmp->BlockSize[i] = RecvData.Header->BlockSize[i];
-        tmp->Pitch[i] = RecvData.Header->Pitch[i];
+        tmp->Origin[i] = RecvData->Header->Origin[i];
+        tmp->OriginCell[i] = RecvData->Header->OriginCell[i];
+        tmp->BlockSize[i] = RecvData->Header->BlockSize[i];
+        tmp->Pitch[i] = RecvData->Header->Pitch[i];
       }
-      tmp->Data = RecvData.Buff;
+      tmp->Data = RecvData->Buff;
+      RecvData->Buff=NULL;
 
       Cache *tmp2 = new Cache;
-
-      tmp2->BlockID = RecvData.Header->BlockID;
+      tmp2->BlockID = RecvData->Header->BlockID;
       tmp2->ptrData = tmp;
       CachedBlocks.push_back(tmp2);
     } else {
@@ -64,13 +63,11 @@ namespace DSlib
 
   void DSlib::PurgeCachedBlocks(const int &NumEntry)
   {
-    if(NumEntry > CachedBlocks.size()) {
+    if(NumEntry >= CachedBlocks.size()) {
       for(std::CACHE_CONTAINER < Cache * >::iterator it = CachedBlocks.begin(); it != CachedBlocks.end(); it++) {
-        delete(*it)->ptrData->Data;
-        delete(*it)->ptrData;
         delete(*it);
       }
-      CachedBlocks.clear();
+      std::CACHE_CONTAINER < Cache * >().swap(CachedBlocks);
       LPT::LPT_LOG::GetInstance()->LOG("All CachedBlocks is purged");
     } else {
       int DeleteCount = 0;
@@ -80,13 +77,12 @@ namespace DSlib
         if(DeleteCount == NumEntry) {
           break;
         }
-        delete(*rit)->ptrData->Data;
-        delete(*rit)->ptrData;
         delete(*rit);
         FirstEntry = rit.base();
         DeleteCount++;
       }
       CachedBlocks.erase(FirstEntry, CachedBlocks.end());
+      std::CACHE_CONTAINER < Cache * >(CachedBlocks).swap(CachedBlocks);
     }
 
   }
@@ -94,10 +90,10 @@ namespace DSlib
   void DSlib::PurgeAllCacheLists(void)
   {
     for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); it++) {
-      (*it)->clear();
+      std::vector<long>().swap(**it);
     }
     RequestedBlocks.clear();
-    PurgeCachedBlocks(CacheSize);
+    PurgeCachedBlocks(CachedBlocks.size());
   }
 
   int DSlib::Load(const long &BlockID, DataBlock ** DataBlock)

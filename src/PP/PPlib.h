@@ -6,6 +6,8 @@
 #include <vector>
 #include <list>
 #include "PerfMonitor.h"
+#include "ParticleData.h"
+#include "StartPointAll.h"
 //forward declaration
 namespace DSlib
 {
@@ -14,10 +16,6 @@ namespace DSlib
 }
 namespace PPlib
 {
-//forward declaration
-  class ParticleData;
-  class StartPoint;
-
   //! @brief 粒子データの保持、管理とマイグレーション処理を行なう
   class PPlib
   {
@@ -62,7 +60,7 @@ namespace PPlib
     //! @param CurrentTime [in] 現在時刻
     //! @retval true  このオブジェクトは破棄の対象
     //! @retval false このオブジェクトは破棄の対象外
-      template < class T > bool Check(const double &CurrentTime, T * obj);
+      template < typename T > bool Check(const double &CurrentTime, T * obj);
 
     //! @brief Particlesに登録されている個々の粒子データの寿命をチェックし、現在時刻が寿命を越えていたらその粒子のインスタンスを破棄する
     //! @param CurrentTime [in] 現在時刻
@@ -93,6 +91,27 @@ namespace PPlib
 
     //!  引数で指定されたプロセス数を目標に、開始点のデータ分散を行なう
     void DistributeStartPoints(const int &NParticleProcs);
+    void PrintVectorSize(void)
+    {
+      std::cerr << "Allocated vector size in PPlib = "<< StartPoints.capacity()*sizeof(size_t)<<std::endl;
+    }
+
+    //! コンストラクタ
+    PPlib()
+    {
+    }
+    //! デストラクタ
+    ~PPlib()
+    {
+      for (std::vector < StartPoint * >::iterator it = StartPoints.begin(); it!=StartPoints.end(); ++it)
+      {
+        delete *it;
+      }
+      for (std::list < ParticleData * >::iterator it = Particles.begin(); it!=Particles.end(); ++it)
+      {
+        delete *it;
+      }
+    }
 
   };
 

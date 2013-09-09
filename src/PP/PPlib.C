@@ -57,7 +57,7 @@ namespace PPlib
     }
   }
 
-  template < class T > bool PPlib::Check(const double &CurrentTime, T * obj)
+  template < typename T > bool PPlib::Check(const double &CurrentTime, T * obj)
   {
     if(obj->GetLifeTime() <= 0) {
       return false;
@@ -72,7 +72,6 @@ namespace PPlib
       if(Check(CurrentTime, (*it))) {
         LPT::LPT_LOG::GetInstance()->INFO("Particle Deleted. ID= ", (*it)->GetID());
         delete *it;
-
         it = Particles.erase(it);
       } else {
         it++;
@@ -86,12 +85,12 @@ namespace PPlib
       if(Check(CurrentTime, (*it))) {
         LPT::LPT_LOG::GetInstance()->INFO("Start Point Deleted. ID= ", (*it)->GetID());
         delete *it;
-
         it = StartPoints.erase(it);
       } else {
         it++;
       }
     }
+    std::vector<StartPoint *>(StartPoints).swap(StartPoints);
   }
 
   void PPlib::AddParticle(ParticleData * Particle, DSlib::DecompositionManager * ptrDM)
@@ -144,6 +143,7 @@ namespace PPlib
       std::vector < StartPoint * > tmpStartPoints;
       (*it)->Divider(&tmpStartPoints, AveNumStartPoints);
       NewStartPoints.insert(NewStartPoints.end(), tmpStartPoints.begin(), tmpStartPoints.end());
+      delete *it;
       it = StartPoints.erase(it);
     }
 
@@ -184,6 +184,10 @@ namespace PPlib
     }
     //自Rankが担当する開始点をStartPointsにコピー
     StartPoints.assign(it1, it2);
+
+    // shrink to fit
+    std::vector<StartPoint *>(StartPoints).swap(StartPoints);
+
     LPT::LPT_LOG::GetInstance()->LOG("Distribute StartPoints done");
     LPT::LPT_LOG::GetInstance()->INFO("Number of StartPoints for this Rank = ", StartPoints.size());
 

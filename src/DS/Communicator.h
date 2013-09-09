@@ -40,17 +40,20 @@ namespace DSlib
     int *RecvRequestCounts;
 
     //!  自Rankから各Rankへ転送するデータブロックのIDを保持する配列
-      std::vector < std::vector < long >*>RequestedBlockIDs;
+    std::vector < std::vector < long >*>RequestedBlockIDs;
+
+    Communicator(const Communicator& obj);
+    Communicator& operator=(const Communicator& obj);
 
   public:
     // Constructor
-      Communicator():Comm(MPI_COMM_WORLD)
+    Communicator():Comm(MPI_COMM_WORLD)
     {
       MPI_Comm_size(Comm, &NumProcs);
       MPI_Comm_rank(Comm, &MyRank);
 
       SendRequestCounts = new int[NumProcs];
-        RecvRequestCounts = new int[NumProcs];
+      RecvRequestCounts = new int[NumProcs];
 
         MPI_Type_contiguous(sizeof(CommDataBlockHeader), MPI_BYTE, &MPI_DataBlockHeader);
       if(MPI_SUCCESS != MPI_Type_commit(&MPI_DataBlockHeader))
@@ -129,6 +132,29 @@ namespace DSlib
     //! @param SendSize [out] 送信サイズ
     void CommPacking(const long &BlockID, REAL_TYPE * Data, int *Mask, const int &vlen, REAL_TYPE * SendBuff, CommDataBlockHeader * Header, int *SendSize, const int &MyRank);
 
+    void PrintVectorSize(void)
+    {
+      int size=0;
+      int i=0;
+      for(std::vector < std::vector < long >*>::iterator it = RequestedBlockIDs.begin(); it != RequestedBlockIDs.end(); it++)
+      {
+        size+=(*it)->capacity();
+        std::cerr << "RequestedBlockIDs["<<i<<"].capacity = "<<(*it)->capacity()<<" ";
+        std::cerr << "RequestedBlockIDs["<<i<<"].size     = "<<(*it)->size()<<std::endl;
+        i++;
+      }
+      std::cerr << "RequestedBlockIDs.capacity = "<<RequestedBlockIDs.capacity()<<" ";
+      std::cerr << "RequestedBlockIDs.size     = "<<RequestedBlockIDs.size()<<" ";
+      std::cerr << "Allocated vector size in Communicator = "<<size*sizeof(long) + RequestedBlockIDs.capacity()*sizeof(size_t)<<std::endl;
+    }
+    void PurgeRequestedBlockIDs(void)
+    {
+      for (std::vector<std::vector<long> * >::iterator it=RequestedBlockIDs.begin();it!=RequestedBlockIDs.end();++it)
+      {
+        std::vector<long>().swap(**it);
+      }
+    }
+
     //! Accessor
     int GetMyRank()
     {
@@ -156,10 +182,9 @@ namespace DSlib
       return sum;
     };
 
-    //以下は単体テスト専用に仮に用意したアクセッサ -DDEBUGの時以外はprivateに設定する
+    //単体テスト用Getter/Setter
 #ifndef DEBUG
   private:
-#endif
     void SetSendRequestCounts(const int &SubDomainID, const int &Count)
     {
       SendRequestCounts[SubDomainID] = Count;
@@ -185,7 +210,7 @@ namespace DSlib
     {
       RequestedBlockIDs.at(SubDomainID)->push_back(BlockID);
     };
-
+#endif
   };
 
 } // namespace DSlib

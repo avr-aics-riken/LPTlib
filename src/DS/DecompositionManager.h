@@ -105,7 +105,7 @@ namespace DSlib
 
   private:
     //Singletonパターンを適用
-      DecompositionManager()
+    DecompositionManager()
     {
       initialized = false;
     }
@@ -132,33 +132,32 @@ namespace DSlib
     }
 
     //! 1次元のindexを3次元のindexに変換する
-    template < class T > static void IndexConvert1Dto3D(const T Index1D, int *Index3D, const int NumBlockX, const int NumBlockY);
+    template < typename T > static void IndexConvert1Dto3D(const T Index1D, int *Index3D, const int NumBlockX, const int NumBlockY);
 
 
     //! 3次元のindexを1次元のindex(int)に変換する
-    template < class T > static int Convert3Dto1Dint(T i, T j, T k, T imax, T jmax)
+    template < typename  T > static int Convert3Dto1Dint(T i, T j, T k, T imax, T jmax)
     {
       return i + j * imax + k * imax * jmax;
     }
 
     //! 3次元のindexを1次元のindex(long)に変換する
-    template < class T > static long Convert3Dto1Dlong(T i, T j, T k, T imax, T jmax)
+    template < typename  T > static long Convert3Dto1Dlong(T i, T j, T k, T imax, T jmax)
     {
       return i + j * imax + k * imax * jmax;
     }
 
     //! 3次元のindexを1次元のindex(size_t)に変換する
-    template < class T > static size_t Convert3Dto1D(T i, T j, T k, T imax, T jmax)
+    template < typename T > static size_t Convert3Dto1D(T i, T j, T k, T imax, T jmax)
     {
       return i + j * imax + k * imax * jmax;
     }
 
     //! 4次元のindexを1次元のindex(size_t)に変換する
-    template < class T > static size_t Convert4Dto1D(T i, T j, T k, T l, T imax, T jmax, T kmax)
+    template < typename  T > static size_t Convert4Dto1D(T i, T j, T k, T l, T imax, T jmax, T kmax)
     {
       return i + j * imax + k * imax * jmax + l * imax * jmax * kmax;
     }
-
 
   private:
     //! @brief サブドメインの境界を出力する
@@ -187,11 +186,11 @@ namespace DSlib
 
     int GetBlockIDX(const long &BlockID)
     {
-      return (BlockID % (NBx * NPx * NBy * NPy)) % NBx * NPx;
+      return (BlockID % (NBx * NPx * NBy * NPy)) % (NBx * NPx);
     };
     int GetBlockIDY(const long &BlockID)
     {
-      return (BlockID % (NBx * NPx * NBy * NPy)) / NBx * NPx;
+      return (BlockID % (NBx * NPx * NBy * NPy)) / (NBx * NPx);
     };
     int GetBlockIDZ(const long &BlockID)
     {
@@ -340,6 +339,12 @@ namespace DSlib
         + (BlockBoundaryZ[GetBlockIDZ(BlockID)] - SubDomainBoundaryZ[GetSubDomainIDZ(SubDomainID)])
         * (GetSubDomainSizeX(GetSubDomainIDX(SubDomainID)) + GetGuideCellSize() * 2)
         * (GetSubDomainSizeY(GetSubDomainIDY(SubDomainID)) + GetGuideCellSize() * 2);
+    }
+
+    void PrintVectorSize(void)
+    {
+      std::cerr << "Allocated vector size in Decomposition Manager = "<< RealBlockBoundaryX.capacity()*sizeof(REAL_TYPE) + RealBlockBoundaryY.capacity()*sizeof(REAL_TYPE) 
+        + RealBlockBoundaryZ.capacity()*sizeof(REAL_TYPE) <<std::endl;
     }
   };
 
