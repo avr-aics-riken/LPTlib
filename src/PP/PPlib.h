@@ -74,8 +74,11 @@ namespace PPlib
     //! @param ptdDSlib       [in] DSlibのインスタンスへのポインタ、FindBlockIDByCoord()を呼ぶためにとりあえず渡している
     void AddParticle(ParticleData * Particle, DSlib::DecompositionManager * ptrDM);
 
-    //! 引数で指定されたBlockIDの粒子データをParticlesからWorkingParticlesへ移動させる
-    void MoveParticleByBlockID(long BlockID);
+    //! 引数で指定されたBlockIDの粒子データをParticlesからWorkingParticlesへ移動させる(線形探索版)
+    void MoveParticleByBlockIDWithLinearSearch(long BlockID);
+
+    //! 引数で指定されたBlockIDの粒子データをParticlesからWorkingParticlesへ移動させる(二分探索版)
+    void MoveParticleByBlockIDWithBinarySearch(long BlockID);
 
     //! メンバ変数CalcParticlesとParticlesを入れ替える
     void ExchangeParticleContainers(void)

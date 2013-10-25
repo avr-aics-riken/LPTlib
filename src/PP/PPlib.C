@@ -238,15 +238,8 @@ namespace PPlib
 
   }
 
-  void PPlib::MoveParticleByBlockID(long BlockID)
+  void PPlib::MoveParticleByBlockIDWithLinearSearch(long BlockID)
   {
-    /*こっちの方が何故か遅い
-       ParticleData index;
-       index.BlockID=BlockID;
-       std::pair< std::list<ParticleData*>::iterator, std::list<ParticleData*>::iterator > range=equal_range(Particles.begin(),Particles.end(), &index, PickupByBlockID());
-       WorkingParticles.splice(WorkingParticles.end(), Particles, range.first, range.second);
-     */
-
     for(std::list < ParticleData * >::iterator it = Particles.begin(); it != Particles.end();) {
       if((*it)->BlockID == BlockID) {
         WorkingParticles.push_back(*it);
@@ -255,6 +248,13 @@ namespace PPlib
         it++;
       }
     }
+  }
+  void PPlib::MoveParticleByBlockIDWithBinarySearch(long BlockID)
+  {
+     ParticleData index;
+     index.BlockID=BlockID;
+     std::pair< std::list<ParticleData*>::iterator, std::list<ParticleData*>::iterator > range=equal_range(Particles.begin(),Particles.end(), &index, CompareBlockID());
+     WorkingParticles.splice(WorkingParticles.end(), Particles, range.first, range.second);
   }
 
   void PPlib::DetermineMigration()
