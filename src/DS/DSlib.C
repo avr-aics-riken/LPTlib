@@ -13,7 +13,7 @@ namespace DSlib
 
   void DSlib::DedupulicateRequestQueues()
   {
-    for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); it++) {
+    for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); ++it) {
       std::sort((*it)->begin(), (*it)->end());
       (*it)->erase(std::unique((*it)->begin(), (*it)->end()), (*it)->end());
       std::vector<long>(**it).swap(**it);
@@ -22,7 +22,7 @@ namespace DSlib
 
   void DSlib::MoveRequestQueues(const int &SubDomainID)
   {
-    for(std::vector < long >::iterator it = RequestQueues.at(SubDomainID)->begin(); it != RequestQueues.at(SubDomainID)->end(); it++) {
+    for(std::vector < long >::iterator it = RequestQueues.at(SubDomainID)->begin(); it != RequestQueues.at(SubDomainID)->end(); ++it) {
       RequestedBlocks.insert(*it);
     }
     std::vector<long>().swap(*(RequestQueues.at(SubDomainID)));
@@ -54,9 +54,9 @@ namespace DSlib
       tmp2->ptrData = tmp;
       CachedBlocks.push_back(tmp2);
     } else {
-      std::cerr << "DataBlock Cache overflowed" << std::endl;
-      std::cerr << "CachedBlocks size = " << CachedBlocks.size() << std::endl;
-      std::cerr << "Reserved Cache Size = " << (CacheSize * 1024 * 1024 / sizeof(DataBlock)) << std::endl;
+      LPT::LPT_LOG::GetInstance()->WARN("DataBlock Cache overflowed");
+      LPT::LPT_LOG::GetInstance()->WARN("CachedBlocks size = ", CachedBlocks.size() );
+      LPT::LPT_LOG::GetInstance()->WARN("Reserved cache size = ", (CacheSize * 1024 * 1024 / sizeof(DataBlock)));
     }
 
   }
@@ -64,7 +64,7 @@ namespace DSlib
   void DSlib::PurgeCachedBlocks(const int &NumEntry)
   {
     if(NumEntry >= CachedBlocks.size()) {
-      for(std::CACHE_CONTAINER < Cache * >::iterator it = CachedBlocks.begin(); it != CachedBlocks.end(); it++) {
+      for(std::CACHE_CONTAINER < Cache * >::iterator it = CachedBlocks.begin(); it != CachedBlocks.end(); ++it) {
         delete(*it);
       }
       std::CACHE_CONTAINER < Cache * >().swap(CachedBlocks);
@@ -89,7 +89,7 @@ namespace DSlib
 
   void DSlib::PurgeAllCacheLists(void)
   {
-    for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); it++) {
+    for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); ++it) {
       std::vector<long>().swap(**it);
     }
     RequestedBlocks.clear();
@@ -99,7 +99,7 @@ namespace DSlib
   int DSlib::Load(const long &BlockID, DataBlock ** DataBlock)
   {
     //CachedBlocksの中を探索
-    for(std::CACHE_CONTAINER < Cache * >::iterator it = CachedBlocks.begin(); it != CachedBlocks.end(); it++) {
+    for(std::CACHE_CONTAINER < Cache * >::iterator it = CachedBlocks.begin(); it != CachedBlocks.end(); ++it) {
       if((*it)->BlockID == BlockID) {
         *DataBlock = (*it)->ptrData;
         Cache *tmp_Cache = (*it);
@@ -110,24 +110,22 @@ namespace DSlib
       }
     }
 
-    LPT::LPT_LOG::GetInstance()->LOG("DataBlock was not found in Cache.  BlockID = ", BlockID);
-
     //RequestedBlocksの中を探索
     if(RequestedBlocks.end() == RequestedBlocks.find(BlockID)) {
-      LPT::LPT_LOG::GetInstance()->LOG("Requested Block is not arrived at this time");
+      LPT::LPT_LOG::GetInstance()->LOG("DataBlock is not arrived: ", BlockID);
       return 1;
     }
     //RequestQueueの中を探索
-    for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); it++) {
-      for(std::vector < long >::iterator it2 = (*it)->begin(); it2 != (*it)->end(); it2++) {
+    for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); ++it) {
+      for(std::vector < long >::iterator it2 = (*it)->begin(); it2 != (*it)->end(); ++it2) {
         if((*it2) == BlockID) {
-          LPT::LPT_LOG::GetInstance()->LOG("Requested Block is not transferd in this step");
+          LPT::LPT_LOG::GetInstance()->LOG("DataBlock is not requested at this time: ", BlockID);
           return 2;
         }
       }
     }
     //どこにも無い -> このタイムステップでの対象粒子の計算は中止
-    LPT::LPT_LOG::GetInstance()->WARN("exit DSlib::DSlib return value = -1");
-    return -1;
+    LPT::LPT_LOG::GetInstance()->WARN("DataBlock is not requested at this time step: ", BlockID);
+    return 4;
   }
 } // namespace DSlib

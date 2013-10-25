@@ -57,10 +57,6 @@ namespace LPT
     void WriteFileHeader();
     void WriteRecordHeader();
     void WriteRecord();
-    void SetParticles(std::list < PPlib::ParticleData * >*Particles)
-    {
-      this->Particles = Particles;
-    };
   };
 
 } //namespace LPT

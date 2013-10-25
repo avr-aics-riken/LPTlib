@@ -8,6 +8,9 @@ namespace PPlib
   class Interpolator
   {
   private:
+    //! 現在保持しているデータブロックのID
+    long BlockID;
+
     //! 流速データの配列へのポインタ
     REAL_TYPE * p_vecd;
 
@@ -24,9 +27,7 @@ namespace PPlib
     int m_halo;
 
     //! copy constructor
-    Interpolator(const Interpolator & obj)
-    {
-    };
+    Interpolator(const Interpolator & obj) {};
   public:
     //! データブロックの各軸方向へのセル数
     int m_dims[3];
@@ -40,6 +41,7 @@ namespace PPlib
       m_orig[0] = m_orig[1] = m_orig[2] = 0.0;
       m_pitch[0] = m_pitch[1] = m_pitch[2] = 0.0;
       m_halo = 0;
+      BlockID=-1;
     }
     //! destructor
     ~Interpolator()
@@ -68,18 +70,10 @@ namespace PPlib
     //! @param x   [out] 解析領域内でのグローバル座標
     void ConvItoX(const REAL_TYPE x_I[3], REAL_TYPE x[3]);
 
-    double GetPitchX(void)
-    {
-      return this->m_pitch[0];
-    };
-    double GetPitchY(void)
-    {
-      return this->m_pitch[1];
-    };
-    double GetPitchZ(void)
-    {
-      return this->m_pitch[2];
-    };
+    double GetPitchX(void) { return this->m_pitch[0]; };
+    double GetPitchY(void) { return this->m_pitch[1]; };
+    double GetPitchZ(void) { return this->m_pitch[2]; };
+    long GetBlockID(void)  { return this->BlockID; };
 
   };
 

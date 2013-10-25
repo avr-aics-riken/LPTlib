@@ -20,7 +20,6 @@ namespace PPlib
 
   int PP_Integrator::RKG(Interpolator & gus, const double t_step, REAL_TYPE x_i[3])
   {
-    const REAL_TYPE ct[4] = { 0.0, 0.5, 0.0, 0.5 };
     const REAL_TYPE ck[4] = { 2.0, 1.0, 1.0, 2.0 };
     const REAL_TYPE cq[4] = { 0.5, 1.0 - sqrt(0.5), 1.0 + sqrt(0.5), 0.5 };
     const REAL_TYPE cx[4] = { 0.5, 1.0 - sqrt(0.5), 1.0 + sqrt(0.5), 0.5 / 3 };
@@ -31,9 +30,8 @@ namespace PPlib
     REAL_TYPE q[3] = { 0.0, 0.0, 0.0 };
     REAL_TYPE func[3] = { 0.0, 0.0, 0.0 };
 
-    int i_n;
-    double k; //TODO should be REAL_TYPE
-    double r; //TODO should be REAL_TYPE
+    REAL_TYPE k;
+    REAL_TYPE r;
 
     for(int l = 0; l < 4; l++) {
 #ifdef __INTEL_COMPILER
@@ -41,8 +39,6 @@ namespace PPlib
 #endif
       GetIntegrand(gus, x_i, func);
       for(int n = 0; n < 3; n++) {
-        i_n = int (x_i[n]);
-
         k = t_step * func[n];
         r = cx[l] * (k - ck[l] * q[n]);
 

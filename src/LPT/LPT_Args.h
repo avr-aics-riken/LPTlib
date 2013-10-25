@@ -98,7 +98,7 @@ namespace LPT
       std::string PMlibDetailedOutputFileName;
 
     //! 代入オペレータ
-    void operator=(const LPT_InitializeArgs & org)
+    LPT_InitializeArgs & operator=(const LPT_InitializeArgs & org)
     {
       Nx = org.Nx;
       Ny = org.Ny;
@@ -121,8 +121,10 @@ namespace LPT
       MaxNumParticleProcs = org.MaxNumParticleProcs;
       MigrationInterval = org.MigrationInterval;
       OutputFileName = org.OutputFileName;
+
       PMlibOutputFileName = org.PMlibOutputFileName;
       PMlibDetailedOutputFileName = org.PMlibDetailedOutputFileName;
+      return (*this);
     }
 
     //! 入出力演算子オーバーロード
@@ -168,12 +170,13 @@ namespace LPT
     REAL_TYPE *v00;
 
     //! 代入オペレータ
-    void operator=(const LPT_CalcArgs & org)
+    LPT_CalcArgs & operator=(const LPT_CalcArgs & org)
     {
       CurrentTime = org.CurrentTime;
       deltaT = org.deltaT;
       divT = org.divT;
       FluidVelocity = org.FluidVelocity;
+      return (*this);
     }
   };
 

@@ -20,13 +20,12 @@ libLPT_a_SOURCES = \
    DS/DV3.C \
    DS/DataBlock.C \
    DS/DecompositionManager.C \
-   LPT/CSV_Output.C \
-   LPT/FileManager.C \
+   LPT/FileOutput_csv.C \
+   LPT/FileOutput_FVbin.C \
+   LPT/FileOutput_FVtext.C \
    LPT/LPT.C \
    LPT/LPT_ParticleOutput.C \
-   LPT/FV_ParticlePathOutput.C \
    LPT/LPT_ParticleInput.C \
-   LPT/FV_ParticlePathBinaryOutput.C \
    PP/Circle.C \
    PP/StartPoint.C \
    PP/SimpleStartPointFactory.C \
@@ -48,11 +47,12 @@ libLPT_a_SOURCES = \
    DS/DataBlock.h \
    DS/DecompositionManager.h \
    DS/CommDataBlock.h \
-   LPT/CSV_Output.h \
+   LPT/FileOutput_csv.h \
+   LPT/FileOutput_FVbin.h \
+   LPT/FileOutput_FVtext.h \
    LPT/FileManager.h \
    LPT/FileOutput.h \
-   LPT/FV_ParticlePathBinaryOutput.h \
-   LPT/FV_ParticlePathOutput.h \
+   LPT/FileOutput2.h \
    LPT/LPT_Args.h \
    LPT/LPT_LogOutput.h \
    LPT/LPT_ParticleInput.h \

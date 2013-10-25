@@ -82,9 +82,9 @@ namespace DSlib
     }
 
     for(int rank = 0; rank < NumProcs; rank++) {
-      LPT::LPT_LOG::GetInstance()->INFO("rank = ", rank);
+      LPT::LPT_LOG::GetInstance()->LOG("rank = ", rank);
       if(ptrDSlib->RequestQueues.at(rank)->size() != 0) {
-        LPT::LPT_LOG::GetInstance()->INFO("Request IDs = ", &*(ptrDSlib->RequestQueues.at(rank)->begin()), ptrDSlib->RequestQueues.at(rank)->size());
+        LPT::LPT_LOG::GetInstance()->LOG("Request IDs = ", &*(ptrDSlib->RequestQueues.at(rank)->begin()), ptrDSlib->RequestQueues.at(rank)->size());
       }
     }
 
@@ -97,10 +97,11 @@ namespace DSlib
   {
   }
 
-  void Communicator::CommDataF2P(REAL_TYPE * Data, REAL_TYPE * v00, int *Mask, const int &vlen, DecompositionManager * ptrDM, std::list < CommDataBlockManager * >*SendBuff, std::list < CommDataBlockManager * >*RecvBuff)
+  void Communicator::CommDataF2P(REAL_TYPE * Data, REAL_TYPE * v00, int *Mask, const int &vlen, std::list < CommDataBlockManager * >*SendBuff, std::list < CommDataBlockManager * >*RecvBuff)
   {
     //流体プロセスから粒子プロセスに要求されたデータブロックを1つづつ送る
     //prepare to recieve Datablocks
+    DecompositionManager *ptrDM = DecompositionManager::GetInstance();
     int count = vlen * ptrDM->GetLargestBlockSize();
 
     int RecvBuffMemSize = 0;
@@ -152,7 +153,7 @@ namespace DSlib
     }
 
     SendBuffMemSize *= sizeof(REAL_TYPE);
-    LPT::LPT_LOG::GetInstance()->LOG("Memory size for Send Buffer = ", RecvBuffMemSize);
+    LPT::LPT_LOG::GetInstance()->LOG("Memory size for Send Buffer = ", SendBuffMemSize);
   }
 
   void Communicator::MakeSendRequestCounts(const int &SubDomainID, DSlib * ptrDSlib)
