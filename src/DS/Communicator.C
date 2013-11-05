@@ -152,7 +152,7 @@ namespace DSlib
     }
 
     SendBuffMemSize *= sizeof(REAL_TYPE);
-    LPT::LPT_LOG::GetInstance()->LOG("Memory size for Send Buffer = ", RecvBuffMemSize);
+    LPT::LPT_LOG::GetInstance()->LOG("Memory size for Send Buffer = ", SendBuffMemSize);
   }
 
   void Communicator::MakeSendRequestCounts(const int &SubDomainID, DSlib * ptrDSlib)
