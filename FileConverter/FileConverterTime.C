@@ -2,7 +2,7 @@
 
 void FileConverterTime::WriteBody(std::list < std::ifstream * >&InputFileStream, LPT::FileOutput & FileOutput)
 {
-  //IDリストの作成
+  //TimeStepリストの作成
   std::set < unsigned int >Key;
 
   for(std::list < std::ifstream * >::iterator it = InputFileStream.begin(); it != InputFileStream.end(); it++)

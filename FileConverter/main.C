@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     print_usage_and_abort(argv[0]);
   }
 
-  //引数で指定されたディレクトリにある ParticleData_*.prt ファイルを読み込む
+  ////引数で指定されたディレクトリにある *.prt ファイルを読み込む
   //オプション以外の引数が無い場合は、カレントディレクトリ内が対象
   DIR *dp;
   struct dirent *entry;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
   while(entry != NULL)
   {
     std::string filename(entry->d_name);
-    if(filename.find("ParticleData_") != std::string::npos && filename.find(".prt") != std::string::npos)
+    if(filename.find(".prt") != std::string::npos)
     {
       InputFiles.push_back(dirname + filename);
     }
@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
   closedir(dp);
   InputFiles.sort();
 
+  //自Rankが処理を担当するファイルを決める
   std::list < std::string > MyInputFiles;
   int counter = 0;
 
@@ -93,6 +94,7 @@ int main(int argc, char *argv[])
     ++counter;
   }
 
+  //タイムステップベースまたはIDベースのファイル出力オブジェクトを生成
   FileConverter *FC;
 
   if(format == "FVbin")
@@ -103,9 +105,8 @@ int main(int argc, char *argv[])
     FC = new FileConverterID;
   }
 
-  std::list < std::ifstream * >InputFileStream;
-  std::ostringstream oss;
   //入力ファイルを開く
+  std::list < std::ifstream * >InputFileStream;
   for(std::list < std::string >::iterator it = MyInputFiles.begin(); it != MyInputFiles.end(); it++)
   {
     std::cerr << "Reading: " << (*it) << std::endl;
@@ -113,6 +114,8 @@ int main(int argc, char *argv[])
     tmp->open((*it).c_str(), std::ios::binary);
     InputFileStream.push_back(tmp);
   }
+
+  //出力ファイルを開く
   LPT::FileManager::GetInstance()->SetBaseFileName("ParticleData");
   std::cerr << "WriteFileHeader" << std::endl;
   FileOutput->WriteFileHeader();
