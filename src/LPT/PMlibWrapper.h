@@ -159,14 +159,12 @@ public:
 
         fp1 = fopen(PMlibOutputFileName.c_str(), "w+");
         fp2 = fopen(PMlibDetailedOutputFileName.c_str(), "w+");
-#ifdef __FUJITSU
-//getenv() doesnt work on FX10 2013/03/08
+
         std::string hostname("HOSTNAME");
         std::string operator_name("USER");
-#else
-        std::string hostname(std::getenv("HOSTNAME"));
-        std::string operator_name(std::getenv("USER"));
-#endif
+        if(std::getenv("HOSTNAME") != NULL ) hostname=std::getenv("HOSTNAME");
+        if(std::getenv("USER") != NULL) operator_name = std::getenv("USER");
+
         PM.print(fp1, hostname, operator_name);
         PM.printDetail(fp2);
         fclose(fp1);
