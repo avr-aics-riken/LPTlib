@@ -306,6 +306,7 @@ namespace DSlib
     {
       return OriginZ + BlockBoundaryZ[GetBlockIDZ(BlockID)] * dz;
     };
+
     int GetBlockSizeX(const long &BlockID)
     {
       return BlockBoundaryX[GetBlockIDX(BlockID) + 1] - BlockBoundaryX[GetBlockIDX(BlockID)];
@@ -318,6 +319,19 @@ namespace DSlib
     {
       return BlockBoundaryZ[GetBlockIDZ(BlockID) + 1] - BlockBoundaryZ[GetBlockIDZ(BlockID)];
     };
+
+    int GetSubDomainOriginCellX(const int &SubDomainID)
+    {
+        return SubDomainBoundaryX[GetSubDomainIDX(SubDomainID)];
+    }
+    int GetSubDomainOriginCellY(const int &SubDomainID)
+    {
+        return SubDomainBoundaryY[GetSubDomainIDY(SubDomainID)];
+    }
+    int GetSubDomainOriginCellZ(const int &SubDomainID)
+    {
+        return SubDomainBoundaryZ[GetSubDomainIDZ(SubDomainID)];
+    }
     int GetSubDomainSizeX(const int &SubDomainID)
     {
       return SubDomainBoundaryX[GetSubDomainIDX(SubDomainID) + 1] - SubDomainBoundaryX[GetSubDomainIDX(SubDomainID)];
