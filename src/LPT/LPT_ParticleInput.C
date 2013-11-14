@@ -36,9 +36,10 @@ namespace LPT
 
   }
 
-  void LPT_ParticleInput::ReadRecordHeader()
+  unsigned long LPT_ParticleInput::ReadRecordHeader()
   {
     In->read((char *)&RecordSize, sizeof(unsigned long));
+    return RecordSize;
   }
 
   void LPT_ParticleInput::ReadRecord()

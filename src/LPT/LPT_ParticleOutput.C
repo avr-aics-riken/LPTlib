@@ -21,7 +21,7 @@ namespace LPT
 
   void LPT_ParticleOutput::WriteRecord()
   {
-    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); it++) {
+    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); ++it) {
       (*it)->BinaryWrite(Out2);
     }
   }

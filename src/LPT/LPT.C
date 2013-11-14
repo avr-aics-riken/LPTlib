@@ -329,8 +329,8 @@ namespace LPT
             PM.stop(PM.tm_AddCache);
 
             PM.start(PM.tm_MoveParticle);
-//            ptrPPlib->MoveParticleByBlockIDWithLinearSearch((*it2)->Header->BlockID);
-            ptrPPlib->MoveParticleByBlockIDWithBinarySearch((*it2)->Header->BlockID);
+            ptrPPlib->MoveParticleByBlockIDWithLinearSearch((*it2)->Header->BlockID);
+//            ptrPPlib->MoveParticleByBlockIDWithBinarySearch((*it2)->Header->BlockID);
             delete(*it2);
             it2 = RecvBuff.erase(it2);
             PM.stop(PM.tm_MoveParticle);
@@ -350,15 +350,15 @@ namespace LPT
               } else {
                 LPT_LOG::GetInstance()->LOG("Pending calcuration for Particle ID = ", (*it3)->GetAllID());
                 LPT_LOG::GetInstance()->LOG("PP_Transport returns = ", ierr);
-                it3++;
+                ++it3;
               }
             }
             PM.stop(PM.tm_PP_Transport);
-            if(RecvBuff.size() == 0) {
+            if(RecvBuff.empty()) {
               break;
             }
           } else {
-            it2++;
+            ++it2;
           }
         }
       }
@@ -384,8 +384,8 @@ namespace LPT
         PM.stop(PM.tm_AddCache);
 
         PM.start(PM.tm_MoveParticle);
-//        ptrPPlib->MoveParticleByBlockIDWithLinearSearch((*it2)->Header->BlockID);
-        ptrPPlib->MoveParticleByBlockIDWithBinarySearch((*it2)->Header->BlockID);
+        ptrPPlib->MoveParticleByBlockIDWithLinearSearch((*it2)->Header->BlockID);
+//        ptrPPlib->MoveParticleByBlockIDWithBinarySearch((*it2)->Header->BlockID);
         delete(*it2);
         it2 = RecvBuff.erase(it2);
         PM.stop(PM.tm_MoveParticle);
@@ -406,7 +406,7 @@ namespace LPT
           it3 = ptrPPlib->WorkingParticles.erase(it3);
         } else {
           LPT_LOG::GetInstance()->ERROR("PP_Transport failed at last calculation!! return value = ", ierr);
-          it3++;
+          ++it3;
         }
       }
       PM.stop(PM.tm_PP_Transport);

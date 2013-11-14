@@ -8,7 +8,6 @@
 #include <mpi.h>
 
 #include "CommDataBlock.h"
-#include "PerfMonitor.h"
 
 namespace DSlib
 {
@@ -75,7 +74,7 @@ namespace DSlib
     {
       delete[]SendRequestCounts;
       delete[]RecvRequestCounts;
-      for(std::vector < std::vector < long >*>::iterator it = RequestedBlockIDs.begin(); it != RequestedBlockIDs.end(); it++) {
+      for(std::vector < std::vector < long >*>::iterator it = RequestedBlockIDs.begin(); it != RequestedBlockIDs.end(); ++it) {
         delete *it;
       }
     }
@@ -136,7 +135,7 @@ namespace DSlib
     {
       int size=0;
       int i=0;
-      for(std::vector < std::vector < long >*>::iterator it = RequestedBlockIDs.begin(); it != RequestedBlockIDs.end(); it++)
+      for(std::vector < std::vector < long >*>::iterator it = RequestedBlockIDs.begin(); it != RequestedBlockIDs.end(); ++it)
       {
         size+=(*it)->capacity();
         std::cerr << "RequestedBlockIDs["<<i<<"].capacity = "<<(*it)->capacity()<<" ";

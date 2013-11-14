@@ -45,7 +45,7 @@ namespace PPlib
         }
       }
       catch(std::bad_alloc) {
-        for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); it++) {
+        for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); ++it) {
           delete *it;
         }
         std::cerr << "faild to allocate memory for ParticleData. particle emittion is skiped for this time step" << std::endl;
@@ -56,7 +56,7 @@ namespace PPlib
       GetGridPointCoord(Coords);
 
       std::vector < DSlib::DV3 >::iterator itCoords = Coords.begin();
-      for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); it++) {
+      for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); ++it) {
         (*it)->StartPointID[0] = ID[0];
         (*it)->StartPointID[1] = ID[1];
         (*it)->ParticleID = id++;

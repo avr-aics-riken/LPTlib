@@ -13,6 +13,7 @@ FileConverter_SOURCES = \
    main.C \
    FileConverterID.C \
    FileConverterTime.C \
+   FileOutput2.h \
    FileConverter.h
 
 FileConverter_CXXFLAGS = @MPICH_CFLAGS@ @LPT_CFLAGS@ \

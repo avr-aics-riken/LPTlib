@@ -288,7 +288,7 @@ namespace PPlib
     //分割した個々のオブジェクトをさらにM方向にMpointsづつに分割
     int orgM = M;
 
-    for(std::vector < Rectangle * >::iterator it = tmpStartPoint.begin(); it != tmpStartPoint.end(); it++) {
+    for(std::vector < Rectangle * >::iterator it = tmpStartPoint.begin(); it != tmpStartPoint.end(); ++it) {
       M = orgM;
       for(int i = 0; i < orgM / MB; i++) {
         Rectangle *tmpRectangle = new Rectangle(**it);

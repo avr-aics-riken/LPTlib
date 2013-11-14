@@ -1,4 +1,4 @@
-#include "CSV_Output.h"
+#include "FileOutput_csv.h"
 
 namespace LPT
 {
@@ -10,7 +10,7 @@ namespace LPT
 
   void CSV_Output::WriteRecord()
   {
-    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); it++) {
+    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); ++it) {
       Out2 << (*it)->Coord[0] << ",";
       Out2 << (*it)->Coord[1] << ",";
       Out2 << (*it)->Coord[2] << ",";

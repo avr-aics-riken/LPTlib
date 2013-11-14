@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <list>
-#include "FV_ParticlePathBinaryOutput.h"
+#include "FileOutput_FVbin.h"
 
 namespace LPT
 {
@@ -69,7 +69,7 @@ namespace LPT
 
     int ID = 1;
 
-    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); it++) {
+    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); ++it) {
       float x = (float)(*it)->Coord[0];
       float y = (float)(*it)->Coord[1];
       float z = (float)(*it)->Coord[2];

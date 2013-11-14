@@ -12,9 +12,9 @@
 #include "ParticleData.h"
 #include "FileManager.h"
 #include "LPT_ParticleInput.h"
-#include "FV_ParticlePathOutput.h"
-#include "FV_ParticlePathBinaryOutput.h"
-#include "CSV_Output.h"
+#include "FileOutput_FVbin.h"
+#include "FileOutput_FVtext.h"
+#include "FileOutput_csv.h"
 
 class FileConverter
 {

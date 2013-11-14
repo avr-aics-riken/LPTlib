@@ -49,7 +49,7 @@ namespace PPlib
       }
 
       if(OldBlockID != NewBlockID) {
-        LPT::LPT_LOG::GetInstance()->LOG("Coord = ", x_new);
+        LPT::LPT_LOG::GetInstance()->LOG("Coord = ", x_new, 3);
         LPT::LPT_LOG::GetInstance()->LOG("New BlockID = ", NewBlockID);
         int retval = ptrDSlib->Load(NewBlockID, &LoadedDataBlock);
 
@@ -99,7 +99,7 @@ namespace PPlib
 #pragma forceinline recursive
 #endif
       gus->ConvItoX(x_i, x_new);
-      LPT::LPT_LOG::GetInstance()->LOG("Coord = ", x_new);
+      LPT::LPT_LOG::GetInstance()->LOG("Coord = ", x_new, 3);
       int chkBounds = ptrDM->CheckBounds(x_new);
 
       if(chkBounds != 0) {

@@ -1,113 +1,177 @@
-#include "FileConverter.h"
+#include <dirent.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <set>
+#include <vector>
+#include <list>
+#include <cstdlib>
+#include <unistd.h>
+#include "ParticleData.h"
+#include "FileManager.h"
+#include "LPT_ParticleInput.h"
+#include "FileOutput.h"
+#include "FileOutput_FVbin.h"
+#include "FileOutput_FVtext.h"
+#include "FileOutput_csv.h"
+#include "FileOutput2.h"
 
-void print_usage_and_abort(char *cmd)
+//引数で指定されたディレクトリにある *.prt ファイルを読み込み
+//自Rankが担当するファイル名をlistに入れて返す
+std::list<std::string> * make_input_file_list(std::string dirname)
 {
-  std::cerr << "usage: " << cmd << " [-o csv | FVtext | FVbin] [Input file directory]" << std::endl;
-  MPI_Abort(MPI_COMM_WORLD, -1);
-}
-
-int main(int argc, char *argv[])
-{
-  using namespace PPlib;
-
-  int nproc, myrank;
-
-  MPI_Init(&argc, &argv);
-  MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-
-  //オプションから出力形式を読み取り、対応するFileOutputの派生クラスのインスタンスを生成する
-  std::string format("FVbin");  //default output format
-  int option;
-
-  while((option = getopt(argc, argv, "o:")) != -1)
-  {
-    switch (option)
-    {
-      case 'o':
-        format = optarg;
-        break;
-      case '?':                //unknown option
-        print_usage_and_abort(argv[0]);
-    }
-  }
-
-  LPT::FileOutput * FileOutput;
-  if(format == "csv")
-  {
-    FileOutput = new LPT::CSV_Output;
-  } else if(format == "FVtext")
-  {
-    FileOutput = new LPT::FV_ParticlePath;
-  } else if(format == "FVbin")
-  {
-    FileOutput = LPT::FV_ParticlePathBinary::GetInstance();
-  } else
-  {
-    print_usage_and_abort(argv[0]);
-  }
-
-  ////引数で指定されたディレクトリにある *.prt ファイルを読み込む
-  //オプション以外の引数が無い場合は、カレントディレクトリ内が対象
   DIR *dp;
-  struct dirent *entry;
-
-  std::string dirname;
-  std::list < std::string > InputFiles;
-
-  if(optind < argc)
-  {
-    dirname = argv[optind];
-  } else
-  {
-    dirname = "./";
-  }
   if((dp = opendir(dirname.c_str())) == NULL)
   {
     std::cerr << "Couldn't open " << dirname << std::endl;
-    std::abort();
+    MPI_Abort(MPI_COMM_WORLD, 1);
   }
 
+  struct dirent *entry;
+  std::list < std::string > input_files;
   entry = readdir(dp);
   while(entry != NULL)
   {
     std::string filename(entry->d_name);
     if(filename.find(".prt") != std::string::npos)
     {
-      InputFiles.push_back(dirname + filename);
+      input_files.push_back(dirname + filename);
     }
     entry = readdir(dp);
   }
   closedir(dp);
-  InputFiles.sort();
+  input_files.sort();
 
-  //自Rankが処理を担当するファイルを決める
-  std::list < std::string > MyInputFiles;
+  std::list < std::string > * my_input_files = new std::list<std::string>;
+
+  int nproc, myrank;
+  MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
   int counter = 0;
-
-  for(std::list < std::string >::iterator it = InputFiles.begin(); it != InputFiles.end(); ++it)
+  for(std::list < std::string >::iterator it = input_files.begin(); it != input_files.end(); ++it)
   {
     if(counter % nproc == myrank)
     {
-      MyInputFiles.push_back(*it);
+      my_input_files->push_back(*it);
     }
     ++counter;
   }
+  return my_input_files;
+}
 
-  //タイムステップベースまたはIDベースのファイル出力オブジェクトを生成
-  FileConverter *FC;
+/// vtk(ascii)形式で粒子データをtimestep毎に出力する
+void write_vtk_file(std::set<unsigned int> &time_step_tree, std::list < std::ifstream * > &InputFileStream)
+{
 
-  if(format == "FVbin")
+  LPT::FileManager::GetInstance()->SetMaxTimeStep(*(time_step_tree.rbegin()));
+  for (std::set<unsigned int>::iterator it_time_step = time_step_tree.begin(); it_time_step != time_step_tree.end(); ++it_time_step)
   {
-    FC = new FileConverterTime;
-  } else
-  {
-    FC = new FileConverterID;
+    //粒子データの読み込み
+    std::list < PPlib::ParticleData * >Particles;
+    for(std::list < std::ifstream * >::iterator it_input_file = InputFileStream.begin(); it_input_file != InputFileStream.end(); ++it_input_file)
+    {
+      (*it_input_file)->clear();
+      (*it_input_file)->seekg(0);
+      LPT::LPT_ParticleInput Input(*it_input_file);
+      Input.SetParticles(&Particles);
+      Input.ReadFileHeader();
+      Input.ReadRecord(*it_time_step);
+    }
+    //ID順にソート
+    Particles.sort(PPlib::CompareID());
+
+    LPT::BaseFileOutput * vtk_writer = 
+      new LPT::VTK_PolyDataFileFooter(
+          new LPT::VTK_PointDataFooter(
+            new LPT::VTK_DataArrayParticleVelocity(
+              new LPT::VTK_PointDataHeader(
+                new LPT::VTK_Points(
+                  new LPT::VTK_PolyDataFileHeader(
+                    new LPT::BaseFileOutput()
+                    )
+                  )
+                )
+              )
+            )
+          );
+    vtk_writer->write(&Particles, LPT::FileManager::GetInstance()->GetFileNameWithTimeStep("vtp",(*it_time_step)));
+    delete vtk_writer;
   }
+}
+
+// FieldView13のParticlePath形式でファイルを出力する
+void write_fv13(std::set<unsigned int> &time_step_tree, std::list < std::ifstream * > &InputFileStream)
+{
+  LPT::FileOutput *writer = LPT::FV_ParticlePathBinary::GetInstance();
+  writer->WriteFileHeader();
+  for (std::set<unsigned int>::iterator it_time_step = time_step_tree.begin(); it_time_step != time_step_tree.end(); ++it_time_step)
+  {
+    //粒子データの読み込み
+    std::list < PPlib::ParticleData * >Particles;
+    for(std::list < std::ifstream * >::iterator it_input_file = InputFileStream.begin(); it_input_file != InputFileStream.end(); ++it_input_file)
+    {
+      (*it_input_file)->clear();
+      (*it_input_file)->seekg(0);
+      LPT::LPT_ParticleInput Input(*it_input_file);
+      Input.SetParticles(&Particles);
+      Input.ReadFileHeader();
+      Input.ReadRecord(*it_time_step);
+    }
+    //ID順にソート
+    Particles.sort(PPlib::CompareID());
+    //fvp形式で出力
+    writer->SetParticles(&Particles);
+    writer->WriteRecordHeader();
+    writer->WriteRecord();
+    writer->WriteRecordFooter();
+  }  
+  writer->WriteFileFooter();
+}
+
+void print_usage_and_abort(char *cmd)
+{
+  std::cerr << "usage: " << cmd << " [-i input_file_directory] [-o FV13text | FV13 | FV14 | vtk | vtk_ascii]" << std::endl;
+  MPI_Abort(MPI_COMM_WORLD, -1);
+}
+
+void my_getopt(const int &argc, char **argv, std::string &dir_name, std::string& writer_name)
+{
+  dir_name="./";
+  writer_name="FV13";
+
+  int results;
+  while((results=getopt(argc,argv,"i:o:")) != -1)
+  {
+    switch(results)
+    {
+      case 'i':
+        dir_name=optarg;
+        break;
+      case 'o':
+        writer_name=optarg;
+        break;
+      case '?':
+        print_usage_and_abort(argv[0]);
+        break;
+    }
+  }
+}
+
+int main(int argc, char *argv[])
+{
+  using namespace PPlib;
+
+  MPI_Init(&argc, &argv);
+
+  std::string dir_name;
+  std::string writer_name;
+  my_getopt(argc, argv, dir_name, writer_name);
+
+  std::list<std::string> * input_files = make_input_file_list(dir_name);
 
   //入力ファイルを開く
   std::list < std::ifstream * >InputFileStream;
-  for(std::list < std::string >::iterator it = MyInputFiles.begin(); it != MyInputFiles.end(); it++)
+  for(std::list < std::string >::iterator it = input_files->begin(); it != input_files->end(); ++it)
   {
     std::cerr << "Reading: " << (*it) << std::endl;
     std::ifstream * tmp = new std::ifstream;
@@ -115,22 +179,32 @@ int main(int argc, char *argv[])
     InputFileStream.push_back(tmp);
   }
 
-  //出力ファイルを開く
+  //IDとTimeStepのsetを作る
+  std::set < LPT::ID > id_tree;
+  std::set<unsigned int> time_step_tree;
+  for(std::list < std::ifstream * >::iterator it = InputFileStream.begin(); it != InputFileStream.end(); it++)
+  {
+    LPT::LPT_ParticleInput Input(*it);
+    Input.ReadFileHeader();
+    Input.ReadTimeSteps(&time_step_tree);
+    Input.ReadIDs(&id_tree);
+  }
+
+  //粒子データを出力
   LPT::FileManager::GetInstance()->SetBaseFileName("ParticleData");
-  std::cerr << "WriteFileHeader" << std::endl;
-  FileOutput->WriteFileHeader();
+  if(writer_name == "vtk_ascii")
+  {
+    write_vtk_file(time_step_tree, InputFileStream);
+  }else if(writer_name == "FV13"){
+    write_fv13(time_step_tree, InputFileStream);
+  }
 
-  std::cerr << "WriteBody" << std::endl;
-  FC->WriteBody(InputFileStream, *FileOutput);
-
-  std::cerr << "WriteFileFooter" << std::endl;
-  FileOutput->WriteFileFooter();
-
+  //入力ファイルを閉じる
   for(std::list < std::ifstream * >::iterator it = InputFileStream.begin(); it != InputFileStream.end(); it++)
   {
     (*it)->close();
   }
-  MPI_Barrier(MPI_COMM_WORLD);
+
   MPI_Finalize();
   return 0;
 }

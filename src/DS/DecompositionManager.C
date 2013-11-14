@@ -143,8 +143,6 @@ namespace DSlib
     }
 
     LPT::LPT_LOG::GetInstance()->LOG("calc LargestBlockSize");
-    int halo = GetGuideCellSize();
-
     LargestBlockSize = (GetBlockSizeX(0) + 2 * GetGuideCellSize()) * (GetBlockSizeY(0) + 2 * GetGuideCellSize()) * (GetBlockSizeZ(0) + 2 * GetGuideCellSize());
 
     DumpBlockBoundary();
@@ -176,7 +174,6 @@ namespace DSlib
   {
     int BlockID3D[3];
     int SubDomainID3D[3];
-    int SubDomainID1D;
 
     IndexConvert1Dto3D(id, BlockID3D, NBx * NPx, NBy * NPy);
 
@@ -196,15 +193,15 @@ namespace DSlib
     }
 
     std::vector < REAL_TYPE >::iterator itX = std::upper_bound(RealBlockBoundaryX.begin(), RealBlockBoundaryX.end(), Coord.x);
-    itX--;
+    --itX;
     BlockID3D[0] = std::distance(RealBlockBoundaryX.begin(), itX);
 
     std::vector < REAL_TYPE >::iterator itY = std::upper_bound(RealBlockBoundaryY.begin(), RealBlockBoundaryY.end(), Coord.y);
-    itY--;
+    --itY;
     BlockID3D[1] = std::distance(RealBlockBoundaryY.begin(), itY);
 
     std::vector < REAL_TYPE >::iterator itZ = std::upper_bound(RealBlockBoundaryZ.begin(), RealBlockBoundaryZ.end(), Coord.z);
-    itZ--;
+    --itZ;
     BlockID3D[2] = std::distance(RealBlockBoundaryZ.begin(), itZ);
 
     return Convert3Dto1Dlong(BlockID3D[0], BlockID3D[1], BlockID3D[2], NBx * NPx, NBy * NPy);

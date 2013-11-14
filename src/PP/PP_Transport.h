@@ -5,7 +5,6 @@
 
 #include <vector>
 #include <list>
-#include "PerfMonitor.h"
 #include "Interpolator.h"
 //forward declaration
 namespace DSlib
@@ -28,8 +27,9 @@ namespace PPlib
     long OldBlockID;
 
     /// Load済DataBlockへのポインタ
-      DSlib::DataBlock * LoadedDataBlock;
+    DSlib::DataBlock * LoadedDataBlock;
 
+    PP_Transport(const PP_Transport & obj){}
   public:
       PP_Transport():OldBlockID(-1), LoadedDataBlock(NULL)
     {
