@@ -10,11 +10,7 @@
 bin_PROGRAMS = FileConverter
 
 FileConverter_SOURCES = \
-   main.C \
-   FileConverterID.C \
-   FileConverterTime.C \
-   FileOutput2.h \
-   FileConverter.h
+   main.C
 
 FileConverter_CXXFLAGS = @MPICH_CFLAGS@ @LPT_CFLAGS@ \
         -I$(top_builddir)/include \

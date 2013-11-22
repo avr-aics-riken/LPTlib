@@ -7,7 +7,7 @@ namespace LPT
   {
     Out2.write((char *)BOM, sizeof(BOM));
     Out2.write((char *)&ParticleDataFormatVersion, sizeof(double));
-      Out2.write((char *)&SizeOfRealType, sizeof(size_t));
+    Out2.write((char *)&SizeOfRealType, sizeof(size_t));
   }
 
   void LPT_ParticleOutput::WriteRecordHeader()
@@ -21,8 +21,8 @@ namespace LPT
 
   void LPT_ParticleOutput::WriteRecord()
   {
-    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); ++it) {
-      (*it)->BinaryWrite(Out2);
+    for(std::multimap< long, PPlib::ParticleData*>::iterator it = Particles->begin(); it != Particles->end(); ++it) {
+      (*it).second->BinaryWrite(Out2);
     }
   }
 

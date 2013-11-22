@@ -18,6 +18,8 @@ namespace PPlib
 {
   int PP_Transport::Calc(ParticleData * Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const unsigned int &CurrentTimeStep)
   {
+    //もし計算済の粒子が来たらすぐにreturn
+    if(CurrentTimeStep <= Particle->CurrentTimeStep) return 0;
     DSlib::DecompositionManager * ptrDM = DSlib::DecompositionManager::GetInstance();
     REAL_TYPE x_i[3];
     REAL_TYPE x_old[3];

@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <list>
+#include <map>
 #include "ParticleData.h"
 #include "StartPointAll.h"
 //forward declaration
@@ -24,20 +25,8 @@ namespace PPlib
     std::vector < StartPoint * >StartPoints;
 
     //!  @brief 計算を担当する粒子データのオブジェクトへのポインタを格納する。
-    //!  粒子が存在する位置のブロックID毎にソートしておく
-    //!  
-    //!  粒子が放出される時点では、ブロックIDは不明なので
-    //!  map等のソート済コンテナは使えない。
-    //!  放出-->BlockIDの問い合わせ-->ソート の処理が必要
-    //!  ソートを容易にするために、listで実装している 2012/8/14
-    std::list < ParticleData * >Particles;
+    std::multimap < long, ParticleData *> Particles;
 
-    //! @brief データブロックが到着して、現在計算中の粒子データのオブジェクトへのポインタを保存するリスト
-    //! タイムステップ終了時には、Particlesに全て移動し、サイズは0になっている(計算できなかった粒子も戻す)
-    std::list < ParticleData * >WorkingParticles;
-
-    //!  このタイムステップでの計算が終わった粒子データのオブジェクトへのポインタを保存するリスト
-    std::list < ParticleData * >CalcedParticles;
 
     //! @brief StartPointsに登録されている全ての開始点から粒子を放出させる
     //! 開始点がMovingPoints型だった場合は現在時刻に応じた位置へ移動させてから粒子を放出する
@@ -65,26 +54,6 @@ namespace PPlib
     //! @param CurrentTime [in] 現在時刻
     void CheckLifeTime(const double CurrentTime);
 
-    //! @brief 引数で与えられた粒子データを、Particlesの適切な位置に追加する
-    //! ParticlesはブロックID順にソートされているので、追加しようとする粒子がと同じブロックに存在する粒子データが、既にParticlesにあれば、その直後、無ければ末尾に追加する
-    //! 新規に放出された粒子は、ブロックIDを調べていないのでこのルーチンでは追加しない。
-    //! マイグレーションで受け取った粒子に対して使う？
-    //! @param ParticleData * [in] 粒子データのインスタンスへのポインタ
-    //! @param ptdDSlib       [in] DSlibのインスタンスへのポインタ、FindBlockIDByCoord()を呼ぶためにとりあえず渡している
-    void AddParticle(ParticleData * Particle, DSlib::DecompositionManager * ptrDM);
-
-    //! 引数で指定されたBlockIDの粒子データをParticlesからWorkingParticlesへ移動させる(線形探索版)
-    void MoveParticleByBlockIDWithLinearSearch(long BlockID);
-
-    //! 引数で指定されたBlockIDの粒子データをParticlesからWorkingParticlesへ移動させる(二分探索版)
-    void MoveParticleByBlockIDWithBinarySearch(long BlockID);
-
-    //! メンバ変数CalcParticlesとParticlesを入れ替える
-    void ExchangeParticleContainers(void)
-    {
-      Particles.swap(CalcedParticles);
-    }
-
     //! @brief  粒子のマイグレーションが必要かどうか判定する
     void DetermineMigration();
 
@@ -106,10 +75,6 @@ namespace PPlib
     ~PPlib()
     {
       for (std::vector < StartPoint * >::iterator it = StartPoints.begin(); it!=StartPoints.end(); ++it)
-      {
-        delete *it;
-      }
-      for (std::list < ParticleData * >::iterator it = Particles.begin(); it!=Particles.end(); ++it)
       {
         delete *it;
       }

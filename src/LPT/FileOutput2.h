@@ -150,7 +150,8 @@ namespace LPT
         base->write(Particles, filename);
         std::ofstream ofs(filename.c_str(),std::ios::app);
         ofs <<"<PointData ";
-        ofs <<"Vectors=\"ParticleVelocity\"> ";  //TODO 出力する物理量を変える時のために、コンストラクタで一覧をもらってくるように変える
+        //TODO 出力する物理量を変える時のために、コンストラクタで物理量の一覧をもらってくるように変える
+        ofs <<"Vectors=\"ParticleVelocity\"> ";
         ofs <<">"<<std::endl;
       }
 

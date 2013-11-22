@@ -26,7 +26,10 @@ namespace PPlib
     if(! tmpParticles.empty())
     {
       LPT::LPT_LOG::GetInstance()->INFO("Number of New Particles = ", tmpParticles.size());
-      Particles.splice(Particles.end(), tmpParticles);
+      for(std::list<ParticleData * >::iterator it = tmpParticles.begin(); it!=tmpParticles.end();++it)
+      {
+        Particles.insert(std::make_pair((*it)->BlockID, (*it)));
+      }
     }
   }
 
@@ -34,11 +37,11 @@ namespace PPlib
   {
     std::set < long >tmpIDs;
 
-    for(std::list < ParticleData * >::iterator it = Particles.begin(); it != Particles.end(); ++it) {
+    for( std::multimap< long, ParticleData*>::iterator it = Particles.begin(); it != Particles.end(); ++it) {
       //粒子位置のデータブロックを探す
-      long BlockID = ptrDM->FindBlockIDByCoordLinear((*it)->Coord);
+      long BlockID = ptrDM->FindBlockIDByCoordLinear((*it).second->Coord);
 
-      (*it)->BlockID = BlockID;
+      (*it).second->BlockID = BlockID;
       tmpIDs.insert(BlockID);
     }
 
@@ -68,11 +71,11 @@ namespace PPlib
 
   void PPlib::DestroyExpiredParticles(const double &CurrentTime)
   {
-    for(std::list < ParticleData * >::iterator it = Particles.begin(); it != Particles.end();) {
-      if(Check(CurrentTime, (*it))) {
-        LPT::LPT_LOG::GetInstance()->INFO("Particle Deleted. ID= ", (*it)->GetID());
-        delete *it;
-        it = Particles.erase(it);
+    for( std::multimap< long, ParticleData*>::iterator it = Particles.begin(); it != Particles.end();) {
+      if(Check(CurrentTime, (*it).second)) {
+        LPT::LPT_LOG::GetInstance()->INFO("Particle Deleted. ID= ", (*it).second->GetID());
+        delete (*it).second;
+        Particles.erase(it++);
       } else {
         ++it;
       }
@@ -91,24 +94,6 @@ namespace PPlib
       }
     }
     std::vector<StartPoint *>(StartPoints).swap(StartPoints);
-  }
-
-  void PPlib::AddParticle(ParticleData * Particle, DSlib::DecompositionManager * ptrDM)
-  {
-    //粒子が存在するデータブロックを調べる
-    long BlockID = ptrDM->FindBlockIDByCoordLinear(Particle->Coord);
-
-    //同じデータブロックの粒子を探す
-    for(std::list < ParticleData * >::iterator it = Particles.begin(); it != Particles.end(); ++it) {
-      //見付かれば、その直後に追加
-      if((*it)->BlockID == BlockID) {
-        Particles.insert(it, Particle);
-        return;
-      }
-    }
-    //見付からなければ、push_back();
-    Particles.push_back(Particle);
-    return;
   }
 
   void PPlib::DistributeStartPoints(const int &NParticleProcs)
@@ -201,58 +186,38 @@ namespace PPlib
 
     //開始点の情報をTimeStep0の粒子として出力
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it) {
-      std::list < ParticleData * >ParticleList;
+      std::multimap < long, ParticleData *> ParticleList;
       for(int i = 0; i < (*it)->GetSumStartPoints(); i++) {
         ParticleData *tmp = new ParticleData;
-
-        ParticleList.push_back(tmp);
+        ParticleList.insert(std::make_pair(-1,tmp));
       }
 
       std::vector < DSlib::DV3 > Coords;
       (*it)->GetGridPointCoord(Coords);
       std::vector < DSlib::DV3 >::iterator itCoords = Coords.begin();
 
-      for(std::list < ParticleData * >::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
-        (*it)->GetID((*it_list)->StartPointID);
-        (*it_list)->ParticleID = 0;
-        (*it_list)->StartTime = 0.0;
-        (*it_list)->LifeTime = 0.0;
-        (*it_list)->CurrentTime = 0.0;
-        (*it_list)->CurrentTimeStep = 0;
+      for(std::multimap < long, ParticleData *>::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
+        (*it)->GetID((*it_list).second->StartPointID);
+        (*it_list).second->ParticleID = 0;
+        (*it_list).second->StartTime = 0.0;
+        (*it_list).second->LifeTime = 0.0;
+        (*it_list).second->CurrentTime = 0.0;
+        (*it_list).second->CurrentTimeStep = 0;
 
-        (*it_list)->Coord[0] = (*itCoords).x;
-        (*it_list)->Coord[1] = (*itCoords).y;
-        (*it_list)->Coord[2] = (*itCoords).z;
+        (*it_list).second->Coord[0] = (*itCoords).x;
+        (*it_list).second->Coord[1] = (*itCoords).y;
+        (*it_list).second->Coord[2] = (*itCoords).z;
         ++itCoords;
 
       }
       LPT::LPT_ParticleOutput::GetInstance()->SetParticles(&ParticleList);
       LPT::LPT_ParticleOutput::GetInstance()->WriteRecordHeader();
       LPT::LPT_ParticleOutput::GetInstance()->WriteRecord();
-      for(std::list < ParticleData * >::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
-        delete *it_list;
+      for(std::multimap < long, ParticleData *>::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
+        delete (*it_list).second;
       }
     }
 
-  }
-
-  void PPlib::MoveParticleByBlockIDWithLinearSearch(long BlockID)
-  {
-    for(std::list < ParticleData * >::iterator it = Particles.begin(); it != Particles.end();) {
-      if((*it)->BlockID == BlockID) {
-        WorkingParticles.push_back(*it);
-        it = Particles.erase(it);
-      } else {
-        ++it;
-      }
-    }
-  }
-  void PPlib::MoveParticleByBlockIDWithBinarySearch(long BlockID)
-  {
-     ParticleData index;
-     index.BlockID=BlockID;
-     std::pair< std::list<ParticleData*>::iterator, std::list<ParticleData*>::iterator > range=equal_range(Particles.begin(),Particles.end(), &index, CompareBlockID());
-     WorkingParticles.splice(WorkingParticles.end(), Particles, range.first, range.second);
   }
 
   void PPlib::DetermineMigration()

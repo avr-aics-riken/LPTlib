@@ -214,12 +214,6 @@ namespace LPT
     LPT_LOG::GetInstance()->LOG("make request queues done");
     PM.stop(PM.tm_MakeRequestQ);
 
-    //ブロックID順に粒子データをソート
-    PM.start(PM.tm_SortParticle);
-    (ptrPPlib->Particles).sort(PPlib::CompareBlockID());
-    LPT_LOG::GetInstance()->LOG("sort particles done");
-    PM.stop(PM.tm_SortParticle);
-
     //このタイムステップ中に必要な転送回数(転送量の最大値/キャッシュサイズ)を計算
     PM.start(PM.tm_CalcNumComm);
 
@@ -308,6 +302,7 @@ namespace LPT
       for(int i = 0; i < NumPolling; i++) {
         for(std::list < DSlib::CommDataBlockManager * >::iterator it2 = RecvBuff.begin(); it2 != RecvBuff.end();) {
           PM.start(PM.tm_MPI_Test);
+          //TODO CommDataBlockManager->is_arrived() としてくくり出す
           MPI_Status status;
 
           // MPI_Test後に flag = 0であればデータは未着
@@ -325,47 +320,34 @@ namespace LPT
           if(flag0 && flag1) {
             PM.start(PM.tm_AddCache);
             ptrDSlib->AddCachedBlocks((*it2), GetCurrentTime());
-            LPT_LOG::GetInstance()->LOG("Arrived Block = ", (*it2)->Header->BlockID);
-            PM.stop(PM.tm_AddCache);
-
-            PM.start(PM.tm_MoveParticle);
-            ptrPPlib->MoveParticleByBlockIDWithLinearSearch((*it2)->Header->BlockID);
-//            ptrPPlib->MoveParticleByBlockIDWithBinarySearch((*it2)->Header->BlockID);
+            long ArrivedBlockID=(*it2)->Header->BlockID;
+            LPT_LOG::GetInstance()->LOG("Arrived Block = ", ArrivedBlockID);
             delete(*it2);
             it2 = RecvBuff.erase(it2);
-            PM.stop(PM.tm_MoveParticle);
+            PM.stop(PM.tm_AddCache);
 
             PM.start(PM.tm_PP_Transport);
-            for(std::list < PPlib::ParticleData * >::iterator it3 = ptrPPlib->WorkingParticles.begin(); it3 != ptrPPlib->WorkingParticles.end();) {
-              int ierr = Transport.Calc(*it3, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
-
-              if(ierr == 0 || ierr == -1) {
-                ptrPPlib->CalcedParticles.push_back(*it3);
-                it3 = ptrPPlib->WorkingParticles.erase(it3);
-              } else if(ierr == -10) {
-                LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it3)->GetAllID());
-                delete *it3;
-
-                it3 = ptrPPlib->WorkingParticles.erase(it3);
+            std::pair< std::multimap< long, PPlib::ParticleData*>::iterator, std::multimap<long, PPlib::ParticleData*>::iterator > range 
+              = ptrPPlib->Particles.equal_range(ArrivedBlockID);
+            for(std::multimap<long, PPlib::ParticleData*>::iterator it3=range.first;it3 != range.second;){
+              int ierr = Transport.Calc((*it3).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
+              if(ierr == -10) {
+                LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it3).second->GetAllID());
+                delete (*it3).second;
+                ptrPPlib->Particles.erase(it3++);
               } else {
-                LPT_LOG::GetInstance()->LOG("Pending calcuration for Particle ID = ", (*it3)->GetAllID());
-                LPT_LOG::GetInstance()->LOG("PP_Transport returns = ", ierr);
                 ++it3;
               }
             }
             PM.stop(PM.tm_PP_Transport);
-            if(RecvBuff.empty()) {
-              break;
-            }
+            if(RecvBuff.empty()) break;
           } else {
             ++it2;
           }
         }
       }
 
-      //全ての受信を完了させる
-      //受信したデータをCachedBlocksに格納し、そのデータブロック内に存在する粒子データを
-      //PPlib->ParticlesからPPlib->WorkingParticlesへ移動させる
+      // 未受信のデータ到着を待ちつつ計算
       LPT_LOG::GetInstance()->LOG("Polling loop exited");
       for(std::list < DSlib::CommDataBlockManager * >::iterator it2 = RecvBuff.begin(); it2 != RecvBuff.end();) {
         PM.start(PM.tm_MPI_Wait);
@@ -381,35 +363,27 @@ namespace LPT
 
         PM.start(PM.tm_AddCache);
         ptrDSlib->AddCachedBlocks((*it2), GetCurrentTime());
-        PM.stop(PM.tm_AddCache);
-
-        PM.start(PM.tm_MoveParticle);
-        ptrPPlib->MoveParticleByBlockIDWithLinearSearch((*it2)->Header->BlockID);
-//        ptrPPlib->MoveParticleByBlockIDWithBinarySearch((*it2)->Header->BlockID);
+        long ArrivedBlockID=(*it2)->Header->BlockID;
+        LPT_LOG::GetInstance()->LOG("Arrived Block = ", ArrivedBlockID);
         delete(*it2);
         it2 = RecvBuff.erase(it2);
-        PM.stop(PM.tm_MoveParticle);
-      }
-
-      PM.start(PM.tm_PP_Transport);
-      //未計算の粒子を全て計算
-      for(std::list < PPlib::ParticleData * >::iterator it3 = ptrPPlib->WorkingParticles.begin(); it3 != ptrPPlib->WorkingParticles.end();) {
-        int ierr = Transport.Calc(*it3, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
-
-        if(ierr == 0 || ierr == -1) {
-          ptrPPlib->CalcedParticles.push_back(*it3);
-          it3 = ptrPPlib->WorkingParticles.erase(it3);
-        } else if(ierr == -10) {
-          LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it3)->GetAllID());
-          delete *it3;
-
-          it3 = ptrPPlib->WorkingParticles.erase(it3);
-        } else {
-          LPT_LOG::GetInstance()->ERROR("PP_Transport failed at last calculation!! return value = ", ierr);
-          ++it3;
+        PM.stop(PM.tm_AddCache);
+        //到着した粒子の移動を計算
+        PM.start(PM.tm_PP_Transport);
+        std::pair< std::multimap< long, PPlib::ParticleData*>::iterator, std::multimap<long, PPlib::ParticleData*>::iterator > range
+          = ptrPPlib->Particles.equal_range(ArrivedBlockID);
+        for(std::multimap<long, PPlib::ParticleData*>::iterator it3=range.first;it3 != range.second;){
+          int ierr = Transport.Calc((*it3).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
+          if(ierr == -10) {
+            LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it3).second->GetAllID());
+            delete (*it3).second;
+            ptrPPlib->Particles.erase(it3++);
+          } else {
+            ++it3;
+          }
         }
+        PM.stop(PM.tm_PP_Transport);
       }
-      PM.stop(PM.tm_PP_Transport);
 
       PM.start(PM.tm_DelSendBuff);
       //送信バッファの解放 
@@ -431,9 +405,6 @@ namespace LPT
     //キャッシュデータを全て削除
     ptrDSlib->PurgeAllCacheLists();
     PM.stop(PM.tm_Discard_Cache);
-    PM.start(PM.tm_ExchangeParticleContainers);
-    ptrPPlib->ExchangeParticleContainers();
-    PM.stop(PM.tm_ExchangeParticleContainers);
 
 #ifdef DEBUG
     this->PrintVectorSize();

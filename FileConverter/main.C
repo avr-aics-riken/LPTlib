@@ -119,8 +119,16 @@ void write_fv13(std::set<unsigned int> &time_step_tree, std::list < std::ifstrea
     }
     //ID順にソート
     Particles.sort(PPlib::CompareID());
+
+    std::multimap < long, PPlib::ParticleData *> Particles2;
+
+    for(std::list < PPlib::ParticleData * >::iterator it =Particles.begin(); it!= Particles.end();++it)
+    {
+      Particles2.insert(std::make_pair((*it)->BlockID, (*it)));
+    }
+
     //fvp形式で出力
-    writer->SetParticles(&Particles);
+    writer->SetParticles(&Particles2);
     writer->WriteRecordHeader();
     writer->WriteRecord();
     writer->WriteRecordFooter();
