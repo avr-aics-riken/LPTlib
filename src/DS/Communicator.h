@@ -117,7 +117,7 @@ namespace DSlib
     //! @brief 流体計算プロセスから粒子計算プロセスへ、P2Pのデータ転送を行なう
     //! @param Data [in] 送信するデータを格納した領域へのポインタ
     //! @param vlen [in] Dataのベクトル長(1=スカラーデータ, 3=ベクトルデータ)
-    void CommDataF2P(REAL_TYPE * Data, REAL_TYPE * v00, int *Mask, const int &vlen, DecompositionManager * ptrDM, std::list < CommDataBlockManager * >*SendBuff, std::list < CommDataBlockManager * >*RecvBuff);
+    void CommDataF2P(REAL_TYPE * Data, REAL_TYPE * v00, int *Mask, const int &vlen, std::list < CommDataBlockManager * >*SendBuff, std::list < CommDataBlockManager * >*RecvBuff);
 
     //! 引数で指定されたRankのRequestQueuesの数をDSlibから取得し、SendRequestCountsに格納する
     void MakeSendRequestCounts(const int &SubDomainID, DSlib * ptrDSlib);

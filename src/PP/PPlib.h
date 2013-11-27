@@ -24,9 +24,11 @@ namespace PPlib
     //! 担当する開始点データへのポインタのvector
     std::vector < StartPoint * >StartPoints;
 
-    //!  @brief 計算を担当する粒子データのオブジェクトへのポインタを格納する。
+    //!  @brief 計算を担当する粒子データオブジェクトへのポインタを格納する。
     std::multimap < long, ParticleData *> Particles;
 
+    //!  @brief タイムステップ中に再計算が必要な粒子データオブジェクトへのポインタを格納するWORK領域
+   // std::list < ParticleData *> WorkParticles;
 
     //! @brief StartPointsに登録されている全ての開始点から粒子を放出させる
     //! 開始点がMovingPoints型だった場合は現在時刻に応じた位置へ移動させてから粒子を放出する
@@ -34,7 +36,7 @@ namespace PPlib
     void EmitNewParticles(const double &CurrentTime, const unsigned int &CurrentTimeStep);
 
     //! @brief Particlesに登録されている粒子が存在する位置のデータブロックIDをDSlib::RequestQueuesに登録する
-    void MakeRequestQueues(DSlib::DecompositionManager * ptrDM, DSlib::DSlib * ptrDSlib);
+    void MakeRequestQueues(DSlib::DSlib * ptrDSlib);
 
     //! @brief StartPointsに登録されている個々の開始点データのリリースタイムをチェックし、現在時刻がリリースタイムを越えていたらその開始点のインスタンスを破棄する
     //! @param CurrentTime [in] 現在時刻
@@ -48,11 +50,7 @@ namespace PPlib
     //! @param CurrentTime [in] 現在時刻
     //! @retval true  このオブジェクトは破棄の対象
     //! @retval false このオブジェクトは破棄の対象外
-      template < typename T > bool Check(const double &CurrentTime, T * obj);
-
-    //! @brief Particlesに登録されている個々の粒子データの寿命をチェックし、現在時刻が寿命を越えていたらその粒子のインスタンスを破棄する
-    //! @param CurrentTime [in] 現在時刻
-    void CheckLifeTime(const double CurrentTime);
+      template < typename T > bool isExpired(const double &CurrentTime, T * obj);
 
     //! @brief  粒子のマイグレーションが必要かどうか判定する
     void DetermineMigration();

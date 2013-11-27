@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <list>
 #include <sstream>
 #include <fstream>
 #include <cmath>
@@ -210,7 +211,7 @@ namespace LPT
 
     //粒子位置のデータブロックとそのデータブロックを持つRankを調べて、RequestQueuesに必要なBlockIDを放り込む
     PM.start(PM.tm_MakeRequestQ);
-    ptrPPlib->MakeRequestQueues(ptrDM, ptrDSlib);
+    ptrPPlib->MakeRequestQueues(ptrDSlib);
     LPT_LOG::GetInstance()->LOG("make request queues done");
     PM.stop(PM.tm_MakeRequestQ);
 
@@ -242,10 +243,10 @@ namespace LPT
         NumComm++;
       }
     }
-    // Calc～のセクションをDSlibのメソッドに変更
+    //TODO Calc～のセクションをDSlibのメソッドに変更
     PM.stop(PM.tm_CalcNumComm);
 
-    //Rank毎に計算した転送回数の最大値をAllreduce
+    //Rank毎に計算した転送回数の最大値をAllreduceで集計
     PM.start(PM.tm_CommNumComm);
     int GlobalNumComm;  //TODO メンバ変数に変更
 
@@ -271,7 +272,6 @@ namespace LPT
         }
         ptrComm->MakeSendRequestCounts(i, ptrDSlib);
       }
-      //TODO DSlib行き
       PM.stop(PM.tm_PrepareComm);
 
       //Alltoallで必要なブロック数を通信
@@ -288,113 +288,139 @@ namespace LPT
 
       //データブロックの転送開始
       PM.start(PM.tm_CommDataF2P);
-      int vlen = 3;
-
       std::list < DSlib::CommDataBlockManager * >SendBuff;
       std::list < DSlib::CommDataBlockManager * >RecvBuff;
-
-      ptrComm->CommDataF2P(args.FluidVelocity, args.v00, Mask, vlen, ptrDM, &SendBuff, &RecvBuff);
+      int vlen = 3;
+      ptrComm->CommDataF2P(args.FluidVelocity, args.v00, Mask, vlen, &SendBuff, &RecvBuff);
       PM.stop(PM.tm_CommDataF2P);
 
       PM.start(PM.tm_CalcParticle);
-      NumPolling=0; //for DEBUG
       //polling & calc PP_Transport
+      std::list < PPlib::ParticleData *> WorkParticles;
       for(int i = 0; i < NumPolling; i++) {
-        for(std::list < DSlib::CommDataBlockManager * >::iterator it2 = RecvBuff.begin(); it2 != RecvBuff.end();) {
+        for(std::list < DSlib::CommDataBlockManager * >::iterator it_RecvBuff = RecvBuff.begin(); it_RecvBuff != RecvBuff.end();) {
           PM.start(PM.tm_MPI_Test);
           //TODO CommDataBlockManager->is_arrived() としてくくり出す
           MPI_Status status;
-
           // MPI_Test後に flag = 0であればデータは未着
           int flag0 = 0;
           int flag1 = 0;
-
-          if(MPI_SUCCESS != MPI_Test(&((*it2)->Request0), &flag0, &status)) {
+          if(MPI_SUCCESS != MPI_Test(&((*it_RecvBuff)->Request0), &flag0, &status)) {
             LPT_LOG::GetInstance()->ERROR("MPI_Test for Data Failed");
           }
-          if(MPI_SUCCESS != MPI_Test(&((*it2)->Request1), &flag1, &status)) {
+          if(MPI_SUCCESS != MPI_Test(&((*it_RecvBuff)->Request1), &flag1, &status)) {
             LPT_LOG::GetInstance()->ERROR("MPI_Test for Header Failed");
           }
           PM.stop(PM.tm_MPI_Test);
 
           if(flag0 && flag1) {
             PM.start(PM.tm_AddCache);
-            ptrDSlib->AddCachedBlocks((*it2), GetCurrentTime());
-            long ArrivedBlockID=(*it2)->Header->BlockID;
+            ptrDSlib->AddCachedBlocks((*it_RecvBuff), GetCurrentTime());
+            long ArrivedBlockID=(*it_RecvBuff)->Header->BlockID;
             LPT_LOG::GetInstance()->LOG("Arrived Block = ", ArrivedBlockID);
-            delete(*it2);
-            it2 = RecvBuff.erase(it2);
+            delete(*it_RecvBuff);
+            it_RecvBuff = RecvBuff.erase(it_RecvBuff);
             PM.stop(PM.tm_AddCache);
 
             PM.start(PM.tm_PP_Transport);
-            std::pair< std::multimap< long, PPlib::ParticleData*>::iterator, std::multimap<long, PPlib::ParticleData*>::iterator > range 
-              = ptrPPlib->Particles.equal_range(ArrivedBlockID);
-            for(std::multimap<long, PPlib::ParticleData*>::iterator it3=range.first;it3 != range.second;){
-              int ierr = Transport.Calc((*it3).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
-              if(ierr == -10) {
-                LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it3).second->GetAllID());
-                delete (*it3).second;
-                ptrPPlib->Particles.erase(it3++);
-              } else {
-                ++it3;
+            std::pair< std::multimap< long, PPlib::ParticleData*>::iterator, std::multimap<long, PPlib::ParticleData*>::iterator > \
+              range = ptrPPlib->Particles.equal_range(ArrivedBlockID);
+            for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
+              LPT_LOG::GetInstance()->LOG("Calcurating 1 Particle : ID = ", (*it_Particle).second->GetAllID());
+              int ierr = Transport.Calc((*it_Particle).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
+              if(ierr == 1) {
+                LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
+                delete (*it_Particle).second;
+                ptrPPlib->Particles.erase(it_Particle++);
+              }else if(ierr == 2){
+                ptrPPlib->Particles.insert(std::make_pair((*it_Particle).second->BlockID, (*it_Particle).second));
+                ptrPPlib->Particles.erase(it_Particle++);
+              }else if(ierr == 3){
+                WorkParticles.push_back((*it_Particle).second);
+                ptrPPlib->Particles.erase(it_Particle++);
+              }else {
+                //ierr == 0 || ierr ==4 の時しかここは通らないはず
+                ++it_Particle;
               }
             }
             PM.stop(PM.tm_PP_Transport);
             if(RecvBuff.empty()) break;
           } else {
-            ++it2;
+            ++it_RecvBuff;
           }
         }
       }
 
       // 未受信のデータ到着を待ちつつ計算
       LPT_LOG::GetInstance()->LOG("Polling loop exited");
-      for(std::list < DSlib::CommDataBlockManager * >::iterator it2 = RecvBuff.begin(); it2 != RecvBuff.end();) {
+      for(std::list < DSlib::CommDataBlockManager * >::iterator it_RecvBuff = RecvBuff.begin(); it_RecvBuff != RecvBuff.end();) {
         PM.start(PM.tm_MPI_Wait);
         MPI_Status status;
 
-        if(MPI_SUCCESS != MPI_Wait(&((*it2)->Request0), &status)) {
+        if(MPI_SUCCESS != MPI_Wait(&((*it_RecvBuff)->Request0), &status)) {
           LPT_LOG::GetInstance()->ERROR("MPI_Wait 1 Failed");
         }
-        if(MPI_SUCCESS != MPI_Wait(&((*it2)->Request1), &status)) {
+        if(MPI_SUCCESS != MPI_Wait(&((*it_RecvBuff)->Request1), &status)) {
           LPT_LOG::GetInstance()->ERROR("MPI_Wait 2 Failed");
         }
         PM.stop(PM.tm_MPI_Wait);
 
         PM.start(PM.tm_AddCache);
-        ptrDSlib->AddCachedBlocks((*it2), GetCurrentTime());
-        long ArrivedBlockID=(*it2)->Header->BlockID;
+        ptrDSlib->AddCachedBlocks((*it_RecvBuff), GetCurrentTime());
+        long ArrivedBlockID=(*it_RecvBuff)->Header->BlockID;
         LPT_LOG::GetInstance()->LOG("Arrived Block = ", ArrivedBlockID);
-        delete(*it2);
-        it2 = RecvBuff.erase(it2);
+        delete(*it_RecvBuff);
+        it_RecvBuff = RecvBuff.erase(it_RecvBuff);
         PM.stop(PM.tm_AddCache);
         //到着した粒子の移動を計算
         PM.start(PM.tm_PP_Transport);
         std::pair< std::multimap< long, PPlib::ParticleData*>::iterator, std::multimap<long, PPlib::ParticleData*>::iterator > range
           = ptrPPlib->Particles.equal_range(ArrivedBlockID);
-        for(std::multimap<long, PPlib::ParticleData*>::iterator it3=range.first;it3 != range.second;){
-          int ierr = Transport.Calc((*it3).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
-          if(ierr == -10) {
-            LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it3).second->GetAllID());
-            delete (*it3).second;
-            ptrPPlib->Particles.erase(it3++);
-          } else {
-            ++it3;
+        for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
+          LPT_LOG::GetInstance()->LOG("Calcurating 2 Particle : ID = ", (*it_Particle).second->GetAllID());
+          int ierr = Transport.Calc((*it_Particle).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
+          if(ierr == 1) {
+            LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
+            delete (*it_Particle).second;
+            ptrPPlib->Particles.erase(it_Particle++);
+          }else if(ierr == 2){
+            ptrPPlib->Particles.insert(std::make_pair((*it_Particle).second->BlockID, (*it_Particle).second));
+            ptrPPlib->Particles.erase(it_Particle++);
+          }else if(ierr == 3){
+            WorkParticles.push_back((*it_Particle).second);
+            ptrPPlib->Particles.erase(it_Particle++);
+          }else {
+            ++it_Particle;
           }
         }
+
         PM.stop(PM.tm_PP_Transport);
       }
+      PM.start(PM.tm_PP_Transport);
+      //再計算が必要な粒子の移動を計算
+      for(std::list<PPlib::ParticleData *>::iterator it_Particle=WorkParticles.begin();it_Particle!=WorkParticles.end();)
+      {
+        LPT_LOG::GetInstance()->LOG("Calcurating 3 Particle : ID = ", (*it_Particle)->GetAllID());
+        int ierr = Transport.Calc((*it_Particle), args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
+        if(ierr == 1) {
+          LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
+          delete (*it_Particle);
+        }else {
+          ptrPPlib->Particles.insert(std::make_pair((*it_Particle)->BlockID, (*it_Particle)));
+        }
+        it_Particle=WorkParticles.erase(it_Particle);
+      }
+      PM.stop(PM.tm_PP_Transport);
 
       PM.start(PM.tm_DelSendBuff);
       //送信バッファの解放 
-      for(std::list < DSlib::CommDataBlockManager * >::iterator it2 = SendBuff.begin(); it2 != SendBuff.end();) {
+      for(std::list < DSlib::CommDataBlockManager * >::iterator it_SendBuff = SendBuff.begin(); it_SendBuff != SendBuff.end();) {
         MPI_Status status0;
         MPI_Status status1;
-
-        MPI_Wait(&((*it2)->Request0), &status0);
-        MPI_Wait(&((*it2)->Request1), &status1);
-        delete(*it2);
-        it2 = SendBuff.erase(it2);
+        MPI_Wait(&((*it_SendBuff)->Request0), &status0);
+        MPI_Wait(&((*it_SendBuff)->Request1), &status1);
+        delete(*it_SendBuff);
+        it_SendBuff = SendBuff.erase(it_SendBuff);
       }
       PM.stop(PM.tm_DelSendBuff);
 

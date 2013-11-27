@@ -33,21 +33,19 @@ namespace PPlib
     }
   }
 
-  void PPlib::MakeRequestQueues(DSlib::DecompositionManager * ptrDM, DSlib::DSlib * ptrDSlib)
+  void PPlib::MakeRequestQueues(DSlib::DSlib * ptrDSlib)
   {
+    DSlib::DecompositionManager * ptrDM = DSlib::DecompositionManager::GetInstance();
     std::set < long >tmpIDs;
 
     for( std::multimap< long, ParticleData*>::iterator it = Particles.begin(); it != Particles.end(); ++it) {
       //粒子位置のデータブロックを探す
       long BlockID = ptrDM->FindBlockIDByCoordLinear((*it).second->Coord);
-
-      (*it).second->BlockID = BlockID;
       tmpIDs.insert(BlockID);
     }
 
     //周辺のデータブロックを探す(元のデータブロックも含む)
     std::set < long >tmpIDs2;
-
     for(std::set < long >::iterator it = tmpIDs.begin(); it != tmpIDs.end(); ++it) {
       ptrDM->FindNeighborBlockID(*it, &tmpIDs2);
     }
@@ -60,8 +58,11 @@ namespace PPlib
     }
   }
 
-  template < typename T > bool PPlib::Check(const double &CurrentTime, T * obj)
+  template < typename T > bool PPlib::isExpired(const double &CurrentTime, T * obj)
   {
+    LPT::LPT_LOG::GetInstance()->LOG("StartTime = ",obj->GetStartTime());
+    LPT::LPT_LOG::GetInstance()->LOG("LifeTime = ",obj->GetLifeTime());
+    LPT::LPT_LOG::GetInstance()->LOG("CurrentTime = ",CurrentTime);
     if(obj->GetLifeTime() <= 0) {
       return false;
     } else {
@@ -72,7 +73,7 @@ namespace PPlib
   void PPlib::DestroyExpiredParticles(const double &CurrentTime)
   {
     for( std::multimap< long, ParticleData*>::iterator it = Particles.begin(); it != Particles.end();) {
-      if(Check(CurrentTime, (*it).second)) {
+      if(isExpired(CurrentTime, (*it).second)) {
         LPT::LPT_LOG::GetInstance()->INFO("Particle Deleted. ID= ", (*it).second->GetID());
         delete (*it).second;
         Particles.erase(it++);
@@ -85,7 +86,7 @@ namespace PPlib
   void PPlib::DestroyExpiredStartPoints(const double &CurrentTime)
   {
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end();) {
-      if(Check(CurrentTime, (*it))) {
+      if(isExpired(CurrentTime, (*it))) {
         LPT::LPT_LOG::GetInstance()->INFO("Start Point Deleted. ID= ", (*it)->GetID());
         delete *it;
         it = StartPoints.erase(it);
@@ -163,7 +164,7 @@ namespace PPlib
     }
 
     //最後のRankは残りの開始点を全て担当する
-    /// @TODO 最後のRankの担当する開始点が多い場合は余りプロセスを増やして、そちらに渡す
+    /// @TODO 最後のRankの担当する開始点が多い場合は余り担当プロセスを増やして、そちらに渡す
     if(MyRank == NParticleProcs - 1) {
       it2 = NewStartPoints.end();
     }

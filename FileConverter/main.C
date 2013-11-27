@@ -163,6 +163,14 @@ void my_getopt(const int &argc, char **argv, std::string &dir_name, std::string&
         break;
     }
   }
+  if(writer_name == "FV13txt" || writer_name == "FV14" || writer_name == "vtk")
+  {
+    std::cerr << writer_name <<" is not implimented"<<std::endl;
+  } else if(writer_name == "vtk_ascii" || writer_name == "FV13") {
+    return;
+  }else{
+     print_usage_and_abort(argv[0]);
+  }
 }
 
 int main(int argc, char *argv[])

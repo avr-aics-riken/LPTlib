@@ -97,10 +97,11 @@ namespace DSlib
   {
   }
 
-  void Communicator::CommDataF2P(REAL_TYPE * Data, REAL_TYPE * v00, int *Mask, const int &vlen, DecompositionManager * ptrDM, std::list < CommDataBlockManager * >*SendBuff, std::list < CommDataBlockManager * >*RecvBuff)
+  void Communicator::CommDataF2P(REAL_TYPE * Data, REAL_TYPE * v00, int *Mask, const int &vlen, std::list < CommDataBlockManager * >*SendBuff, std::list < CommDataBlockManager * >*RecvBuff)
   {
     //流体プロセスから粒子プロセスに要求されたデータブロックを1つづつ送る
     //prepare to recieve Datablocks
+    DecompositionManager *ptrDM = DecompositionManager::GetInstance();
     int count = vlen * ptrDM->GetLargestBlockSize();
 
     int RecvBuffMemSize = 0;

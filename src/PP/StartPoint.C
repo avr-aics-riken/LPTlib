@@ -8,12 +8,10 @@
 
 #include "StartPoint.h"
 #include "ParticleData.h"
-#include "Line.h"
-#include "Rectangle.h"
-#include "Circle.h"
-#include "Cuboid.h"
+#include "StartPointAll.h"
 #include "FileManager.h"
 #include "DV3.h"
+#include "DecompositionManager.h"
 
 namespace PPlib
 {
@@ -62,8 +60,11 @@ namespace PPlib
         (*it)->ParticleID = id++;
         (*it)->StartTime = CurrentTime;
         (*it)->LifeTime = ParticleLifeTime;
-        (*it)->CurrentTime = CurrentTime;
-        (*it)->CurrentTimeStep = CurrentTimeStep;
+        //放出直後は時刻、タイムステップは0を入れておく。
+        //PP_Transport内で計算されたタイミングでその時点の時刻、タイムステップが代入される
+        (*it)->CurrentTime = 0.0;
+        (*it)->CurrentTimeStep = 0; 
+        (*it)->BlockID = DSlib::DecompositionManager::GetInstance()->FindBlockIDByCoordLinear((*it)->Coord);
 
         (*it)->Coord[0] = (*itCoords).x;
         (*it)->Coord[1] = (*itCoords).y;

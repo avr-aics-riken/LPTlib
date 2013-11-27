@@ -10,6 +10,7 @@ namespace PPlib
 {
   bool Interpolator::setup(DSlib::DataBlock * DataBlock)
   {
+    //TODO  エラー発生時にfalseを返すのではなく例外を投げるorアボート
     if(DataBlock == NULL)
       return false;
     m_dims[0] = DataBlock->BlockSize[0];
