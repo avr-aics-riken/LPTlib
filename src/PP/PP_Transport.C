@@ -33,8 +33,9 @@ namespace PPlib
     REAL_TYPE x_i[3];
     REAL_TYPE x_new[3];
     REAL_TYPE v[3];
+    DSlib::DataBlock * LoadedDataBlock;
 
-    LPT::LPT_LOG::GetInstance()->LOG("Old BlockID = ", LoadedBlockID);
+    LPT::LPT_LOG::GetInstance()->LOG("Old BlockID = ", gus->GetBlockID());
 
     // deltaTの再分割
     double dt = deltaT;
@@ -55,7 +56,7 @@ namespace PPlib
     long NewBlockID=-1;
     for(int t = 0; t < numT; t++) {
       NewBlockID = ptrDM->FindBlockIDByCoordLinear(x_new);
-      if(LoadedBlockID != NewBlockID) {
+      if(gus->GetBlockID() != NewBlockID) {
         LPT::LPT_LOG::GetInstance()->LOG("New BlockID = ", NewBlockID);
 
         int retval = ptrDSlib->Load(NewBlockID, &LoadedDataBlock);
@@ -76,11 +77,7 @@ namespace PPlib
           LPT::LPT_LOG::GetInstance()->WARN("Particle moved more than 2 blocks away");
           return 4;
         }
-        if(!gus->setup(LoadedDataBlock)) {
-          LPT::LPT_LOG::GetInstance()->ERROR("Interporator::setup() failed");
-          return -10;
-        }
-        LoadedBlockID = NewBlockID;
+        gus->setup(LoadedDataBlock);
       }
 
       // 粒子座標をデータブロック内の座標値に変換
@@ -115,9 +112,9 @@ namespace PPlib
     NewBlockID = ptrDM->FindBlockIDByCoordLinear(Particle->Coord);
     Particle->BlockID = NewBlockID;
 
-    if(LoadedBlockID != NewBlockID) {
+    if(gus->GetBlockID() != NewBlockID) {
       if(ptrDSlib->Load(NewBlockID, &LoadedDataBlock) == 0) {
-        LoadedBlockID = NewBlockID;
+        gus->setup(LoadedDataBlock);
         //粒子がルンゲ=クッタの最後のステップで別のデータブロックに移動し
         //なおかつ、移動先のデータブロックがキャッシュ内にある場合のみ速度を再計算
 #ifdef __INTEL_COMPILER

@@ -337,9 +337,11 @@ namespace LPT
               }else if(ierr == 3){
                 WorkParticles.push_back((*it_Particle).second);
                 ptrPPlib->Particles.erase(it_Particle++);
-              }else {
+              }else if(ierr ==0 || ierr ==4){
                 //ierr == 0 || ierr ==4 の時しかここは通らないはず
                 ++it_Particle;
+              }else{
+                LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle).second->GetAllID());
               }
             }
             PM.stop(PM.tm_PP_Transport);
@@ -387,8 +389,10 @@ namespace LPT
           }else if(ierr == 3){
             WorkParticles.push_back((*it_Particle).second);
             ptrPPlib->Particles.erase(it_Particle++);
-          }else {
+          }else if(ierr == 0||ierr==4){
             ++it_Particle;
+          }else {
+            LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle).second->GetAllID());
           }
         }
 

@@ -120,6 +120,7 @@ namespace LPT
         PPlib::ParticleData Particle;
         Particle.BinaryRead(*In);
         TimeSteps->insert(Particle.CurrentTimeStep);
+        if(Particle.CurrentTimeStep%100 != 0) std::cerr << Particle.CurrentTimeStep<<std::endl;
       }
     }
   }

@@ -10,14 +10,18 @@ namespace PPlib
 {
   bool Interpolator::setup(DSlib::DataBlock * DataBlock)
   {
+    if((DataBlock == NULL)
+        ||(DataBlock->Pitch[0] <= 0.0 || DataBlock->Pitch[1] <= 0.0 || DataBlock->Pitch[2] <= 0.0)
+        ||(DataBlock->BlockSize[0] * DataBlock->BlockSize[1] * DataBlock->BlockSize[2] < 1))
     //TODO  エラー発生時にfalseを返すのではなく例外を投げるorアボート
-    if(DataBlock == NULL)
       return false;
+
+
     m_dims[0] = DataBlock->BlockSize[0];
     m_dims[1] = DataBlock->BlockSize[1];
     m_dims[2] = DataBlock->BlockSize[2];
     p_vecd = DataBlock->Data;
-    m_vecLen = 3; //TODO DataBlockから取ってくるようにする?
+    m_vecLen = 3;
     m_halo = DSlib::DecompositionManager::GetInstance()->GetGuideCellSize();
     m_orig[0] = DataBlock->Origin[0];
     m_orig[1] = DataBlock->Origin[1];
@@ -25,11 +29,8 @@ namespace PPlib
     m_pitch[0] = DataBlock->Pitch[0];
     m_pitch[1] = DataBlock->Pitch[1];
     m_pitch[2] = DataBlock->Pitch[2];
+    BlockID    = DataBlock->BlockID;
 
-    if(m_pitch[0] <= 0.0 || m_pitch[1] <= 0.0 || m_pitch[2] <= 0.0)
-      return false;
-    if(m_dims[0] * m_dims[1] * m_dims[2] < 1)
-      return false;
     return true;
   }
 

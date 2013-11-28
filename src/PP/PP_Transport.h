@@ -21,7 +21,7 @@ namespace PPlib
   {
     PP_Transport(const PP_Transport & obj){}
   public:
-      PP_Transport():LoadedBlockID(-1), LoadedDataBlock(NULL)
+      PP_Transport()
     {
       gus = new Interpolator;
     };
@@ -46,12 +46,6 @@ namespace PPlib
   private:
     /// 物理量の補間を行うオブジェクトへのポインタ
     Interpolator * gus;
-
-    /// Load済DataBlockのID
-    long LoadedBlockID;
-
-    /// Load済DataBlockへのポインタ
-    DSlib::DataBlock * LoadedDataBlock;
 
     //! @brief 粒子データの時刻、タイムステップ、座標を更新する
     void UpdateParticle(ParticleData * Particle, const double &CurrentTime, const unsigned int &CurrentTimeStep, REAL_TYPE * Coord );
