@@ -60,9 +60,6 @@ namespace PPlib
 
   template < typename T > bool PPlib::isExpired(const double &CurrentTime, T * obj)
   {
-    LPT::LPT_LOG::GetInstance()->LOG("StartTime = ",obj->GetStartTime());
-    LPT::LPT_LOG::GetInstance()->LOG("LifeTime = ",obj->GetLifeTime());
-    LPT::LPT_LOG::GetInstance()->LOG("CurrentTime = ",CurrentTime);
     if(obj->GetLifeTime() <= 0) {
       return false;
     } else {

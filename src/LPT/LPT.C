@@ -326,7 +326,6 @@ namespace LPT
             std::pair< std::multimap< long, PPlib::ParticleData*>::iterator, std::multimap<long, PPlib::ParticleData*>::iterator > \
               range = ptrPPlib->Particles.equal_range(ArrivedBlockID);
             for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
-              LPT_LOG::GetInstance()->LOG("Calcurating 1 Particle : ID = ", (*it_Particle).second->GetAllID());
               int ierr = Transport.Calc((*it_Particle).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
               if(ierr == 1) {
                 LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
@@ -377,7 +376,6 @@ namespace LPT
         std::pair< std::multimap< long, PPlib::ParticleData*>::iterator, std::multimap<long, PPlib::ParticleData*>::iterator > range
           = ptrPPlib->Particles.equal_range(ArrivedBlockID);
         for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
-          LPT_LOG::GetInstance()->LOG("Calcurating 2 Particle : ID = ", (*it_Particle).second->GetAllID());
           int ierr = Transport.Calc((*it_Particle).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
           if(ierr == 1) {
             LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
@@ -400,7 +398,6 @@ namespace LPT
       //再計算が必要な粒子の移動を計算
       for(std::list<PPlib::ParticleData *>::iterator it_Particle=WorkParticles.begin();it_Particle!=WorkParticles.end();)
       {
-        LPT_LOG::GetInstance()->LOG("Calcurating 3 Particle : ID = ", (*it_Particle)->GetAllID());
         int ierr = Transport.Calc((*it_Particle), args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
         if(ierr == 1) {
           LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
@@ -431,13 +428,6 @@ namespace LPT
     //キャッシュデータを全て削除
     ptrDSlib->PurgeAllCacheLists();
     PM.stop(PM.tm_Discard_Cache);
-
-#ifdef DEBUG
-    this->PrintVectorSize();
-    ptrPPlib->PrintVectorSize();
-    ptrDSlib->PrintVectorSize();
-    ptrComm->PrintVectorSize();
-#endif
 
     return 0;
   }

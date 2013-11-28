@@ -26,7 +26,7 @@ namespace PPlib
   }
   int PP_Transport::Calc(ParticleData * Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const unsigned int &CurrentTimeStep)
   {
-    //もし計算済の粒子がだったらすぐにreturn
+    //もし計算済の粒子だったらすぐにreturn
     if(CurrentTimeStep <= Particle->CurrentTimeStep) return 0;
 
     DSlib::DecompositionManager * ptrDM = DSlib::DecompositionManager::GetInstance();
@@ -105,13 +105,10 @@ namespace PPlib
 #endif
       gus->ConvItoX(x_i, x_new);
 
-      int chkBounds = ptrDM->CheckBounds(x_new);
-      if(chkBounds != 0) {
-        LPT::LPT_LOG::GetInstance()->WARN("return value from CheckBounds = ", chkBounds);
-        return 1;
-      }
+      if(ptrDM->CheckBounds(x_new) != 0) return 1;
     } // end of for(t)
 
+    //粒子オブジェクトの座標、時刻、タイムステップを更新
     UpdateParticle(Particle, CurrentTime, CurrentTimeStep, x_new);
 
     //移動後の位置でのブロックIDと粒子速度を代入
@@ -119,8 +116,7 @@ namespace PPlib
     Particle->BlockID = NewBlockID;
 
     if(LoadedBlockID != NewBlockID) {
-      int retval = ptrDSlib->Load(NewBlockID, &LoadedDataBlock);
-      if(retval == 0) {
+      if(ptrDSlib->Load(NewBlockID, &LoadedDataBlock) == 0) {
         LoadedBlockID = NewBlockID;
         //粒子がルンゲ=クッタの最後のステップで別のデータブロックに移動し
         //なおかつ、移動先のデータブロックがキャッシュ内にある場合のみ速度を再計算
@@ -129,7 +125,6 @@ namespace PPlib
 #endif
         gus->InterpolateData(x_i, v);
       } else {
-        LPT::LPT_LOG::GetInstance()->WARN("DSlib->Load failed = ", retval);
         LPT::LPT_LOG::GetInstance()->WARN("Requested Block was not found. using old ParticleVelocity for this time step");
         LPT::LPT_LOG::GetInstance()->WARN("Current Time = ", Particle->CurrentTime);
         LPT::LPT_LOG::GetInstance()->WARN("ParticleID = ", Particle->GetAllID());
