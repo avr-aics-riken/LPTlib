@@ -27,7 +27,10 @@ namespace PPlib
   int PP_Transport::Calc(ParticleData * Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const unsigned int &CurrentTimeStep)
   {
     //もし計算済の粒子だったらすぐにreturn
-    if(CurrentTimeStep <= Particle->CurrentTimeStep) return 0;
+    if(CurrentTimeStep <= Particle->CurrentTimeStep)
+    {
+      return 0;
+    }
 
     DSlib::DecompositionManager * ptrDM = DSlib::DecompositionManager::GetInstance();
     REAL_TYPE x_i[3];
@@ -60,21 +63,15 @@ namespace PPlib
         LPT::LPT_LOG::GetInstance()->LOG("New BlockID = ", NewBlockID);
 
         int retval = ptrDSlib->Load(NewBlockID, &LoadedDataBlock);
-
-        if(retval == 1){
-          LPT::LPT_LOG::GetInstance()->WARN("DataBlock is not arrived: ", NewBlockID);
-          //粒子データは変更せずに終了
+        if(retval == 1 || retval == 2){
+          //再度PP_Transport::Calcが呼び出されるので、粒子データは変更せずに終了
           return 3;
-        } else if(retval == 2) {
-          //粒子データは変更せずに終了
-          LPT::LPT_LOG::GetInstance()->WARN("DataBlock is not requested at this time: ", NewBlockID);
-          return 3;
-        } else if(retval == -1) {
+        } else if(retval == 4) {
           //現在の粒子座標をこのタイムステップでの更新後の座標として計算を終了
           UpdateParticle(Particle, CurrentTime, CurrentTimeStep, x_new);
           Particle->BlockID = NewBlockID;
 
-          LPT::LPT_LOG::GetInstance()->WARN("Particle moved more than 2 blocks away");
+          LPT::LPT_LOG::GetInstance()->WARN("Particle moved too far. Particle ID = ", Particle->GetAllID());
           return 4;
         }
         gus->setup(LoadedDataBlock);

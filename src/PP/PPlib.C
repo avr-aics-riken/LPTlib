@@ -38,10 +38,9 @@ namespace PPlib
     DSlib::DecompositionManager * ptrDM = DSlib::DecompositionManager::GetInstance();
     std::set < long >tmpIDs;
 
+    //ブロックIDの集合(重複無し)を作る
     for( std::multimap< long, ParticleData*>::iterator it = Particles.begin(); it != Particles.end(); ++it) {
-      //粒子位置のデータブロックを探す
-      long BlockID = ptrDM->FindBlockIDByCoordLinear((*it).second->Coord);
-      tmpIDs.insert(BlockID);
+      tmpIDs.insert((*it).second->BlockID);
     }
 
     //周辺のデータブロックを探す(元のデータブロックも含む)

@@ -209,7 +209,7 @@ namespace LPT
     LPT_LOG::GetInstance()->LOG("destroy Particle done");
     PM.stop(PM.tm_DestroyParticle);
 
-    //粒子位置のデータブロックとそのデータブロックを持つRankを調べて、RequestQueuesに必要なBlockIDを放り込む
+    //粒子位置のデータブロックとその周辺のデータブロックを持つRankを調べて、RequestQueuesに必要なBlockIDを登録
     PM.start(PM.tm_MakeRequestQ);
     ptrPPlib->MakeRequestQueues(ptrDSlib);
     LPT_LOG::GetInstance()->LOG("make request queues done");
@@ -248,12 +248,13 @@ namespace LPT
 
     //Rank毎に計算した転送回数の最大値をAllreduceで集計
     PM.start(PM.tm_CommNumComm);
-    int GlobalNumComm;  //TODO メンバ変数に変更
+    int GlobalNumComm;
 
     MPI_Allreduce(&NumComm, &GlobalNumComm, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     LPT_LOG::GetInstance()->INFO("NumComm = ", NumComm);
     PM.stop(PM.tm_CommNumComm);
 
+    std::list < PPlib::ParticleData *> WorkParticles;
     //キャッシュサイズでブロッキングしたループ
     for(int j = 0; j < GlobalNumComm; j++) {
       PM.start(PM.tm_PrepareComm);
@@ -296,7 +297,6 @@ namespace LPT
 
       PM.start(PM.tm_CalcParticle);
       //polling & calc PP_Transport
-      std::list < PPlib::ParticleData *> WorkParticles;
       for(int i = 0; i < NumPolling; i++) {
         for(std::list < DSlib::CommDataBlockManager * >::iterator it_RecvBuff = RecvBuff.begin(); it_RecvBuff != RecvBuff.end();) {
           PM.start(PM.tm_MPI_Test);
@@ -328,7 +328,7 @@ namespace LPT
             for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
               int ierr = Transport.Calc((*it_Particle).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
               if(ierr == 1) {
-                LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
+                LPT_LOG::GetInstance()->INFO("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
                 delete (*it_Particle).second;
                 ptrPPlib->Particles.erase(it_Particle++);
               }else if(ierr == 2){
@@ -338,7 +338,6 @@ namespace LPT
                 WorkParticles.push_back((*it_Particle).second);
                 ptrPPlib->Particles.erase(it_Particle++);
               }else if(ierr ==0 || ierr ==4){
-                //ierr == 0 || ierr ==4 の時しかここは通らないはず
                 ++it_Particle;
               }else{
                 LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle).second->GetAllID());
@@ -380,7 +379,7 @@ namespace LPT
         for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
           int ierr = Transport.Calc((*it_Particle).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
           if(ierr == 1) {
-            LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
+            LPT_LOG::GetInstance()->INFO("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
             delete (*it_Particle).second;
             ptrPPlib->Particles.erase(it_Particle++);
           }else if(ierr == 2){
@@ -404,7 +403,7 @@ namespace LPT
       {
         int ierr = Transport.Calc((*it_Particle), args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
         if(ierr == 1) {
-          LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
+          LPT_LOG::GetInstance()->INFO("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
           delete (*it_Particle);
         }else {
           ptrPPlib->Particles.insert(std::make_pair((*it_Particle)->BlockID, (*it_Particle)));
@@ -424,14 +423,24 @@ namespace LPT
         it_SendBuff = SendBuff.erase(it_SendBuff);
       }
       PM.stop(PM.tm_DelSendBuff);
-
       PM.stop(PM.tm_CalcParticle);
     } //転送回数のループ
-
+#ifdef DEBUG
+    LPT_LOG::GetInstance()->INFO("WorkParticles.size() = ", WorkParticles.size());
+    for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=ptrPPlib->Particles.begin();it_Particle != ptrPPlib->Particles.end();++it_Particle){
+      if ((*it_Particle).second->CurrentTimeStep <CurrentTimeStep)
+      {
+        LPT_LOG::GetInstance()->INFO("This particle is not calculated: ID = ", (*it_Particle).second->GetAllID());
+        LPT_LOG::GetInstance()->INFO("Particle Current Time Step = ", (*it_Particle).second->CurrentTimeStep);
+      }
+    }
+#endif
     PM.start(PM.tm_Discard_Cache);
     //キャッシュデータを全て削除
     ptrDSlib->PurgeAllCacheLists();
     PM.stop(PM.tm_Discard_Cache);
+      
+
 
     return 0;
   }

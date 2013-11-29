@@ -62,8 +62,8 @@ namespace PPlib
     } else {
       LPT::LPT_LOG::GetInstance()->ERROR("illeagal Coords");
     }
-    LPT::LPT_LOG::GetInstance()->LOG("Coord3 = ", Coord3);
-    LPT::LPT_LOG::GetInstance()->LOG("Coord4 = ", Coord4);
+    LPT::LPT_LOG::GetInstance()->LOG("Coord3 = ", Coord3, 3);
+    LPT::LPT_LOG::GetInstance()->LOG("Coord4 = ", Coord4, 3);
     LPT::LPT_LOG::GetInstance()->LOG("NumPoints1 = ", *NumPoints1);
     LPT::LPT_LOG::GetInstance()->LOG("NumPoints2 = ", *NumPoints2);
   }

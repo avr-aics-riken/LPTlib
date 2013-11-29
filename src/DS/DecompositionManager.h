@@ -226,24 +226,15 @@ namespace DSlib
     //! @retval 引数で渡したIDのデータブロックが存在するサブドメインのID
     int FindSubDomainIDByBlock(const long &id);
 
-    //TODO classに変更して、DSlibのメンバにはそのクラスへのポインタを持たせる
-    //! @brief 与えられた座標を含むデータブロックのIDを返す
+    //! @brief 与えられた座標を含むデータブロックのIDを返す(線形探索版)
     //! @param Coord [in] 座標
     //! @retval 引数で渡した座標を含むデータブロックのID
-    long FindBlockIDByCoordLinear(const DV3 & Coord);
-    long FindBlockIDByCoordLinear(const REAL_TYPE * Coord)
-    {
-      DV3 tmp(Coord[0], Coord[1], Coord[2]);
+    long FindBlockIDByCoordLinear(REAL_TYPE Coord[3]);
 
-      return FindBlockIDByCoordLinear(tmp);
-    };
-    long FindBlockIDByCoordBinary(const DV3 & Coord);
-    long FindBlockIDByCoordBinary(const REAL_TYPE * Coord)
-    {
-      DV3 tmp(Coord[0], Coord[1], Coord[2]);
-
-      return FindBlockIDByCoordBinary(tmp);
-    };
+    //! @brief 与えられた座標を含むデータブロックのIDを返す(二分探索版)
+    //! @param Coord [in] 座標
+    //! @retval 引数で渡した座標を含むデータブロックのID
+    long FindBlockIDByCoordBinary(REAL_TYPE Coord[3]);
 
     //! @brief 与えられたブロックIDの周囲にあるブロックIDの配列を返す
     //! @param id        [in]  周辺のブロックを探したいデータブロックのID
@@ -252,13 +243,7 @@ namespace DSlib
 
     //! @brief 引数で渡された座標が解析領域外に出ていないか判定する
     //! CheckBound{X,Y,Z}の戻り値を加算して返すので、戻り値の意味はそちらを参照のこと
-    int CheckBounds(DV3 Coord);
-    int CheckBounds(REAL_TYPE Coord[3])
-    {
-      DV3 tmp(Coord[0], Coord[1], Coord[2]);
-
-      return CheckBounds(tmp);
-    };
+    int CheckBounds(REAL_TYPE Coord[3]);
 
 
     //! Accessor

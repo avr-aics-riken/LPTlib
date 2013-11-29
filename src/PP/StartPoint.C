@@ -60,15 +60,15 @@ namespace PPlib
         (*it)->ParticleID = id++;
         (*it)->StartTime = CurrentTime;
         (*it)->LifeTime = ParticleLifeTime;
-        //放出直後は時刻、タイムステップは0を入れておく。
-        //PP_Transport内で計算されたタイミングでその時点の時刻、タイムステップが代入される
-        (*it)->CurrentTime = 0.0;
-        (*it)->CurrentTimeStep = 0; 
-        (*it)->BlockID = DSlib::DecompositionManager::GetInstance()->FindBlockIDByCoordLinear((*it)->Coord);
-
+        //放出直後の時刻は不正値(-1.0)を入れておく
+        //TimeStepは計算前なのでTimeStep -1の値とする
+        //PP_Transport内で計算されたタイミングで更新後の時刻、タイムステップが代入される
+        (*it)->CurrentTime = -1.0;
+        (*it)->CurrentTimeStep = CurrentTimeStep-1; 
         (*it)->Coord[0] = (*itCoords).x;
         (*it)->Coord[1] = (*itCoords).y;
         (*it)->Coord[2] = (*itCoords).z;
+        (*it)->BlockID = DSlib::DecompositionManager::GetInstance()->FindBlockIDByCoordLinear((*it)->Coord);
         ++itCoords;
       }
       this->LatestEmitTime = CurrentTime;

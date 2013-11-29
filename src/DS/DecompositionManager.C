@@ -184,23 +184,25 @@ namespace DSlib
     return Convert3Dto1Dint(SubDomainID3D[0], SubDomainID3D[1], SubDomainID3D[2], NPx, NPy);
   }
 
-  long DecompositionManager::FindBlockIDByCoordBinary(const DV3 & Coord)
+  long DecompositionManager::FindBlockIDByCoordBinary(REAL_TYPE Coord[3])
   {
+    //TODO ソート済の整数配列に対して二分探索をして、ヒットした位置のindexを返す関数を作る
+    //RealBlockBoundaryは削除
     int BlockID3D[3];
 
     if(CheckBounds(Coord) != 0) {
       return -1;
     }
 
-    std::vector < REAL_TYPE >::iterator itX = std::upper_bound(RealBlockBoundaryX.begin(), RealBlockBoundaryX.end(), Coord.x);
+    std::vector < REAL_TYPE >::iterator itX = std::upper_bound(RealBlockBoundaryX.begin(), RealBlockBoundaryX.end(), Coord[0]);
     --itX;
     BlockID3D[0] = std::distance(RealBlockBoundaryX.begin(), itX);
 
-    std::vector < REAL_TYPE >::iterator itY = std::upper_bound(RealBlockBoundaryY.begin(), RealBlockBoundaryY.end(), Coord.y);
+    std::vector < REAL_TYPE >::iterator itY = std::upper_bound(RealBlockBoundaryY.begin(), RealBlockBoundaryY.end(), Coord[1]);
     --itY;
     BlockID3D[1] = std::distance(RealBlockBoundaryY.begin(), itY);
 
-    std::vector < REAL_TYPE >::iterator itZ = std::upper_bound(RealBlockBoundaryZ.begin(), RealBlockBoundaryZ.end(), Coord.z);
+    std::vector < REAL_TYPE >::iterator itZ = std::upper_bound(RealBlockBoundaryZ.begin(), RealBlockBoundaryZ.end(), Coord[2]);
     --itZ;
     BlockID3D[2] = std::distance(RealBlockBoundaryZ.begin(), itZ);
 
@@ -208,7 +210,7 @@ namespace DSlib
 
   }
 
-  long DecompositionManager::FindBlockIDByCoordLinear(const DV3 & Coord)
+  long DecompositionManager::FindBlockIDByCoordLinear(REAL_TYPE Coord[3])
   {
     if(CheckBounds(Coord) != 0) {
       return -1;
@@ -217,69 +219,73 @@ namespace DSlib
     int BlockID3D[3];
 
     for(int i = 1; i <= NBx * NPx; i++) {
-      if(Coord[0] < OriginX + BlockBoundaryX[i] * dx) {
+      if(Coord[0] <= OriginX + BlockBoundaryX[i] * dx) {
         BlockID3D[0] = i - 1;
         break;
       }
     }
     for(int i = 1; i <= NBy * NPy; i++) {
-      if(Coord[1] < OriginY + BlockBoundaryY[i] * dy) {
+      if(Coord[1] <= OriginY + BlockBoundaryY[i] * dy) {
         BlockID3D[1] = i - 1;
         break;
       }
     }
     for(int i = 1; i <= NBz * NPz; i++) {
-      if(Coord[2] < OriginZ + BlockBoundaryZ[i] * dz) {
+      if(Coord[2] <= OriginZ + BlockBoundaryZ[i] * dz) {
         BlockID3D[2] = i - 1;
         break;
       }
     }
     return Convert3Dto1Dlong(BlockID3D[0], BlockID3D[1], BlockID3D[2], NBx * NPx, NBy * NPy);
-
   }
 
-  int DecompositionManager::CheckBounds(DV3 Coords)
+  int DecompositionManager::CheckBounds(REAL_TYPE Coord[3])
   {
-    int retval = CheckBoundX(Coords.x) + CheckBoundY(Coords.y) + CheckBoundZ(Coords.z);
-      if(retval % 10 == 1)
-        LPT::LPT_LOG::GetInstance()->WARN("X-coordinate is too small: ", Coords.x);
-      if(retval % 10 == 2)
-        LPT::LPT_LOG::GetInstance()->WARN("X-coordinate is too large: ", Coords.x);
-      if((retval / 10) % 10 == 1)
-        LPT::LPT_LOG::GetInstance()->WARN("Y-coordinate is too small: ", Coords.y);
-      if((retval / 10) % 10 == 2)
-        LPT::LPT_LOG::GetInstance()->WARN("Y-coordinate is too large: ", Coords.y);
-      if(retval / 100 == 1)
-        LPT::LPT_LOG::GetInstance()->WARN("Z-coordinate is too small: ", Coords.z);
-      if(retval / 100 == 2)
-        LPT::LPT_LOG::GetInstance()->WARN("Z-coordinate is too large: ", Coords.z);
-    return retval;
+    return CheckBoundX(Coord[0]) + CheckBoundY(Coord[1]) + CheckBoundZ(Coord[2]);
   }
 
   int DecompositionManager::CheckBoundX(REAL_TYPE XCoord)
   {
     if(XCoord < OriginX)
+    {
+      LPT::LPT_LOG::GetInstance()->WARN("X-coordinate is too small: ", XCoord);
       return 1;
+    }
     if(XCoord > OriginX + dx * Nx)
+    {
+      LPT::LPT_LOG::GetInstance()->WARN("X-coordinate is too large: ", XCoord);
       return 2;
+    }
     return 0;
   }
 
   int DecompositionManager::CheckBoundY(REAL_TYPE YCoord)
   {
     if(YCoord < OriginY)
+    {
+      LPT::LPT_LOG::GetInstance()->WARN("Y-coordinate is too small: ", YCoord);
       return 10;
+    }
     if(YCoord > OriginY + dy * Ny)
+    {
+      LPT::LPT_LOG::GetInstance()->WARN("Y-coordinate is too large: ", YCoord);
       return 20;
+    }
     return 0;
   }
 
   int DecompositionManager::CheckBoundZ(REAL_TYPE ZCoord)
   {
     if(ZCoord < OriginZ)
+    {
+      LPT::LPT_LOG::GetInstance()->WARN("Z-coordinate is too small: ", ZCoord);
       return 100;
+    }
     if(ZCoord > OriginZ + dz * Nz)
+    {
+      LPT::LPT_LOG::GetInstance()->WARN("Z-coordinate is too large: ", ZCoord);
       return 200;
+    }
     return 0;
   }
 
