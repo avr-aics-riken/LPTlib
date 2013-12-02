@@ -248,12 +248,12 @@ namespace DSlib
   {
     if(XCoord < OriginX)
     {
-      LPT::LPT_LOG::GetInstance()->WARN("X-coordinate is too small: ", XCoord);
+      LPT::LPT_LOG::GetInstance()->LOG("X-coordinate is too small: ", XCoord);
       return 1;
     }
     if(XCoord > OriginX + dx * Nx)
     {
-      LPT::LPT_LOG::GetInstance()->WARN("X-coordinate is too large: ", XCoord);
+      LPT::LPT_LOG::GetInstance()->LOG("X-coordinate is too large: ", XCoord);
       return 2;
     }
     return 0;
@@ -263,12 +263,12 @@ namespace DSlib
   {
     if(YCoord < OriginY)
     {
-      LPT::LPT_LOG::GetInstance()->WARN("Y-coordinate is too small: ", YCoord);
+      LPT::LPT_LOG::GetInstance()->LOG("Y-coordinate is too small: ", YCoord);
       return 10;
     }
     if(YCoord > OriginY + dy * Ny)
     {
-      LPT::LPT_LOG::GetInstance()->WARN("Y-coordinate is too large: ", YCoord);
+      LPT::LPT_LOG::GetInstance()->LOG("Y-coordinate is too large: ", YCoord);
       return 20;
     }
     return 0;
@@ -278,12 +278,12 @@ namespace DSlib
   {
     if(ZCoord < OriginZ)
     {
-      LPT::LPT_LOG::GetInstance()->WARN("Z-coordinate is too small: ", ZCoord);
+      LPT::LPT_LOG::GetInstance()->LOG("Z-coordinate is too small: ", ZCoord);
       return 100;
     }
     if(ZCoord > OriginZ + dz * Nz)
     {
-      LPT::LPT_LOG::GetInstance()->WARN("Z-coordinate is too large: ", ZCoord);
+      LPT::LPT_LOG::GetInstance()->LOG("Z-coordinate is too large: ", ZCoord);
       return 200;
     }
     return 0;

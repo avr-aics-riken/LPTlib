@@ -119,9 +119,9 @@ namespace PPlib
 #endif
         gus->InterpolateData(x_i, v);
       } else {
-        LPT::LPT_LOG::GetInstance()->WARN("Requested Block was not found. using old ParticleVelocity for this time step");
-        LPT::LPT_LOG::GetInstance()->WARN("Current Time = ", Particle->CurrentTime);
-        LPT::LPT_LOG::GetInstance()->WARN("ParticleID = ", Particle->GetAllID());
+        LPT::LPT_LOG::GetInstance()->LOG("Requested Block was not found. using old ParticleVelocity for this time step");
+        LPT::LPT_LOG::GetInstance()->LOG("Current Time = ", Particle->CurrentTime);
+        LPT::LPT_LOG::GetInstance()->LOG("ParticleID = ", Particle->GetAllID());
       }
     }
 

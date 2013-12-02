@@ -186,7 +186,6 @@ namespace LPT
     CurrentTimeStep = args.CurrentTimeStep;
     LPT_LOG::GetInstance()->INFO("Current Time =", GetCurrentTime());
     LPT_LOG::GetInstance()->INFO("Current Time Step =", GetCurrentTimeStep());
-    LPT_LOG::GetInstance()->INFO("Number of particles=", ptrPPlib->Particles.size());
     PPlib::PP_Transport Transport;
     PM.stop(PM.tm_PrepareCalc);
 
@@ -208,6 +207,7 @@ namespace LPT
     ptrPPlib->DestroyExpiredParticles(GetCurrentTime());
     LPT_LOG::GetInstance()->LOG("destroy Particle done");
     PM.stop(PM.tm_DestroyParticle);
+    LPT_LOG::GetInstance()->INFO("Number of particles=", ptrPPlib->Particles.size());
 
     //粒子位置のデータブロックとその周辺のデータブロックを持つRankを調べて、RequestQueuesに必要なBlockIDを登録
     PM.start(PM.tm_MakeRequestQ);
@@ -251,7 +251,7 @@ namespace LPT
     int GlobalNumComm;
 
     MPI_Allreduce(&NumComm, &GlobalNumComm, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-    LPT_LOG::GetInstance()->INFO("NumComm = ", NumComm);
+    LPT_LOG::GetInstance()->LOG("NumComm = ", NumComm);
     PM.stop(PM.tm_CommNumComm);
 
     std::list < PPlib::ParticleData *> WorkParticles;
@@ -328,7 +328,7 @@ namespace LPT
             for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
               int ierr = Transport.Calc((*it_Particle).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
               if(ierr == 1) {
-                LPT_LOG::GetInstance()->INFO("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
+                LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
                 delete (*it_Particle).second;
                 ptrPPlib->Particles.erase(it_Particle++);
               }else if(ierr == 2){
@@ -379,7 +379,7 @@ namespace LPT
         for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
           int ierr = Transport.Calc((*it_Particle).second, args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
           if(ierr == 1) {
-            LPT_LOG::GetInstance()->INFO("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
+            LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
             delete (*it_Particle).second;
             ptrPPlib->Particles.erase(it_Particle++);
           }else if(ierr == 2){
@@ -403,7 +403,7 @@ namespace LPT
       {
         int ierr = Transport.Calc((*it_Particle), args.deltaT, args.divT, args.v00, ptrDSlib, CurrentTime, CurrentTimeStep);
         if(ierr == 1) {
-          LPT_LOG::GetInstance()->INFO("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
+          LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
           delete (*it_Particle);
         }else {
           ptrPPlib->Particles.insert(std::make_pair((*it_Particle)->BlockID, (*it_Particle)));
@@ -426,12 +426,12 @@ namespace LPT
       PM.stop(PM.tm_CalcParticle);
     } //転送回数のループ
 #ifdef DEBUG
-    LPT_LOG::GetInstance()->INFO("WorkParticles.size() = ", WorkParticles.size());
+    LPT_LOG::GetInstance()->LOG("WorkParticles.size() = ", WorkParticles.size());
     for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=ptrPPlib->Particles.begin();it_Particle != ptrPPlib->Particles.end();++it_Particle){
       if ((*it_Particle).second->CurrentTimeStep <CurrentTimeStep)
       {
-        LPT_LOG::GetInstance()->INFO("This particle is not calculated: ID = ", (*it_Particle).second->GetAllID());
-        LPT_LOG::GetInstance()->INFO("Particle Current Time Step = ", (*it_Particle).second->CurrentTimeStep);
+        LPT_LOG::GetInstance()->LOG("This particle is not calculated: ID = ", (*it_Particle).second->GetAllID());
+        LPT_LOG::GetInstance()->LOG("Particle Current Time Step = ", (*it_Particle).second->CurrentTimeStep);
       }
     }
 #endif

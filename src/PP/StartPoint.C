@@ -61,7 +61,7 @@ namespace PPlib
         (*it)->StartTime = CurrentTime;
         (*it)->LifeTime = ParticleLifeTime;
         //放出直後の時刻は不正値(-1.0)を入れておく
-        //TimeStepは計算前なのでTimeStep -1の値とする
+        //TimeStepは計算前なのでCurrentTimeStep -1の値とする
         //PP_Transport内で計算されたタイミングで更新後の時刻、タイムステップが代入される
         (*it)->CurrentTime = -1.0;
         (*it)->CurrentTimeStep = CurrentTimeStep-1; 

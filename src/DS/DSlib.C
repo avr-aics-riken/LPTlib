@@ -112,14 +112,14 @@ namespace DSlib
 
     //RequestedBlocksの中を探索
     if(RequestedBlocks.end() == RequestedBlocks.find(BlockID)) {
-      LPT::LPT_LOG::GetInstance()->WARN("DataBlock is not arrived: ", BlockID);
+      LPT::LPT_LOG::GetInstance()->LOG("DataBlock is not arrived: ", BlockID);
       return 1;
     }
     //RequestQueueの中を探索
     for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); ++it) {
       for(std::vector < long >::iterator it2 = (*it)->begin(); it2 != (*it)->end(); ++it2) {
         if((*it2) == BlockID) {
-          LPT::LPT_LOG::GetInstance()->WARN("DataBlock is not requested at this time: ", BlockID);
+          LPT::LPT_LOG::GetInstance()->LOG("DataBlock is not requested at this time: ", BlockID);
           return 2;
         }
       }

@@ -46,36 +46,36 @@ namespace PPlib
 
     if(x_I[0] > m_dims[0] - 1) {
       i = m_dims[0] - 1;
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[0]  is too large");
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[0]  is too large");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[0] = ", x_I[0]);
       LPT::LPT_LOG::GetInstance()->LOG("m_dims[0] - 1 = ", m_dims[0] - 1);
 
     } else if(x_I[0] < 0) {
       i = 0;
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[0]  is too small");
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[0]  is too small");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[0] = ", x_I[0]);
     }
 
     if(x_I[1] > m_dims[1] - 1) {
       j = m_dims[1] - 1;
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[1]  is too large");
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[1]  is too large");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[1] = ", x_I[1]);
       LPT::LPT_LOG::GetInstance()->LOG("m_dims[1] - 1 = ", m_dims[1] - 1);
     } else if(x_I[1] < 0) {
       j = 0;
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[1]  is too small");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[1] = ", x_I[1]);
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[1]  is too small");
     }
 
     if(x_I[2] > m_dims[2] - 1) {
       k = m_dims[2] - 1;
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[2]  is too large");
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[2]  is too large");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[2] = ", x_I[2]);
       LPT::LPT_LOG::GetInstance()->LOG("m_dims[2] - 1 = ", m_dims[2] - 1);
     } else if(x_I[2] < 0) {
       k = 0;
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[2]  is too small");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[2] = ", x_I[2]);
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[2]  is too small");
     }
 
     REAL_TYPE ip = x_I[0] - (REAL_TYPE) i;
