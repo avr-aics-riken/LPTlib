@@ -18,7 +18,6 @@ namespace LPT
 
     void WriteFileHeader();
     void WriteRecord();
-
   };
 
 } //namespace LPT

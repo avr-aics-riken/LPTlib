@@ -14,10 +14,12 @@ namespace LPT
     {
       Out2.open((FileManager::GetInstance()->GetFileName("fvp")).c_str());
     }
+    ~FV_ParticlePath()
+    {
+    }
     void WriteFileHeader();
     void WriteRecordHeader();
     void WriteRecord();
-
   };
 
 } //namespace LPT

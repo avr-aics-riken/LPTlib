@@ -6,7 +6,6 @@
 #include <string>
 #include <mpi.h>
 #include "FileManager.h"
-//ParticleData.hは粒子データフォーマットのバージョン番号を取得するためにincludeしている
 #include "ParticleData.h"
 
 namespace LPT
@@ -84,11 +83,11 @@ namespace LPT
     std::ofstream Out2;
 
     /// 出力する粒子データのリストへのポインタ
-    std::list < PPlib::ParticleData * >*Particles;
+    std::multimap < long, PPlib::ParticleData *> *Particles;
 
   public:
     /// 出力する粒子データを受け取る
-    virtual void SetParticles(std::list < PPlib::ParticleData * >*Particles)
+    virtual void SetParticles(std::multimap < long, PPlib::ParticleData *> * Particles) 
     {
       this->Particles = Particles;
     };

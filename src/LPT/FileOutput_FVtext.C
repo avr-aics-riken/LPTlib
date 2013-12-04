@@ -1,4 +1,4 @@
-#include "FV_ParticlePathOutput.h"
+#include "FileOutput_FVtext.h"
 
 namespace LPT
 {
@@ -19,8 +19,8 @@ namespace LPT
 
   void FV_ParticlePath::WriteRecord()
   {
-    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); it++) {
-      Out2 << (*it)->Coord[0] << " " << (*it)->Coord[1] << " " << (*it)->Coord[2] << " " << (*it)->CurrentTime << std::endl;
+    for(std::multimap<long, PPlib::ParticleData*>::iterator it = Particles->begin(); it != Particles->end(); ++it) {
+      Out2 << (*it).second->Coord[0] << " " << (*it).second->Coord[1] << " " << (*it).second->Coord[2] << " " << (*it).second->CurrentTime << std::endl;
     }
   }
 

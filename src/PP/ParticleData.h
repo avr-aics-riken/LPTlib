@@ -96,6 +96,12 @@ namespace PPlib
               this->Coord[2] == obj.Coord[2] &&
               this->StartTime == obj.StartTime) ? true : false;
     }
+    ParticleData()
+    {
+    }
+    ~ParticleData()
+    {
+    }
 
   };
 

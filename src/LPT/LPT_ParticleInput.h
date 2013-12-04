@@ -53,7 +53,7 @@ namespace LPT
     unsigned long RecordSize;
 
   public:
-      LPT_ParticleInput(std::ifstream * argIn)
+    LPT_ParticleInput(std::ifstream * argIn)
     {
       In = argIn;
       Particles = NULL;
@@ -63,6 +63,10 @@ namespace LPT
       BOM[3] = 0xef;
       ParticleDataFormatVersion = PARTICLE_DATA_FORMAT_VERSION;
       SizeOfRealType = sizeof(REAL_TYPE);
+      RecordSize=0;
+    }
+    ~LPT_ParticleInput()
+    {
     }
 
     //! @brief ファイルのヘッダ部に書かれたBOMを読み込んで実行中の処理系とendianが同じかどうか確認する
@@ -73,7 +77,9 @@ namespace LPT
     //! @attention 異常があった場合はAbort()
     void ReadFileHeader();
 
-    void ReadRecordHeader();
+    //! @brief レコードのヘッダ部を読み込んで、レコード長(=1レコード内の粒子データ数）を返す
+    //! レコード長はメンバ変数のRecordSizeにも保存する
+    unsigned long ReadRecordHeader();
 
     //! ファイル内の粒子データを読み込む
     void ReadRecord();

@@ -14,8 +14,11 @@ namespace LPT
     FV_ParticlePathBinary():Skip1stStep(false)
     {
     }
+    ~FV_ParticlePathBinary()
+    {
+    }
     FV_ParticlePathBinary(const FileOutput & obj);
-      FV_ParticlePathBinary & operator=(const FileOutput & obj);
+    FV_ParticlePathBinary & operator=(const FileOutput & obj);
   public:
     static FV_ParticlePathBinary *GetInstance()
     {
@@ -35,7 +38,6 @@ namespace LPT
     void WriteFileHeader();
     void WriteRecordHeader();
     void WriteRecord();
-
   };
 
 } //namespace LPT

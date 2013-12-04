@@ -10,7 +10,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.59])
 AC_INIT([LPTlib], [0.9], [keno@riken.jp], [LPTlib])
 AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR([src/LPT/LPT.C])

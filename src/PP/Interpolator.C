@@ -10,13 +10,18 @@ namespace PPlib
 {
   bool Interpolator::setup(DSlib::DataBlock * DataBlock)
   {
-    if(DataBlock == NULL)
+    if((DataBlock == NULL)
+        ||(DataBlock->Pitch[0] <= 0.0 || DataBlock->Pitch[1] <= 0.0 || DataBlock->Pitch[2] <= 0.0)
+        ||(DataBlock->BlockSize[0] * DataBlock->BlockSize[1] * DataBlock->BlockSize[2] < 1))
+    //TODO  エラー発生時にfalseを返すのではなく例外を投げるorアボート
       return false;
+
+
     m_dims[0] = DataBlock->BlockSize[0];
     m_dims[1] = DataBlock->BlockSize[1];
     m_dims[2] = DataBlock->BlockSize[2];
     p_vecd = DataBlock->Data;
-    m_vecLen = 3; //TODO DataBlockから取ってくるようにする?
+    m_vecLen = 3;
     m_halo = DSlib::DecompositionManager::GetInstance()->GetGuideCellSize();
     m_orig[0] = DataBlock->Origin[0];
     m_orig[1] = DataBlock->Origin[1];
@@ -24,11 +29,8 @@ namespace PPlib
     m_pitch[0] = DataBlock->Pitch[0];
     m_pitch[1] = DataBlock->Pitch[1];
     m_pitch[2] = DataBlock->Pitch[2];
+    BlockID    = DataBlock->BlockID;
 
-    if(m_pitch[0] <= 0.0 || m_pitch[1] <= 0.0 || m_pitch[2] <= 0.0)
-      return false;
-    if(m_dims[0] * m_dims[1] * m_dims[2] < 1)
-      return false;
     return true;
   }
 
@@ -44,36 +46,36 @@ namespace PPlib
 
     if(x_I[0] > m_dims[0] - 1) {
       i = m_dims[0] - 1;
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[0]  is too large");
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[0]  is too large");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[0] = ", x_I[0]);
       LPT::LPT_LOG::GetInstance()->LOG("m_dims[0] - 1 = ", m_dims[0] - 1);
 
     } else if(x_I[0] < 0) {
       i = 0;
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[0]  is too small");
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[0]  is too small");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[0] = ", x_I[0]);
     }
 
     if(x_I[1] > m_dims[1] - 1) {
       j = m_dims[1] - 1;
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[1]  is too large");
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[1]  is too large");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[1] = ", x_I[1]);
       LPT::LPT_LOG::GetInstance()->LOG("m_dims[1] - 1 = ", m_dims[1] - 1);
     } else if(x_I[1] < 0) {
       j = 0;
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[1]  is too small");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[1] = ", x_I[1]);
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[1]  is too small");
     }
 
     if(x_I[2] > m_dims[2] - 1) {
       k = m_dims[2] - 1;
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[2]  is too large");
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[2]  is too large");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[2] = ", x_I[2]);
       LPT::LPT_LOG::GetInstance()->LOG("m_dims[2] - 1 = ", m_dims[2] - 1);
     } else if(x_I[2] < 0) {
       k = 0;
+      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[2]  is too small");
       LPT::LPT_LOG::GetInstance()->LOG("x_I[2] = ", x_I[2]);
-      LPT::LPT_LOG::GetInstance()->WARN("using extrapolation:x_i[2]  is too small");
     }
 
     REAL_TYPE ip = x_I[0] - (REAL_TYPE) i;

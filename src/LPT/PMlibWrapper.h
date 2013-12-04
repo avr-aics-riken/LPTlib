@@ -25,11 +25,13 @@ namespace LPT
       finalized = false;
     }
     PMlibWrapper(const PMlibWrapper & obj);
-      PMlibWrapper & operator=(const PMlibWrapper & obj);
-     ~PMlibWrapper()
+    PMlibWrapper & operator=(const PMlibWrapper & obj);
+    ~PMlibWrapper()
     {
       if(!finalized)
+      {
         this->Finalize();
+      }
     }
 
   public:
@@ -137,17 +139,6 @@ public:
     tm_PP_Transport,
     tm_MoveParticle,
     tm_DelSendBuff,
-/*
-    tm_Transport1,
-    tm_Transport_FindBlockID,
-    tm_Transport_Load,
-    tm_Transport_SetupInterPorator,
-    tm_Transport_ConvXtoI,
-    tm_Transport_Interpolate,
-    tm_Transport_RKG,
-    tm_Transport_ConvItoX,
-    tm_Transport_Post,
-*/
     tm_END_
   };
 
@@ -168,14 +159,12 @@ public:
 
         fp1 = fopen(PMlibOutputFileName.c_str(), "w+");
         fp2 = fopen(PMlibDetailedOutputFileName.c_str(), "w+");
-#ifdef __FUJITSU
-//getenv() doesnt work on FX10 2013/03/08
+
         std::string hostname("HOSTNAME");
         std::string operator_name("USER");
-#else
-        std::string hostname(std::getenv("HOSTNAME"));
-        std::string operator_name(std::getenv("USER"));
-#endif
+        if(std::getenv("HOSTNAME") != NULL ) hostname=std::getenv("HOSTNAME");
+        if(std::getenv("USER") != NULL) operator_name = std::getenv("USER");
+
         PM.print(fp1, hostname, operator_name);
         PM.printDetail(fp2);
         fclose(fp1);
@@ -196,7 +185,6 @@ public:
       PM.stop(key, flopPerTask, iterationCount);
 #endif
     }
-
   };
 
 } //namespace LPT

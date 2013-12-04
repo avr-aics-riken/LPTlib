@@ -36,7 +36,7 @@ namespace DSlib
     REAL_TYPE Pitch[3];
 
     //! 代入オペレータ
-    void operator=(const DataBlock & org)
+    DataBlock & operator=(const DataBlock & org)
     {
       BlockID = org.BlockID;
       SubDomainID = org.SubDomainID;
@@ -48,12 +48,23 @@ namespace DSlib
         Pitch[i] = org.Pitch[i];
       }
       Data = org.Data;
-        Time = org.Time;
+      Time = org.Time;
+      return (*this);
     }
 
     //!コンストラクタ
-    DataBlock():Data(NULL), BlockID(-1), SubDomainID(-1)
+    DataBlock():Data(NULL), BlockID(-1), SubDomainID(-1), Time(-1.0)
     {
+      OriginCell[0]=-1;
+      OriginCell[1]=-1;
+      OriginCell[2]=-1;
+      BlockSize[0]=-1;
+      BlockSize[1]=-1;
+      BlockSize[2]=-1;
+    }
+    ~DataBlock()
+    {
+      delete [] Data;
     }
 
     //!  挿入子オーバーロード

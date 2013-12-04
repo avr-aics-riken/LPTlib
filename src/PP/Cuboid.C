@@ -175,8 +175,6 @@ namespace PPlib
     LPT::LPT_LOG::GetInstance()->LOG("MB = ", MB);
     LPT::LPT_LOG::GetInstance()->LOG("KB = ", KB);
     
-    int KReminder=K%KB;
-
     DSlib::DV3 DV3Coord[8];
     getAllVertexCoord(DV3Coord);
 

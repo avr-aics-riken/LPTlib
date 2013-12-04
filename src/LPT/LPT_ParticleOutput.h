@@ -26,11 +26,14 @@ namespace LPT
 
   private:
     //Singletonパターンを適用
-      LPT_ParticleOutput()
+    LPT_ParticleOutput()
     {
     };
-      LPT_ParticleOutput(const FileOutput & obj);
-      LPT_ParticleOutput & operator=(const FileOutput & obj);
+    ~LPT_ParticleOutput()
+    {
+    };
+    LPT_ParticleOutput(const FileOutput & obj);
+    LPT_ParticleOutput & operator=(const FileOutput & obj);
   public:
     static LPT_ParticleOutput *GetInstance()
     {
@@ -54,10 +57,6 @@ namespace LPT
     void WriteFileHeader();
     void WriteRecordHeader();
     void WriteRecord();
-    void SetParticles(std::list < PPlib::ParticleData * >*Particles)
-    {
-      this->Particles = Particles;
-    };
   };
 
 } //namespace LPT

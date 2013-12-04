@@ -123,8 +123,6 @@ namespace PPlib
 
     //! 入力演算子オーバーロード
     friend std::istream & operator >>(std::istream & stream, Line & obj);
-
-
   };
 
 } // namespace PPlib

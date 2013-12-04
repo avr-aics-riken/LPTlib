@@ -16,8 +16,12 @@ namespace DSlib
     DataBlock *ptrData;
 
     //! Constructor
-      Cache():BlockID(-1), ptrData(NULL)
+    Cache():BlockID(-1), ptrData(NULL)
     {
+    }
+    ~Cache()
+    {
+      delete ptrData;
     }
 
   };

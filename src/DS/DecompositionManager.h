@@ -105,7 +105,7 @@ namespace DSlib
 
   private:
     //Singletonパターンを適用
-      DecompositionManager()
+    DecompositionManager()
     {
       initialized = false;
     }
@@ -132,33 +132,32 @@ namespace DSlib
     }
 
     //! 1次元のindexを3次元のindexに変換する
-    template < class T > static void IndexConvert1Dto3D(const T Index1D, int *Index3D, const int NumBlockX, const int NumBlockY);
+    template < typename T > static void IndexConvert1Dto3D(const T Index1D, int *Index3D, const int NumBlockX, const int NumBlockY);
 
 
     //! 3次元のindexを1次元のindex(int)に変換する
-    template < class T > static int Convert3Dto1Dint(T i, T j, T k, T imax, T jmax)
+    template < typename  T > static int Convert3Dto1Dint(T i, T j, T k, T imax, T jmax)
     {
       return i + j * imax + k * imax * jmax;
     }
 
     //! 3次元のindexを1次元のindex(long)に変換する
-    template < class T > static long Convert3Dto1Dlong(T i, T j, T k, T imax, T jmax)
+    template < typename  T > static long Convert3Dto1Dlong(T i, T j, T k, T imax, T jmax)
     {
       return i + j * imax + k * imax * jmax;
     }
 
     //! 3次元のindexを1次元のindex(size_t)に変換する
-    template < class T > static size_t Convert3Dto1D(T i, T j, T k, T imax, T jmax)
+    template < typename T > static size_t Convert3Dto1D(T i, T j, T k, T imax, T jmax)
     {
       return i + j * imax + k * imax * jmax;
     }
 
     //! 4次元のindexを1次元のindex(size_t)に変換する
-    template < class T > static size_t Convert4Dto1D(T i, T j, T k, T l, T imax, T jmax, T kmax)
+    template < typename  T > static size_t Convert4Dto1D(T i, T j, T k, T l, T imax, T jmax, T kmax)
     {
       return i + j * imax + k * imax * jmax + l * imax * jmax * kmax;
     }
-
 
   private:
     //! @brief サブドメインの境界を出力する
@@ -187,11 +186,11 @@ namespace DSlib
 
     int GetBlockIDX(const long &BlockID)
     {
-      return (BlockID % (NBx * NPx * NBy * NPy)) % NBx * NPx;
+      return (BlockID % (NBx * NPx * NBy * NPy)) % (NBx * NPx);
     };
     int GetBlockIDY(const long &BlockID)
     {
-      return (BlockID % (NBx * NPx * NBy * NPy)) / NBx * NPx;
+      return (BlockID % (NBx * NPx * NBy * NPy)) / (NBx * NPx);
     };
     int GetBlockIDZ(const long &BlockID)
     {
@@ -227,24 +226,15 @@ namespace DSlib
     //! @retval 引数で渡したIDのデータブロックが存在するサブドメインのID
     int FindSubDomainIDByBlock(const long &id);
 
-    //TODO classに変更して、DSlibのメンバにはそのクラスへのポインタを持たせる
-    //! @brief 与えられた座標を含むデータブロックのIDを返す
+    //! @brief 与えられた座標を含むデータブロックのIDを返す(線形探索版)
     //! @param Coord [in] 座標
     //! @retval 引数で渡した座標を含むデータブロックのID
-    long FindBlockIDByCoordLinear(const DV3 & Coord);
-    long FindBlockIDByCoordLinear(const REAL_TYPE * Coord)
-    {
-      DV3 tmp(Coord[0], Coord[1], Coord[2]);
+    long FindBlockIDByCoordLinear(REAL_TYPE Coord[3]);
 
-      return FindBlockIDByCoordLinear(tmp);
-    };
-    long FindBlockIDByCoordBinary(const DV3 & Coord);
-    long FindBlockIDByCoordBinary(const REAL_TYPE * Coord)
-    {
-      DV3 tmp(Coord[0], Coord[1], Coord[2]);
-
-      return FindBlockIDByCoordBinary(tmp);
-    };
+    //! @brief 与えられた座標を含むデータブロックのIDを返す(二分探索版)
+    //! @param Coord [in] 座標
+    //! @retval 引数で渡した座標を含むデータブロックのID
+    long FindBlockIDByCoordBinary(REAL_TYPE Coord[3]);
 
     //! @brief 与えられたブロックIDの周囲にあるブロックIDの配列を返す
     //! @param id        [in]  周辺のブロックを探したいデータブロックのID
@@ -253,13 +243,7 @@ namespace DSlib
 
     //! @brief 引数で渡された座標が解析領域外に出ていないか判定する
     //! CheckBound{X,Y,Z}の戻り値を加算して返すので、戻り値の意味はそちらを参照のこと
-    int CheckBounds(DV3 Coord);
-    int CheckBounds(REAL_TYPE Coord[3])
-    {
-      DV3 tmp(Coord[0], Coord[1], Coord[2]);
-
-      return CheckBounds(tmp);
-    };
+    int CheckBounds(REAL_TYPE Coord[3]);
 
 
     //! Accessor
@@ -307,6 +291,7 @@ namespace DSlib
     {
       return OriginZ + BlockBoundaryZ[GetBlockIDZ(BlockID)] * dz;
     };
+
     int GetBlockSizeX(const long &BlockID)
     {
       return BlockBoundaryX[GetBlockIDX(BlockID) + 1] - BlockBoundaryX[GetBlockIDX(BlockID)];
@@ -319,6 +304,19 @@ namespace DSlib
     {
       return BlockBoundaryZ[GetBlockIDZ(BlockID) + 1] - BlockBoundaryZ[GetBlockIDZ(BlockID)];
     };
+
+    int GetSubDomainOriginCellX(const int &SubDomainID)
+    {
+        return SubDomainBoundaryX[GetSubDomainIDX(SubDomainID)];
+    }
+    int GetSubDomainOriginCellY(const int &SubDomainID)
+    {
+        return SubDomainBoundaryY[GetSubDomainIDY(SubDomainID)];
+    }
+    int GetSubDomainOriginCellZ(const int &SubDomainID)
+    {
+        return SubDomainBoundaryZ[GetSubDomainIDZ(SubDomainID)];
+    }
     int GetSubDomainSizeX(const int &SubDomainID)
     {
       return SubDomainBoundaryX[GetSubDomainIDX(SubDomainID) + 1] - SubDomainBoundaryX[GetSubDomainIDX(SubDomainID)];
@@ -340,6 +338,12 @@ namespace DSlib
         + (BlockBoundaryZ[GetBlockIDZ(BlockID)] - SubDomainBoundaryZ[GetSubDomainIDZ(SubDomainID)])
         * (GetSubDomainSizeX(GetSubDomainIDX(SubDomainID)) + GetGuideCellSize() * 2)
         * (GetSubDomainSizeY(GetSubDomainIDY(SubDomainID)) + GetGuideCellSize() * 2);
+    }
+
+    void PrintVectorSize(void)
+    {
+      std::cerr << "Allocated vector size in Decomposition Manager = "<< RealBlockBoundaryX.capacity()*sizeof(REAL_TYPE) + RealBlockBoundaryY.capacity()*sizeof(REAL_TYPE) 
+        + RealBlockBoundaryZ.capacity()*sizeof(REAL_TYPE) <<std::endl;
     }
   };
 

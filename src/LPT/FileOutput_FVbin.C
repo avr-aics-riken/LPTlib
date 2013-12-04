@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <list>
-#include "FV_ParticlePathBinaryOutput.h"
+#include "FileOutput_FVbin.h"
 
 namespace LPT
 {
@@ -42,7 +42,7 @@ namespace LPT
  * さらに第1ステップのデータが来たら出力をスキップする処理を追加している
  */
     static bool Output0thStep = false;
-    int TimeStep = (*(Particles->begin()))->CurrentTimeStep;
+    int TimeStep = (*(Particles->begin())).second->CurrentTimeStep;
 
     if(TimeStep == 0) {
       Output0thStep = true;
@@ -53,7 +53,7 @@ namespace LPT
     } else if(TimeStep > 1 && Skip1stStep == true) {
       Skip1stStep = false;
     }
-    float Time = (*(Particles->begin()))->CurrentTime;
+    float Time = (*(Particles->begin())).second->CurrentTime;
     int NumParticle = Particles->size();
 
     Out2.write((char *)&TimeStep, sizeof(int));
@@ -69,16 +69,16 @@ namespace LPT
 
     int ID = 1;
 
-    for(std::list < PPlib::ParticleData * >::iterator it = Particles->begin(); it != Particles->end(); it++) {
-      float x = (float)(*it)->Coord[0];
-      float y = (float)(*it)->Coord[1];
-      float z = (float)(*it)->Coord[2];
-      float u = (float)(*it)->ParticleVelocity[0];
-      float v = (float)(*it)->ParticleVelocity[1];
-      float w = (float)(*it)->ParticleVelocity[2];
-      float Rank = (float)(*it)->StartPointID[0];
-      float StartPointID = (float)(*it)->StartPointID[1];
-      float ParticleID = (float)(*it)->ParticleID;
+    for(std::multimap<long, PPlib::ParticleData*>::iterator it = Particles->begin(); it != Particles->end(); ++it) {
+      float x            = (float)(*it).second->Coord[0];
+      float y            = (float)(*it).second->Coord[1];
+      float z            = (float)(*it).second->Coord[2];
+      float u            = (float)(*it).second->ParticleVelocity[0];
+      float v            = (float)(*it).second->ParticleVelocity[1];
+      float w            = (float)(*it).second->ParticleVelocity[2];
+      float Rank         = (float)(*it).second->StartPointID[0];
+      float StartPointID = (float)(*it).second->StartPointID[1];
+      float ParticleID   = (float)(*it).second->ParticleID;
 
       Out2.write((char *)&ID, sizeof(int)); //ID
       ++ID;

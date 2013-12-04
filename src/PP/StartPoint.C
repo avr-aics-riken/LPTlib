@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <new>
 #include <list>
 #include <vector>
 #include <utility>
@@ -9,12 +8,10 @@
 
 #include "StartPoint.h"
 #include "ParticleData.h"
-#include "Line.h"
-#include "Rectangle.h"
-#include "Circle.h"
-#include "Cuboid.h"
+#include "StartPointAll.h"
 #include "FileManager.h"
 #include "DV3.h"
+#include "DecompositionManager.h"
 
 namespace PPlib
 {
@@ -46,7 +43,7 @@ namespace PPlib
         }
       }
       catch(std::bad_alloc) {
-        for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); it++) {
+        for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); ++it) {
           delete *it;
         }
         std::cerr << "faild to allocate memory for ParticleData. particle emittion is skiped for this time step" << std::endl;
@@ -57,18 +54,21 @@ namespace PPlib
       GetGridPointCoord(Coords);
 
       std::vector < DSlib::DV3 >::iterator itCoords = Coords.begin();
-      for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); it++) {
+      for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); ++it) {
         (*it)->StartPointID[0] = ID[0];
         (*it)->StartPointID[1] = ID[1];
         (*it)->ParticleID = id++;
         (*it)->StartTime = CurrentTime;
         (*it)->LifeTime = ParticleLifeTime;
-        (*it)->CurrentTime = CurrentTime;
-        (*it)->CurrentTimeStep = CurrentTimeStep;
-
+        //放出直後の時刻は不正値(-1.0)を入れておく
+        //TimeStepは計算前なのでCurrentTimeStep -1の値とする
+        //PP_Transport内で計算されたタイミングで更新後の時刻、タイムステップが代入される
+        (*it)->CurrentTime = -1.0;
+        (*it)->CurrentTimeStep = CurrentTimeStep-1; 
         (*it)->Coord[0] = (*itCoords).x;
         (*it)->Coord[1] = (*itCoords).y;
         (*it)->Coord[2] = (*itCoords).z;
+        (*it)->BlockID = DSlib::DecompositionManager::GetInstance()->FindBlockIDByCoordLinear((*it)->Coord);
         ++itCoords;
       }
       this->LatestEmitTime = CurrentTime;

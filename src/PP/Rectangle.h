@@ -111,6 +111,11 @@ namespace PPlib
         NumStartPoints[i] = org.NumStartPoints[i];
       }
     }
+    //! Destructor
+    ~Rectangle()
+    {
+    }
+
 
     //! 代入演算子オーバーロード
     Rectangle & operator=(const Rectangle & org)
@@ -154,7 +159,6 @@ namespace PPlib
 
     //! 入力演算子オーバーロード
     friend std::istream & operator >>(std::istream & stream, Rectangle & obj);
-
   };
 
 } // namespace PPlib
