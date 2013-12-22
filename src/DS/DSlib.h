@@ -16,7 +16,9 @@
 namespace DSlib
 {
   //!  @brief データブロックの管理を行なうクラス
-  //! 転送待ちブロック、転送中ブロックおよび転送済ブロックのIDとオブジェクトへのポインタを管理する
+  //!
+  //! 転送待ちブロック、転送中ブロックおよび転送済ブロックの3つに分けてデータブロックの状態を管理する。
+  //！
   class DSlib
   {
     friend void Communicator::CommRequest(DSlib * ptrDSlib);
@@ -41,6 +43,8 @@ namespace DSlib
     DSlib& operator=(const DSlib& obj);
 
   public:
+    int CalcNumComm(Communicator * ptrComm);
+    void DiscardCacheEntry(const int & j,Communicator * ptrComm );
     //! CacheSizeを越えるデータブロックが必要となった時に、1回にキャッシュから追い出すサイズを決める
     int CommBufferSize;
 
@@ -82,7 +86,7 @@ namespace DSlib
 
     //! @brief Constructor
     //! @param CacheSize [in] データブロックのキャッシュエントリ数
-    DSlib(int argCacheSize):CacheSize(argCacheSize)
+    DSlib(int argCacheSize, int argCommBufferSize):CacheSize(argCacheSize), CommBufferSize(argCommBufferSize)
     {
       int NumProcs;
       MPI_Comm_size(MPI_COMM_WORLD, &NumProcs);

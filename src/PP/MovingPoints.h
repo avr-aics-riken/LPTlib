@@ -8,6 +8,7 @@
 namespace PPlib
 {
   //!  @brief 移動する開始点設定を保持するクラス
+  //!
   //! Time[i]の時点の開始点座標がCoords[i]に保持される
   class MovingPoints:public StartPoint
   {

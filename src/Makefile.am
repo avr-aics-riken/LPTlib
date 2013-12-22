@@ -17,12 +17,8 @@ libLPT_a_CXXFLAGS = @MPICH_CFLAGS@ @LPT_CFLAGS@ \
 libLPT_a_SOURCES = \
    DS/Communicator.C \
    DS/DSlib.C \
-   DS/DV3.C \
    DS/DataBlock.C \
    DS/DecompositionManager.C \
-   LPT/FileOutput_csv.C \
-   LPT/FileOutput_FVbin.C \
-   LPT/FileOutput_FVtext.C \
    LPT/LPT.C \
    LPT/LPT_ParticleOutput.C \
    LPT/LPT_ParticleInput.C \
@@ -43,16 +39,10 @@ libLPT_a_SOURCES = \
    DS/Cache.h \
    DS/Communicator.h \
    DS/DSlib.h \
-   DS/DV3.h \
    DS/DataBlock.h \
    DS/DecompositionManager.h \
    DS/CommDataBlock.h \
-   LPT/FileOutput_csv.h \
-   LPT/FileOutput_FVbin.h \
-   LPT/FileOutput_FVtext.h \
    LPT/FileManager.h \
-   LPT/FileOutput.h \
-   LPT/FileOutput2.h \
    LPT/LPT_Args.h \
    LPT/LPT_LogOutput.h \
    LPT/LPT_ParticleInput.h \

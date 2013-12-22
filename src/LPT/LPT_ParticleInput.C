@@ -55,22 +55,6 @@ namespace LPT
 
   }
 
-  void LPT_ParticleInput::ReadRecord(const ID & ParticleID)
-  {
-    while(!In->eof()) {
-      ReadRecordHeader();
-      for(int i = 0; i < RecordSize && !In->eof(); i++) {
-        PPlib::ParticleData * Particle = new PPlib::ParticleData;
-        Particle->BinaryRead(*In);
-        if(ParticleID.StartPointID_0 == (Particle->StartPointID)[0] && ParticleID.StartPointID_1 == (Particle->StartPointID)[1] && ParticleID.ParticleID == Particle->ParticleID) {
-          Particles->push_back(Particle);
-        } else {
-          delete Particle;
-        }
-      }
-    }
-  }
-
   void LPT_ParticleInput::ReadRecord(const int &TimeStep)
   {
     while(!In->eof()) {
@@ -82,29 +66,6 @@ namespace LPT
           Particles->push_back(Particle);
         } else {
           delete Particle;
-        }
-      }
-    }
-  }
-
-  void LPT_ParticleInput::ReadIDs(std::set < ID > *IDs)
-  {
-    std::list < PPlib::ParticleData * >Particles;
-    SetParticles(&Particles);
-    while(!In->eof()) {
-      ReadRecordHeader();
-      for(int i = 0; i < RecordSize; i++) {
-        PPlib::ParticleData Particle;
-        Particle.BinaryRead(*In);
-
-        ID *tmpID = new ID;
-
-        tmpID->StartPointID_0 = Particle.StartPointID[0];
-        tmpID->StartPointID_1 = Particle.StartPointID[1];
-        tmpID->ParticleID = Particle.ParticleID;
-        std::pair < std::set < ID >::iterator, bool > rt = IDs->insert(*tmpID);
-        if(!rt.second) {
-          delete tmpID;
         }
       }
     }

@@ -26,8 +26,14 @@ namespace PPlib
     //! x,y,z方向へ並ぶ開始点の個数
     int NumStartPoints[3];
 
-    //! メンバ変数として保持する2頂点の座標から全頂点の座標を生成する
-    void getAllVertexCoord(DSlib::DV3 *DV3Coord);
+    //! x方向の余りオブジェクトを分割
+    void ShrinkX(std::vector<StartPoint* >* StartPoints, int* N, const int& NB, const std::vector<REAL_TYPE>& coord_x);
+
+    //! y方向の余りオブジェクトを分割
+    void ShrinkY(std::vector<StartPoint* >* StartPoints, int* M, const int& MB, const std::vector<REAL_TYPE>& coord_y);
+
+    //! z方向の余りオブジェクトを分割
+    void ShrinkZ(std::vector<StartPoint* >* StartPoints, int* K, const int& KB, const std::vector<REAL_TYPE>& coord_z);
 
   public:
     //! テキスト出力を行う
@@ -48,7 +54,8 @@ namespace PPlib
     {
       for(int i = 0; i < 3; i++) {
         this->Coord1[i] = Coord[i];
-    }};
+      }
+    };
     //! @brief 引数に指定された配列の先頭から3要素をメンバ変数Coord2に格納する
     //!  4番目以降の要素が存在しても無視される
     void SetCoord2(REAL_TYPE * Coord)
@@ -75,11 +82,11 @@ namespace PPlib
     //! @attention 分割前のオブジェクトは残っているので、このメソッド実行後に破棄すること
     //! @param MaxNumStartPoints [in]  分割後のオブジェクトが持つ最大の開始点数
     //! @ret   分割後の開始点オブジェクトを格納したコンテナ
-    void Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints);
+    virtual void Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints);
 
     //! 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標
-    void GetGridPointCoord(std::vector < DSlib::DV3 > &Coords);
+    virtual void GetGridPointCoord(std::vector < REAL_TYPE > &Coords);
 
     //! Constructor
     Cuboid()

@@ -3,9 +3,7 @@
 
 namespace LPT
 {
-/**
- * @brief LPT_Initialize()の引数を保持する構造体
- */
+ //! LPT_Initialize()の引数を保持する構造体
   struct LPT_InitializeArgs
   {
     //! 計算領域のx方向のサイズ 単位はセル数
@@ -54,6 +52,7 @@ namespace LPT
     REAL_TYPE OriginZ;
 
     //! @brief ガイドセル(袖領域)のサイズ
+    //!
     //! 全方向に同じサイズの袖領域を持つものとする
     int GuideCellSize;
 
@@ -61,30 +60,37 @@ namespace LPT
     MPI_Comm FluidComm;
 
     //! @brief 流体計算に参加するプロセス数
+    //!
     //! NumFluidProc = NPx*NPy*NPz となっていること
     int NumFluidProc;
 
-    //! @brief データブロックのキャッシュに使う領域のサイズ。単位はMByte
+    //! @brief データブロックのキャッシュに使う領域のサイズ(単位はMByte)
+    //!
     //! 実際はsizeof(DataBlock)でまるめられる
     int CacheSize;
 
-    //! @brief キャッシュから1度に追い出すサイズ
-    //! 単位はMByteで指定し、sizeof(DataBlock)で丸められる
+    //! @brief キャッシュから1度に追い出すサイズ(単位はMByte)
+    //!
+    //! 実際はsizeof(DataBlock)でまるめられる
     //! CommBufferSize <= CacheSize でなければならない
     //! CacheSizeを越えた値が指定された場合はCacheSizeと同じ値に変更する
     int CommBufferSize;
 
-    //! 粒子計算に参加するプロセス数の初期値
+    //! @brief 粒子計算に参加するプロセス数の初期値
+    //!
+    //!  未指定の場合は、MPI_COMM_WORLD内のプロセス数とする
     int NumParticleProcs;
 
     //! @brief 粒子計算に参加するプロセス数の最大値
+    //!
     //!  未指定の場合は、MPI_COMM_WORLD内のプロセス数とする
     int MaxNumParticleProcs;
 
-    //! MigrationIntervalステップに1回、マイグレーションの判定を行なう
+    //! マイグレーションの判定を行なうタイムステップ間隔を指定する
     int MigrationInterval;
 
     //! @brief ファイル入出力メソッドで使われるファイル名のprefix
+    //!
     //! この後にRank番号を付け加えたものが実際のファイル名となる
       std::string OutputFileName;
 

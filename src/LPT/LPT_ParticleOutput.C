@@ -5,9 +5,9 @@ namespace LPT
 
   void LPT_ParticleOutput::WriteFileHeader()
   {
-    Out2.write((char *)BOM, sizeof(BOM));
-    Out2.write((char *)&ParticleDataFormatVersion, sizeof(double));
-    Out2.write((char *)&SizeOfRealType, sizeof(size_t));
+    Out.write((char *)BOM, sizeof(BOM));
+    Out.write((char *)&ParticleDataFormatVersion, sizeof(double));
+    Out.write((char *)&SizeOfRealType, sizeof(size_t));
   }
 
   void LPT_ParticleOutput::WriteRecordHeader()
@@ -15,14 +15,14 @@ namespace LPT
     unsigned long ParticleSize = Particles->size();
 
     if(ParticleSize > 0) {
-      Out2.write((char *)&ParticleSize, sizeof(unsigned long));
+      Out.write((char *)&ParticleSize, sizeof(unsigned long));
     }
   }
 
   void LPT_ParticleOutput::WriteRecord()
   {
     for(std::multimap< long, PPlib::ParticleData*>::iterator it = Particles->begin(); it != Particles->end(); ++it) {
-      (*it).second->BinaryWrite(Out2);
+      (*it).second->BinaryWrite(Out);
     }
   }
 

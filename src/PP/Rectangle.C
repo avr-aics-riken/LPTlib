@@ -24,38 +24,38 @@ namespace PPlib
     return stream;
   }
 
-  void Rectangle::MakeCoord3_4(DSlib::DV3 * Coord3, int *NumPoints1, DSlib::DV3 * Coord4, int *NumPoints2)
+  void Rectangle::MakeCoord3_4(REAL_TYPE Coord3[3], int *NumPoints1, REAL_TYPE Coord4[3], int *NumPoints2)
   {
     if(Coord1[0] == Coord2[0]) {
-      Coord3->x = Coord1[0];
-      Coord3->y = Coord2[1];
-      Coord3->z = Coord1[2];
+      Coord3[0] = Coord1[0];
+      Coord3[1] = Coord2[1];
+      Coord3[2] = Coord1[2];
 
-      Coord4->x = Coord1[0];
-      Coord4->y = Coord1[1];
-      Coord4->z = Coord2[2];
+      Coord4[0] = Coord1[0];
+      Coord4[1] = Coord1[1];
+      Coord4[2] = Coord2[2];
 
       *NumPoints1 = NumStartPoints[1];
       *NumPoints2 = NumStartPoints[2];
     } else if(Coord1[1] == Coord2[1]) {
-      Coord3->x = Coord1[0];
-      Coord3->y = Coord1[1];
-      Coord3->z = Coord2[2];
+      Coord3[0] = Coord1[0];
+      Coord3[1] = Coord1[1];
+      Coord3[2] = Coord2[2];
 
-      Coord4->x = Coord2[0];
-      Coord4->y = Coord1[1];
-      Coord4->z = Coord1[2];
+      Coord4[0] = Coord2[0];
+      Coord4[1] = Coord1[1];
+      Coord4[2] = Coord1[2];
 
       *NumPoints1 = NumStartPoints[2];
       *NumPoints2 = NumStartPoints[0];
     } else if(Coord1[2] == Coord2[2]) {
-      Coord3->x = Coord2[0];
-      Coord3->y = Coord1[1];
-      Coord3->z = Coord1[2];
+      Coord3[0] = Coord2[0];
+      Coord3[1] = Coord1[1];
+      Coord3[2] = Coord1[2];
 
-      Coord4->x = Coord1[0];
-      Coord4->y = Coord2[1];
-      Coord4->z = Coord1[2];
+      Coord4[0] = Coord1[0];
+      Coord4[1] = Coord2[1];
+      Coord4[2] = Coord1[2];
 
       *NumPoints1 = NumStartPoints[0];
       *NumPoints2 = NumStartPoints[1];
@@ -68,30 +68,28 @@ namespace PPlib
     LPT::LPT_LOG::GetInstance()->LOG("NumPoints2 = ", *NumPoints2);
   }
 
-  void Rectangle::GetGridPointCoord(std::vector < DSlib::DV3 > &Coords)
+  void Rectangle::GetGridPointCoord(std::vector < REAL_TYPE > &Coords)
   {
-    //残りの2頂点の座標と各辺の点数を決める
-    int NumPoints1; //Coord1とCoord3の間の開始点数
-    int NumPoints2; //Coord1とCoord4の間の開始点数
+    std::vector<REAL_TYPE> coord_x;
+    utility::DivideLine1D(&coord_x, NumStartPoints[0], Coord1[0], Coord2[0]);
+    std::vector<REAL_TYPE> coord_y;
+    utility::DivideLine1D(&coord_y, NumStartPoints[1], Coord1[1], Coord2[1]);
+    std::vector<REAL_TYPE> coord_z;
+    utility::DivideLine1D(&coord_z, NumStartPoints[2], Coord1[2], Coord2[2]);
 
-    DSlib::DV3 Coord3;
-    DSlib::DV3 Coord4;
-    MakeCoord3_4(&Coord3, &NumPoints1, &Coord4, &NumPoints2);
-
-    //Coord1, 3間の頂点座標を求める
-    std::vector < DSlib::DV3 > tmpCoords1;
-    DSlib::DV3 DV3Coord1(Coord1[0], Coord1[1], Coord1[2]);
-    DividePoints(&tmpCoords1, NumPoints1, DV3Coord1, Coord3);
-
-    //Coord4, 2間の頂点座標を求める
-    std::vector < DSlib::DV3 > tmpCoords2;
-    DSlib::DV3 DV3Coord2(Coord2[0], Coord2[1], Coord2[2]);
-    DividePoints(&tmpCoords2, NumPoints1, Coord4, DV3Coord2);
-
-    for(int i = 0; i < NumPoints1; i++) {
-      DividePoints(&Coords, NumPoints2, tmpCoords1[i], tmpCoords2[i]);
+    for(std::vector<REAL_TYPE>::iterator it_x = coord_x.begin(); it_x != coord_x.end(); ++it_x)
+    {
+      for(std::vector<REAL_TYPE>::iterator it_y = coord_y.begin(); it_y != coord_y.end(); ++it_y)
+      {
+        for(std::vector<REAL_TYPE>::iterator it_z = coord_z.begin(); it_z != coord_z.end(); ++it_z)
+        {
+          Coords.push_back(*it_x);
+          Coords.push_back(*it_y);
+          Coords.push_back(*it_z);
+        }
+      }
     }
-    LPT::LPT_LOG::GetInstance()->LOG("Number of grid points = ", Coords.size());
+    LPT::LPT_LOG::GetInstance()->LOG("Number of grid points = ", Coords.size()/3);
   }
 
   void Rectangle::Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints)
@@ -108,17 +106,18 @@ namespace PPlib
       return;
     }
 
+    //残りの2頂点の座標と各辺上の点数を決める
     int N;  //Coord1とCoord3の間の開始点数
     int M;  //Coord1とCoord4の間の開始点数
+    REAL_TYPE Coord3[3];
+    REAL_TYPE Coord4[3];
+    MakeCoord3_4(Coord3, &N, Coord4, &M);
 
-    DSlib::DV3 Coord3(Coord3[0], Coord3[1], Coord3[2]);
-    DSlib::DV3 Coord4(Coord4[0], Coord4[1], Coord4[2]);
-    MakeCoord3_4(&Coord3, &N, &Coord4, &M);
+    // N*Mの格子点をだいたい同じくらいの点数が含まれるようにブロック分割する
 
     //MaxNumStartPointsを (2^Pow[0] * 3^Pow[1] * 5^Pow[2] * Rem) の形に因数分解
     int Pow[4];
-
-    Factorize235(MaxNumStartPoints, Pow);
+    utility::Factorize235(MaxNumStartPoints, Pow);
 
     //分割後の小領域のサイズを決める
     int NB = pow(2, (Pow[0] / 2 + Pow[0] % 2)) * pow(3, (Pow[1] / 2 + Pow[1] % 2)) * pow(5, (Pow[2] / 2));
@@ -184,33 +183,31 @@ namespace PPlib
     if(N % NB != 0) {
       Rectangle *ReminderN = new Rectangle(*this);
 
-      std::vector < DSlib::DV3 > tmpCoords;
-      DSlib::DV3 DV3Coord1(Coord1[0], Coord1[1], Coord1[2]);
-
+      std::vector < REAL_TYPE > tmpCoords;
       if(Coord1[0] == Coord2[0]) {
-        DividePoints(&tmpCoords, N, DV3Coord1, Coord3);
+        DividePoints(&tmpCoords, N, Coord1, Coord3);
 
         NumStartPoints[1] = (N / NB) * NB;
-        Coord2[1] = tmpCoords[(N / NB) * NB - 1].y;
+        Coord2[1] = tmpCoords[3*((N / NB) * NB - 1)+1];
 
         (ReminderN->NumStartPoints)[1] = N % NB;
-        (ReminderN->Coord1)[1] = tmpCoords[(N / NB) * NB].y;
+        (ReminderN->Coord1)[1] = tmpCoords[3*((N / NB) * NB)];
       } else if(Coord1[1] == Coord2[1]) {
-        DividePoints(&tmpCoords, N, DV3Coord1, Coord3);
+        DividePoints(&tmpCoords, N, Coord1, Coord3);
 
         NumStartPoints[2] = (N / NB) * NB;
-        Coord2[2] = tmpCoords[(N / NB) * NB - 1].z;
+        Coord2[2] = tmpCoords[3*((N / NB) * NB - 1)+2];
 
         (ReminderN->NumStartPoints)[2] = N % NB;
-        (ReminderN->Coord1)[2] = tmpCoords[(N / NB) * NB].z;
+        (ReminderN->Coord1)[2] = tmpCoords[3*((N / NB) * NB)];
       } else if(Coord1[2] == Coord2[2]) {
-        DividePoints(&tmpCoords, N, DV3Coord1, Coord3);
+        DividePoints(&tmpCoords, N, Coord1, Coord3);
 
         NumStartPoints[0] = (N / NB) * NB;
-        Coord2[0] = tmpCoords[(N / NB) * NB - 1].x;
+        Coord2[0] = tmpCoords[3*((N / NB) * NB - 1)];
 
         (ReminderN->NumStartPoints)[0] = N % NB;
-        (ReminderN->Coord1)[0] = tmpCoords[(N / NB) * NB].x;
+        (ReminderN->Coord1)[0] = tmpCoords[3*((N / NB) * NB)];
       }
       ReminderN->SetSumStartPoints((ReminderN->NumStartPoints)[0] * (ReminderN->NumStartPoints)[1] * (ReminderN->NumStartPoints)[2]);
       StartPoints->push_back(ReminderN);
@@ -222,65 +219,64 @@ namespace PPlib
     if(M % MB != 0) {
       Rectangle *ReminderM = new Rectangle(*this);
 
-      std::vector < DSlib::DV3 > tmpCoords;
-      DSlib::DV3 DV3Coord1(Coord1[0], Coord1[1], Coord1[2]);
-      DividePoints(&tmpCoords, M, DV3Coord1, Coord4);
+      std::vector < REAL_TYPE > tmpCoords;
+      DividePoints(&tmpCoords, M, Coord1, Coord4);
 
       if(Coord1[0] == Coord2[0]) {
         NumStartPoints[2] = (M / MB) * MB;
-        Coord2[2] = tmpCoords[(M / MB) * MB - 1].z;
+        Coord2[2] = tmpCoords[3*((M / MB) * MB - 1)+2];
         (ReminderM->NumStartPoints)[2] = M % MB;
-        (ReminderM->Coord1)[2] = tmpCoords[(M / MB) * MB].z;
+        (ReminderM->Coord1)[2] = tmpCoords[3*((M / MB) * MB)];
       } else if(Coord1[1] == Coord2[1]) {
         NumStartPoints[0] = (M / MB) * MB;
-        Coord2[0] = tmpCoords[(M / MB) * MB - 1].x;
+        Coord2[0] = tmpCoords[3*((M / MB) * MB - 1)];
         (ReminderM->NumStartPoints)[0] = M % MB;
-        (ReminderM->Coord1)[0] = tmpCoords[(M / MB) * MB].x;
+        (ReminderM->Coord1)[0] = tmpCoords[3*((M / MB) * MB)];
       } else if(Coord1[2] == Coord2[2]) {
         NumStartPoints[1] = (M / MB) * MB;
-        Coord2[1] = tmpCoords[(M / MB) * MB - 1].y;
+        Coord2[1] = tmpCoords[3*((M / MB) * MB - 1)+1];
         (ReminderM->NumStartPoints)[1] = M % MB;
-        (ReminderM->Coord1)[1] = tmpCoords[(M / MB) * MB].y;
+        (ReminderM->Coord1)[1] = tmpCoords[3*((M / MB) * MB)+1];
       }
 
       ReminderM->SetSumStartPoints((ReminderM->NumStartPoints)[0] * (ReminderM->NumStartPoints)[1] * (ReminderM->NumStartPoints)[2]);
       StartPoints->push_back(ReminderM);
       LPT::LPT_LOG::GetInstance()->LOG("ReminderM = ", ReminderM);
     }
-    //N方向をNpointsづつのRectangleに分割
+
+
+    //N方向をNBpointsづつのRectangleに分割
     std::vector < Rectangle * >tmpStartPoint;
     int NumDivide = N / NB;
 
     for(int i = 0; i < NumDivide; i++) {
       Rectangle *tmpRectangle = new Rectangle(*this);
 
-      std::vector < DSlib::DV3 > tmpCoords;
-      DSlib::DV3 DV3Coord1(Coord1[0], Coord1[1], Coord1[2]);
-
-      MakeCoord3_4(&Coord3, &N, &Coord4, &M);
-      DividePoints(&tmpCoords, N, DV3Coord1, Coord3);
+      std::vector < REAL_TYPE > tmpCoords;
+      MakeCoord3_4(Coord3, &N, Coord4, &M);
+      DividePoints(&tmpCoords, N, Coord1, Coord3);
       N = N - NB;
       if(Coord1[0] == Coord2[0]) {
         if(N > 0) {
           NumStartPoints[1] = N;
-          Coord2[1] = tmpCoords[N - 1].y;
+          Coord2[1] = tmpCoords[3*(N - 1)+1];
         }
         (tmpRectangle->NumStartPoints)[1] = NB;
-        (tmpRectangle->Coord1)[1] = tmpCoords[N].y;
+        (tmpRectangle->Coord1)[1] = tmpCoords[3*N+1];
       } else if(Coord1[1] == Coord2[1]) {
         if(N > 0) {
           NumStartPoints[2] = N;
-          Coord2[2] = tmpCoords[N - 1].z;
+          Coord2[2] = tmpCoords[3*(N - 1)+2];
         }
         (tmpRectangle->NumStartPoints)[2] = NB;
-        (tmpRectangle->Coord1)[2] = tmpCoords[N].z;
+        (tmpRectangle->Coord1)[2] = tmpCoords[3*N+2];
       } else if(Coord1[2] == Coord2[2]) {
         if(N > 0) {
           NumStartPoints[0] = N;
-          Coord2[0] = tmpCoords[N - 1].x;
+          Coord2[0] = tmpCoords[3*(N - 1)];
         }
         (tmpRectangle->NumStartPoints)[0] = NB;
-        (tmpRectangle->Coord1)[0] = tmpCoords[N].x;
+        (tmpRectangle->Coord1)[0] = tmpCoords[3*N];
       }
       tmpStartPoint.push_back(tmpRectangle);
     }
@@ -293,34 +289,32 @@ namespace PPlib
       for(int i = 0; i < orgM / MB; i++) {
         Rectangle *tmpRectangle = new Rectangle(**it);
 
-        std::vector < DSlib::DV3 > tmpCoords;
-        DSlib::DV3 DV3Coord1(((*it)->Coord1)[0], ((*it)->Coord1)[1], ((*it)->Coord1)[2]);
-
-        (*it)->MakeCoord3_4(&Coord3, &N, &Coord4, &M);
-        DividePoints(&tmpCoords, M, DV3Coord1, Coord4);
+        std::vector < REAL_TYPE > tmpCoords;
+        (*it)->MakeCoord3_4(Coord3, &N, Coord4, &M);
+        DividePoints(&tmpCoords, M, (*it)->Coord1, Coord4);
         M = M - MB;
 
         if(Coord1[0] == Coord2[0]) {
           if(M > 0) {
             ((*it)->NumStartPoints)[2] = M;
-            ((*it)->Coord2)[2] = tmpCoords[M - 1].z;
+            ((*it)->Coord2)[2] = tmpCoords[3*(M - 1)+2];
           }
           (tmpRectangle->NumStartPoints)[2] = MB;
-          (tmpRectangle->Coord1)[2] = tmpCoords[M].z;
+          (tmpRectangle->Coord1)[2] = tmpCoords[3*M+2];
         } else if(Coord1[1] == Coord2[1]) {
           if(M > 0) {
             ((*it)->NumStartPoints)[0] = M;
-            ((*it)->Coord2)[0] = tmpCoords[M - 1].x;
+            ((*it)->Coord2)[0] = tmpCoords[3*(M - 1)];
           }
           (tmpRectangle->NumStartPoints)[0] = MB;
-          (tmpRectangle->Coord1)[0] = tmpCoords[M].x;
+          (tmpRectangle->Coord1)[0] = tmpCoords[3*M];
         } else if(Coord1[2] == Coord2[2]) {
           if(M > 0) {
             ((*it)->NumStartPoints)[1] = M;
-            ((*it)->Coord2)[1] = tmpCoords[M - 1].y;
+            ((*it)->Coord2)[1] = tmpCoords[3*(M - 1)+1];
           }
           (tmpRectangle->NumStartPoints)[1] = MB;
-          (tmpRectangle->Coord1)[1] = tmpCoords[M].y;
+          (tmpRectangle->Coord1)[1] = tmpCoords[3*M+1];
         }
         tmpRectangle->SetSumStartPoints((tmpRectangle->NumStartPoints)[0] * (tmpRectangle->NumStartPoints)[1] * (tmpRectangle->NumStartPoints)[2]);
         StartPoints->push_back(tmpRectangle);

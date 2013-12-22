@@ -29,7 +29,7 @@ namespace PPlib
     //! @param NumPoints1 [out] Coord1とCoord3の間の格子点数
     //! @param Coord4     [out] 格子点座標
     //! @param NumPoints2 [out] Coord1とCoord4の間の格子点数
-    void MakeCoord3_4(DSlib::DV3 * Coord3, int *NumPoints1, DSlib::DV3 * Coord4, int *NumPoints2);
+    void MakeCoord3_4(REAL_TYPE  Coord3[3], int *NumPoints1, REAL_TYPE Coord4[3], int *NumPoints2);
 
   public:
     //! テキスト出力を行う
@@ -57,7 +57,7 @@ namespace PPlib
 
     //! 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標
-    void GetGridPointCoord(std::vector < DSlib::DV3 > &Coords);
+    void GetGridPointCoord(std::vector < REAL_TYPE > &Coords);
 
     //! Setter/Getter
     void SetCoord1(REAL_TYPE * Coord)

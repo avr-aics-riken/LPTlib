@@ -21,11 +21,9 @@ namespace PPlib
     return stream;
   }
 
-  void Line::GetGridPointCoord(std::vector < DSlib::DV3 > &Coords)
+  void Line::GetGridPointCoord(std::vector < REAL_TYPE > &Coords)
   {
-    DSlib::DV3 DV3Coord1(Coord1[0], Coord1[1], Coord1[2]);
-    DSlib::DV3 DV3Coord2(Coord2[0], Coord2[1], Coord2[2]);
-    DividePoints(&Coords, GetSumStartPoints(), DV3Coord1, DV3Coord2);
+    DividePoints(&Coords, GetSumStartPoints(), Coord1, Coord2);
   }
 
   void Line::Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints)
@@ -53,22 +51,19 @@ namespace PPlib
 
     //分割前のオブジェクトの開始点座標を取得し、先頭から順にNumGridPoints個毎に新しいオブジェクトを作って
     //StartPointsにpush_backする
-    std::vector < DSlib::DV3 > Coords;
+    std::vector < REAL_TYPE > Coords;
     this->GetGridPointCoord(Coords);
-    std::vector < DSlib::DV3 >::iterator itCoords = Coords.begin();
+    std::vector < REAL_TYPE >::iterator itCoords = Coords.begin();
     for(int i = 0; i < NumParts; i++)
     {
-      REAL_TYPE Coord1[3] = { (*itCoords).x, (*itCoords).y, (*itCoords).z };
-      itCoords += NumGridPoints - 1;
-      REAL_TYPE Coord2[3] = { (*itCoords).x, (*itCoords).y, (*itCoords).z };
-      ++itCoords;
-
+      REAL_TYPE Coord1[3] = { (*itCoords++), (*itCoords++), (*itCoords++) };
+      REAL_TYPE Coord2[3] = { (*itCoords++), (*itCoords++), (*itCoords++) };
       StartPoints->push_back(LineFactory::create(Coord1, Coord2, NumGridPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     }
 
     if(NumReminder != 0)
     {
-      REAL_TYPE Coord1[3] = { (*itCoords).x, (*itCoords).y, (*itCoords).z };
+      REAL_TYPE Coord1[3] = { (*itCoords++), (*itCoords++), (*itCoords++) };
       StartPoints->push_back(LineFactory::create(Coord1, this->Coord2, NumReminder, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     }
     return;

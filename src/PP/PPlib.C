@@ -181,7 +181,7 @@ namespace PPlib
       LPT::LPT_LOG::GetInstance()->INFO("", (*it));
     }
 
-    //開始点の情報をTimeStep0の粒子として出力
+    //開始点の格子座標をTimeStep0の粒子として出力
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it) {
       std::multimap < long, ParticleData *> ParticleList;
       for(int i = 0; i < (*it)->GetSumStartPoints(); i++) {
@@ -189,23 +189,21 @@ namespace PPlib
         ParticleList.insert(std::make_pair(-1,tmp));
       }
 
-      std::vector < DSlib::DV3 > Coords;
+      std::vector < REAL_TYPE > Coords;
       (*it)->GetGridPointCoord(Coords);
-      std::vector < DSlib::DV3 >::iterator itCoords = Coords.begin();
+      std::vector < REAL_TYPE >::iterator itCoords = Coords.begin();
 
       for(std::multimap < long, ParticleData *>::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
-        (*it)->GetID((*it_list).second->StartPointID);
-        (*it_list).second->ParticleID = 0;
-        (*it_list).second->StartTime = 0.0;
-        (*it_list).second->LifeTime = 0.0;
-        (*it_list).second->CurrentTime = 0.0;
+        (*it_list).second->StartPointID1   = (*it)->GetID1();
+        (*it_list).second->StartPointID2   = (*it)->GetID2();
+        (*it_list).second->ParticleID      = 0;
+        (*it_list).second->StartTime       = 0.0;
+        (*it_list).second->LifeTime        = 0.0;
+        (*it_list).second->CurrentTime     = 0.0;
         (*it_list).second->CurrentTimeStep = 0;
-
-        (*it_list).second->Coord[0] = (*itCoords).x;
-        (*it_list).second->Coord[1] = (*itCoords).y;
-        (*it_list).second->Coord[2] = (*itCoords).z;
-        ++itCoords;
-
+        (*it_list).second->x = (*itCoords++);
+        (*it_list).second->y = (*itCoords++);
+        (*it_list).second->z = (*itCoords++);
       }
       LPT::LPT_ParticleOutput::GetInstance()->SetParticles(&ParticleList);
       LPT::LPT_ParticleOutput::GetInstance()->WriteRecordHeader();

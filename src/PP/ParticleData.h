@@ -12,26 +12,40 @@
 namespace PPlib
 {
   //! @brief 粒子データを保持するための構造体
+  //!
   //! インスタンスを生成した後はPPlib::Particlesにポインタを登録し、そちらで管理する。
   //! インスタンスを破棄する時は、そちらのエントリも必ず削除すること
-  struct ParticleData
+  class ParticleData
   {
   public:
-    //! @brief この粒子を放出した開始点のID
-    //! 1要素目はStartPoint::Rank
-    //! 2要素目はStartPoint::ID
-    int StartPointID[2];
+    //! @brief この粒子を放出した開始点のRank番号
+    int StartPointID1;
+
+    //! @brief この粒子を放出した開始点のID番号（同一プロセス内でのみ一意）
+    int StartPointID2;
 
     //! @brief 粒子のID
     //! 開始点から放出された順番を示す
-    //! 同一の開始点から放出された粒子の間では一意になる
+    //! 同一の開始点から放出された粒子の間では一意
     int ParticleID;
 
-    //! 粒子座標
-    REAL_TYPE Coord[3];
+    //! 粒子のx座標
+    REAL_TYPE x;
 
-    //! 粒子速度
-    REAL_TYPE ParticleVelocity[3];
+    //! 粒子のy座標
+    REAL_TYPE y;
+
+    //! 粒子のz座標
+    REAL_TYPE z;
+
+    //! 粒子速度のx成分
+    REAL_TYPE Vx;
+
+    //! 粒子速度のy成分
+    REAL_TYPE Vy;
+
+    //! 粒子速度のz成分
+    REAL_TYPE Vz;
 
     //! 粒子が放出された時刻
     double StartTime;
@@ -74,11 +88,11 @@ namespace PPlib
       return this->ParticleID;
     };
 
-    //! @brief StartPointID[0], [1], ParticleIDをカンマで結合した文字列を返す
-    //! このIDは全体を通して一意になるが値として扱えないので注意
+    //! @brief 全プロセスを通して一意な粒子IDを返す
+    //! 数値ではなく文字列として返すことに注意
     std::string GetAllID(void) {
       std::ostringstream oss;
-      oss << this->StartPointID[0] << "," << this->StartPointID[1] << "," << GetID();
+      oss << this->StartPointID1 << "," << this->StartPointID2 << "," << GetID();
       return (oss.str());
     };
 
@@ -89,11 +103,11 @@ namespace PPlib
     bool operator==(const ParticleData & obj)
     {
       return (this->ParticleID == obj.ParticleID &&
-              this->StartPointID[0] == obj.StartPointID[0] &&
-              this->StartPointID[1] == obj.StartPointID[1] &&
-              this->Coord[0] == obj.Coord[0] &&
-              this->Coord[1] == obj.Coord[1] &&
-              this->Coord[2] == obj.Coord[2] &&
+              this->StartPointID1 == obj.StartPointID1 &&
+              this->StartPointID2 == obj.StartPointID2 &&
+              this->x == obj.x &&
+              this->y == obj.y &&
+              this->z == obj.z &&
               this->StartTime == obj.StartTime) ? true : false;
     }
     ParticleData()
@@ -105,7 +119,7 @@ namespace PPlib
 
   };
 
-  //!BlockID順にソートするためのファンクタ
+  //! 粒子をBlockID順にソートするためのファンクタ
   struct CompareBlockID
   {
     bool operator() (const ParticleData * left, const ParticleData * right)const
@@ -114,7 +128,7 @@ namespace PPlib
     }
   };
 
-  //!タイムステップ順にソートするためのファンクタ
+  //! 粒子をタイムステップ順にソートするためのファンクタ
   struct CompareTimeStep
   {
     bool operator() (const ParticleData * left, const ParticleData * right)const
@@ -123,22 +137,20 @@ namespace PPlib
     }
   };
 
-  //!粒子のID順にソートするためのファンクタ
+  //! 粒子をID順にソートするためのファンクタ
   struct CompareID
   {
     bool operator() (const ParticleData * left, const ParticleData * right)const
     {
       bool retval;
-      if((left->StartPointID)[0] == (right->StartPointID[0])) {
-        if((left->StartPointID)[1] == (right->StartPointID[1])) {
+      if(left->StartPointID1 == right->StartPointID1) {
+        if(left->StartPointID2 == right->StartPointID2) {
           retval = left->ParticleID < right->ParticleID ? true : false;
-        } else
-        {
-          retval = (left->StartPointID)[1] < (right->StartPointID[1]) ? true : false;
+        } else {
+          retval = left->StartPointID2 < right->StartPointID2 ? true : false;
         }
-      } else
-      {
-        retval = (left->StartPointID)[0] < (right->StartPointID[0]) ? true : false;
+      } else {
+        retval = left->StartPointID1 < right->StartPointID2 ? true : false;
       }
       return retval;
     }

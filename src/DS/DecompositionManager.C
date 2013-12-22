@@ -186,25 +186,17 @@ namespace DSlib
 
   long DecompositionManager::FindBlockIDByCoordBinary(REAL_TYPE Coord[3])
   {
-    //TODO ソート済の整数配列に対して二分探索をして、ヒットした位置のindexを返す関数を作る
-    //RealBlockBoundaryは削除
-    int BlockID3D[3];
-
     if(CheckBounds(Coord) != 0) {
       return -1;
     }
 
-    std::vector < REAL_TYPE >::iterator itX = std::upper_bound(RealBlockBoundaryX.begin(), RealBlockBoundaryX.end(), Coord[0]);
-    --itX;
-    BlockID3D[0] = std::distance(RealBlockBoundaryX.begin(), itX);
+    int BlockID3D[3]={0,0,0};
 
-    std::vector < REAL_TYPE >::iterator itY = std::upper_bound(RealBlockBoundaryY.begin(), RealBlockBoundaryY.end(), Coord[1]);
-    --itY;
-    BlockID3D[1] = std::distance(RealBlockBoundaryY.begin(), itY);
-
-    std::vector < REAL_TYPE >::iterator itZ = std::upper_bound(RealBlockBoundaryZ.begin(), RealBlockBoundaryZ.end(), Coord[2]);
-    --itZ;
-    BlockID3D[2] = std::distance(RealBlockBoundaryZ.begin(), itZ);
+    /*
+     * not implimented!!
+     * ここで自前でbinary searchを書く
+     * std::lower_boundを使おうとしたけど駄目だった・・・
+     */
 
     return Convert3Dto1Dlong(BlockID3D[0], BlockID3D[1], BlockID3D[2], NBx * NPx, NBy * NPy);
 
@@ -216,26 +208,26 @@ namespace DSlib
       return -1;
     }
 
-    int BlockID3D[3];
+    int BlockID3D[3]={0,0,0};
+    if(Coord[0] != OriginX){
+      for(int i = 1; (i <= NBx*NPx)&&is_left(OriginX, dx, Coord[0], &BlockBoundaryX[i]); i++)
+      {
+        ++BlockID3D[0];
+      }
+    }
+    if(Coord[1] != OriginY){
+      for(int i = 1; (i <= NBy*NPy)&&is_left(OriginY, dy, Coord[1], &BlockBoundaryY[i]); i++)
+      {
+        ++BlockID3D[1];
+      }
+    }
+    if(Coord[2] != OriginZ){
+      for(int i = 1; (i <= NBz*NPz)&&is_left(OriginZ, dz, Coord[2], &BlockBoundaryZ[i]); i++)
+      {
+        ++BlockID3D[2];
+      }
+    }
 
-    for(int i = 1; i <= NBx * NPx; i++) {
-      if(Coord[0] <= OriginX + BlockBoundaryX[i] * dx) {
-        BlockID3D[0] = i - 1;
-        break;
-      }
-    }
-    for(int i = 1; i <= NBy * NPy; i++) {
-      if(Coord[1] <= OriginY + BlockBoundaryY[i] * dy) {
-        BlockID3D[1] = i - 1;
-        break;
-      }
-    }
-    for(int i = 1; i <= NBz * NPz; i++) {
-      if(Coord[2] <= OriginZ + BlockBoundaryZ[i] * dz) {
-        BlockID3D[2] = i - 1;
-        break;
-      }
-    }
     return Convert3Dto1Dlong(BlockID3D[0], BlockID3D[1], BlockID3D[2], NBx * NPx, NBy * NPy);
   }
 

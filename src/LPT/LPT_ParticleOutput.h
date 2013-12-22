@@ -3,7 +3,6 @@
 #include <list>
 #include <string>
 #include "FileManager.h"
-#include "FileOutput.h"
 
 //ParticleData.hは粒子データフォーマットのバージョン番号
 //(マクロ変数 PARTICLE_DATA_FORMAT_VERSION)を取得するためにincludeしている
@@ -11,10 +10,15 @@
 
 namespace LPT
 {
-
   //! @brief LPT native binary形式で粒子データを出力する
-  class LPT_ParticleOutput:public FileOutput
+  class LPT_ParticleOutput
   {
+    /// 出力先のファイルストリームへのポインタ
+    std::ofstream Out;
+
+    /// 出力する粒子データのリストへのポインタ
+    std::multimap < long, PPlib::ParticleData *> *Particles;
+
     /// Byte Order Mark (big/little Endian判別用のデータ) を格納する配列
     int BOM[4];
 
@@ -32,8 +36,8 @@ namespace LPT
     ~LPT_ParticleOutput()
     {
     };
-    LPT_ParticleOutput(const FileOutput & obj);
-    LPT_ParticleOutput & operator=(const FileOutput & obj);
+    LPT_ParticleOutput(const LPT_ParticleOutput& obj);
+    LPT_ParticleOutput & operator=(const LPT_ParticleOutput& obj);
   public:
     static LPT_ParticleOutput *GetInstance()
     {
@@ -42,7 +46,7 @@ namespace LPT
       if(!initialized)
       {
         initialized = true;
-        instance.Out2.open((FileManager::GetInstance()->GetFileName("prt")).c_str(), std::ios::binary);
+        instance.Out.open((FileManager::GetInstance()->GetFileName("prt")).c_str(), std::ios::binary);
         instance.Particles = NULL;
         instance.BOM[0] = 0xff;
         instance.BOM[1] = 0xef;
@@ -54,6 +58,11 @@ namespace LPT
       return &instance;
     }
 
+    /// 出力する粒子データを受け取る
+    void SetParticles(std::multimap < long, PPlib::ParticleData *> * Particles) 
+    {
+      this->Particles = Particles;
+    };
     void WriteFileHeader();
     void WriteRecordHeader();
     void WriteRecord();

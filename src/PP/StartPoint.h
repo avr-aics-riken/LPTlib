@@ -1,12 +1,15 @@
 #ifndef PPLIB_START_POINT_H
 #define PPLIB_START_POINT_H
 
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <list>
 #include <string>
 #include <vector>
-#include "DV3.h"
+#include <algorithm>
+#include <Utility.h>
+
 
 namespace PPlib
 {
@@ -14,11 +17,16 @@ namespace PPlib
   struct ParticleData;
 
   //! @brief 開始点の情報を保持するクラス群の基底クラス
-  //! 全Rankが一旦インスタンスを生成し、データ分散の処理をした後で自Rankが担当するインスタンス以外を破棄する
+  //
+  //! 全Rankが全てのインスタンスを1回生成し、データ分散の処理をした後で
+  //! 自Rankが担当するインスタンス以外を破棄する
+  //! 自Rankが担当する開始点領域のインスタンスはPPlib::StartPointsに登録して管理する
   class StartPoint
   {
   protected:
+    //! @brief REAL_TYPE型の3成分ベクトル構造体
     //! @brief 1つの設定で定義される開始点の数
+    //!
     //! インスタンス生成時に設定され、変更はしない
     //! Point, MovingPointsの場合は必ず1
     //! LineおよびCircleではユーザが指定した値を用いる
@@ -56,12 +64,11 @@ namespace PPlib
     bool CheckReleasetime(const double &CurrentTime);
 
     //! @brief 2点間を指定された数で等分した位置の座標を返す
-    //! @param Coords    [out] 座標をx1,x2,......xnの順にn個収めた配列
+    //! @param Coords    [out] 座標値をx1,y1,z1,x2,y2,z2, ... ,xn,yn,znの順に3n個収めたvector
     //! @param NumPoints [in]  分割数
     //! @param Coord1    [in]  端点の座標その1
     //! @param Coord2    [in]  端点の座標その2
-
-    void DividePoints(std::vector < DSlib::DV3 > *Coords, const int &NumPoints, DSlib::DV3 & Coord1, DSlib::DV3 & Coord2);
+    void DividePoints(std::vector < REAL_TYPE >* Coords, const int& NumPoints, const REAL_TYPE Coord1[3], const REAL_TYPE Coord2[3]);
 
     //! @brief LatestEmitTimeからTimeSpan時間経過していた場合に、新しく粒子を放出する
     void EmitNewParticle(std::list < ParticleData * >* ParticleList, const double &CurrentTime, const unsigned int &CurrentTimeStep);
@@ -72,9 +79,7 @@ namespace PPlib
     //! @brief 開始点を移動させる
     //! 基底クラスでは何もしない。
     //! 現時点ではMobingPointsのみがオーバーライドしている
-    virtual void UpdateStartPoint(double CurrentTime)
-    {
-    };
+    virtual void UpdateStartPoint(double CurrentTime) {};
 
     //! @brief 開始点オブジェクトをMaxNumStartPointsで指定した開始点数以下のオブジェクトに分割する。
     //! 余りが生じた場合は1つ余計にオブジェクトを生成し、そのオブジェクトに余り領域を入れて返す
@@ -85,7 +90,7 @@ namespace PPlib
 
     //! @brief 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標
-    virtual void GetGridPointCoord(std::vector < DSlib::DV3 > &Coords)=0;
+    virtual void GetGridPointCoord(std::vector <REAL_TYPE> &Coords)=0;
 
 
     //! Setter/Getter
@@ -123,6 +128,8 @@ namespace PPlib
       for(int i = 0; i < 2; i++) {
         ID[i] = this->ID[i];
     }};
+    int GetID1(void){return this->ID[0];};
+    int GetID2(void){return this->ID[1];};
 
     std::string GetID(void)
     {
@@ -134,35 +141,14 @@ namespace PPlib
     virtual void GetNumStartPoints(int *NumStartPoints)
     {
     };
-    virtual int GetSumStartPoints()
-    {
-      return this->SumStartPoints;
-    };
-    double GetStartTime()
-    {
-      return this->StartTime;
-    };
-    double GetLatestEmitTime()
-    {
-      return this->LatestEmitTime;
-    };  //ReadOnly
-
-    double GetReleaseTime()
-    {
-      return this->ReleaseTime;
-    };
-    double GetLifeTime()
-    {
-      return GetReleaseTime();
-    };  //GetReleaseTimeに対する別名。粒子の寿命判定と共用するために用意している。
-    double GetTimeSpan()
-    {
-      return this->TimeSpan;
-    };
-    double GetParticleLifeTime()
-    {
-      return this->ParticleLifeTime;
-    };
+    virtual int GetSumStartPoints() { return this->SumStartPoints; };
+    double GetStartTime() { return this->StartTime;};
+    double GetLatestEmitTime() { return this->LatestEmitTime;};
+    double GetReleaseTime() { return this->ReleaseTime; };
+    //GetReleaseTimeに対する別名。粒子の寿命判定と共用するために用意している。
+    double GetLifeTime() { return GetReleaseTime(); };
+    double GetTimeSpan() { return this->TimeSpan; };
+    double GetParticleLifeTime() { return this->ParticleLifeTime; };
 
     //! Destructor
     virtual ~ StartPoint() {

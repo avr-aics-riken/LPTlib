@@ -103,12 +103,10 @@ ARFLAGS = cru
 libLPT_a_AR = $(AR) $(ARFLAGS)
 libLPT_a_LIBADD =
 am_libLPT_a_OBJECTS = libLPT_a-Communicator.$(OBJEXT) \
-	libLPT_a-DSlib.$(OBJEXT) libLPT_a-DV3.$(OBJEXT) \
+	libLPT_a-DSlib.$(OBJEXT) \
 	libLPT_a-DataBlock.$(OBJEXT) \
 	libLPT_a-DecompositionManager.$(OBJEXT) \
-	libLPT_a-FileOutput_csv.$(OBJEXT) \
-	libLPT_a-FileOutput_FVbin.$(OBJEXT) \
-	libLPT_a-FileOutput_FVtext.$(OBJEXT) libLPT_a-LPT.$(OBJEXT) \
+	libLPT_a-LPT.$(OBJEXT) \
 	libLPT_a-LPT_ParticleOutput.$(OBJEXT) \
 	libLPT_a-LPT_ParticleInput.$(OBJEXT) libLPT_a-Circle.$(OBJEXT) \
 	libLPT_a-StartPoint.$(OBJEXT) \
@@ -270,15 +268,11 @@ libLPT_a_CXXFLAGS = @MPICH_CFLAGS@ @LPT_CFLAGS@ \
 libLPT_a_SOURCES = \
    DS/Communicator.C \
    DS/DSlib.C \
-   DS/DV3.C \
    DS/DataBlock.C \
    DS/DecompositionManager.C \
    LPT/LPT.C \
    LPT/LPT_ParticleOutput.C \
    LPT/LPT_ParticleInput.C \
-   LPT/FileOutput_csv.C \
-   LPT/FileOutput_FVbin.C \
-   LPT/FileOutput_FVtext.C \
    PP/Circle.C \
    PP/StartPoint.C \
    PP/SimpleStartPointFactory.C \
@@ -296,16 +290,10 @@ libLPT_a_SOURCES = \
    DS/Cache.h \
    DS/Communicator.h \
    DS/DSlib.h \
-   DS/DV3.h \
    DS/DataBlock.h \
    DS/DecompositionManager.h \
    DS/CommDataBlock.h \
    LPT/FileManager.h \
-   LPT/FileOutput_csv.h \
-   LPT/FileOutput_FVbin.h \
-   LPT/FileOutput_FVtext.h \
-   LPT/FileOutput.h \
-   LPT/FileOutput2.h \
    LPT/LPT_Args.h \
    LPT/LPT_LogOutput.h \
    LPT/LPT_ParticleInput.h \
@@ -412,12 +400,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-Communicator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-Cuboid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-DSlib.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-DV3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-DataBlock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-DecompositionManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-FileOutput_FVbin.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-FileOutput_FVtext.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-FileOutput_csv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-Interpolator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-LPT.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libLPT_a-LPT_ParticleInput.Po@am__quote@
@@ -476,20 +460,6 @@ libLPT_a-DSlib.obj: DS/DSlib.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-DSlib.obj `if test -f 'DS/DSlib.C'; then $(CYGPATH_W) 'DS/DSlib.C'; else $(CYGPATH_W) '$(srcdir)/DS/DSlib.C'; fi`
 
-libLPT_a-DV3.o: DS/DV3.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-DV3.o -MD -MP -MF $(DEPDIR)/libLPT_a-DV3.Tpo -c -o libLPT_a-DV3.o `test -f 'DS/DV3.C' || echo '$(srcdir)/'`DS/DV3.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-DV3.Tpo $(DEPDIR)/libLPT_a-DV3.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DS/DV3.C' object='libLPT_a-DV3.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-DV3.o `test -f 'DS/DV3.C' || echo '$(srcdir)/'`DS/DV3.C
-
-libLPT_a-DV3.obj: DS/DV3.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-DV3.obj -MD -MP -MF $(DEPDIR)/libLPT_a-DV3.Tpo -c -o libLPT_a-DV3.obj `if test -f 'DS/DV3.C'; then $(CYGPATH_W) 'DS/DV3.C'; else $(CYGPATH_W) '$(srcdir)/DS/DV3.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-DV3.Tpo $(DEPDIR)/libLPT_a-DV3.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DS/DV3.C' object='libLPT_a-DV3.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-DV3.obj `if test -f 'DS/DV3.C'; then $(CYGPATH_W) 'DS/DV3.C'; else $(CYGPATH_W) '$(srcdir)/DS/DV3.C'; fi`
-
 libLPT_a-DataBlock.o: DS/DataBlock.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-DataBlock.o -MD -MP -MF $(DEPDIR)/libLPT_a-DataBlock.Tpo -c -o libLPT_a-DataBlock.o `test -f 'DS/DataBlock.C' || echo '$(srcdir)/'`DS/DataBlock.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-DataBlock.Tpo $(DEPDIR)/libLPT_a-DataBlock.Po
@@ -518,34 +488,6 @@ libLPT_a-DecompositionManager.obj: DS/DecompositionManager.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-DecompositionManager.obj `if test -f 'DS/DecompositionManager.C'; then $(CYGPATH_W) 'DS/DecompositionManager.C'; else $(CYGPATH_W) '$(srcdir)/DS/DecompositionManager.C'; fi`
 
-libLPT_a-FileOutput_csv.o: LPT/FileOutput_csv.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-FileOutput_csv.o -MD -MP -MF $(DEPDIR)/libLPT_a-FileOutput_csv.Tpo -c -o libLPT_a-FileOutput_csv.o `test -f 'LPT/FileOutput_csv.C' || echo '$(srcdir)/'`LPT/FileOutput_csv.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-FileOutput_csv.Tpo $(DEPDIR)/libLPT_a-FileOutput_csv.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LPT/FileOutput_csv.C' object='libLPT_a-FileOutput_csv.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-FileOutput_csv.o `test -f 'LPT/FileOutput_csv.C' || echo '$(srcdir)/'`LPT/FileOutput_csv.C
-
-libLPT_a-FileOutput_csv.obj: LPT/FileOutput_csv.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-FileOutput_csv.obj -MD -MP -MF $(DEPDIR)/libLPT_a-FileOutput_csv.Tpo -c -o libLPT_a-FileOutput_csv.obj `if test -f 'LPT/FileOutput_csv.C'; then $(CYGPATH_W) 'LPT/FileOutput_csv.C'; else $(CYGPATH_W) '$(srcdir)/LPT/FileOutput_csv.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-FileOutput_csv.Tpo $(DEPDIR)/libLPT_a-FileOutput_csv.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LPT/FileOutput_csv.C' object='libLPT_a-FileOutput_csv.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-FileOutput_csv.obj `if test -f 'LPT/FileOutput_csv.C'; then $(CYGPATH_W) 'LPT/FileOutput_csv.C'; else $(CYGPATH_W) '$(srcdir)/LPT/FileOutput_csv.C'; fi`
-
-libLPT_a-FileOutput_FVbin.o: LPT/FileOutput_FVbin.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-FileOutput_FVbin.o -MD -MP -MF $(DEPDIR)/libLPT_a-FileOutput_FVbin.Tpo -c -o libLPT_a-FileOutput_FVbin.o `test -f 'LPT/FileOutput_FVbin.C' || echo '$(srcdir)/'`LPT/FileOutput_FVbin.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-FileOutput_FVbin.Tpo $(DEPDIR)/libLPT_a-FileOutput_FVbin.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LPT/FileOutput_FVbin.C' object='libLPT_a-FileOutput_FVbin.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-FileOutput_FVbin.o `test -f 'LPT/FileOutput_FVbin.C' || echo '$(srcdir)/'`LPT/FileOutput_FVbin.C
-
-libLPT_a-FileOutput_FVbin.obj: LPT/FileOutput_FVbin.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-FileOutput_FVbin.obj -MD -MP -MF $(DEPDIR)/libLPT_a-FileOutput_FVbin.Tpo -c -o libLPT_a-FileOutput_FVbin.obj `if test -f 'LPT/FileOutput_FVbin.C'; then $(CYGPATH_W) 'LPT/FileOutput_FVbin.C'; else $(CYGPATH_W) '$(srcdir)/LPT/FileOutput_FVbin.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-FileOutput_FVbin.Tpo $(DEPDIR)/libLPT_a-FileOutput_FVbin.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LPT/FileOutput_FVbin.C' object='libLPT_a-FileOutput_FVbin.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-FileOutput_FVbin.obj `if test -f 'LPT/FileOutput_FVbin.C'; then $(CYGPATH_W) 'LPT/FileOutput_FVbin.C'; else $(CYGPATH_W) '$(srcdir)/LPT/FileOutput_FVbin.C'; fi`
-
 libLPT_a-LPT.o: LPT/LPT.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-LPT.o -MD -MP -MF $(DEPDIR)/libLPT_a-LPT.Tpo -c -o libLPT_a-LPT.o `test -f 'LPT/LPT.C' || echo '$(srcdir)/'`LPT/LPT.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-LPT.Tpo $(DEPDIR)/libLPT_a-LPT.Po
@@ -559,20 +501,6 @@ libLPT_a-LPT.obj: LPT/LPT.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LPT/LPT.C' object='libLPT_a-LPT.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-LPT.obj `if test -f 'LPT/LPT.C'; then $(CYGPATH_W) 'LPT/LPT.C'; else $(CYGPATH_W) '$(srcdir)/LPT/LPT.C'; fi`
-
-libLPT_a-FileOutput_FVtext.o: LPT/FileOutput_FVtext.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-FileOutput_FVtext.o -MD -MP -MF $(DEPDIR)/libLPT_a-FileOutput_FVtext.Tpo -c -o libLPT_a-FileOutput_FVtext.o `test -f 'LPT/FileOutput_FVtext.C' || echo '$(srcdir)/'`LPT/FileOutput_FVtext.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-FileOutput_FVtext.Tpo $(DEPDIR)/libLPT_a-FileOutput_FVtext.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LPT/FileOutput_FVtext.C' object='libLPT_a-FileOutput_FVtext.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-FileOutput_FVtext.o `test -f 'LPT/FileOutput_FVtext.C' || echo '$(srcdir)/'`LPT/FileOutput_FVtext.C
-
-libLPT_a-FileOutput_FVtext.obj: LPT/FileOutput_FVtext.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-FileOutput_FVtext.obj -MD -MP -MF $(DEPDIR)/libLPT_a-FileOutput_FVtext.Tpo -c -o libLPT_a-FileOutput_FVtext.obj `if test -f 'LPT/FileOutput_FVtext.C'; then $(CYGPATH_W) 'LPT/FileOutput_FVtext.C'; else $(CYGPATH_W) '$(srcdir)/LPT/FileOutput_FVtext.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libLPT_a-FileOutput_FVtext.Tpo $(DEPDIR)/libLPT_a-FileOutput_FVtext.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LPT/FileOutput_FVtext.C' object='libLPT_a-FileOutput_FVtext.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -c -o libLPT_a-FileOutput_FVtext.obj `if test -f 'LPT/FileOutput_FVtext.C'; then $(CYGPATH_W) 'LPT/FileOutput_FVtext.C'; else $(CYGPATH_W) '$(srcdir)/LPT/FileOutput_FVtext.C'; fi`
 
 libLPT_a-LPT_ParticleOutput.o: LPT/LPT_ParticleOutput.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libLPT_a_CXXFLAGS) $(CXXFLAGS) -MT libLPT_a-LPT_ParticleOutput.o -MD -MP -MF $(DEPDIR)/libLPT_a-LPT_ParticleOutput.Tpo -c -o libLPT_a-LPT_ParticleOutput.o `test -f 'LPT/LPT_ParticleOutput.C' || echo '$(srcdir)/'`LPT/LPT_ParticleOutput.C

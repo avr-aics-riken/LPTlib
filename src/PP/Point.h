@@ -40,7 +40,7 @@ namespace PPlib
 
     //! @brief 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標
-    void GetGridPointCoord(std::vector < DSlib::DV3 > &Coords);
+    void GetGridPointCoord(std::vector < REAL_TYPE > &Coords);
 
     void SetCoord1(REAL_TYPE * Coord)
     {

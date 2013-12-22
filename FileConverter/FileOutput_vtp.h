@@ -1,5 +1,5 @@
-#ifndef FILE_OUTPUT_2_H
-#define FILE_OUTPUT_2_H
+#ifndef FILE_OUTPUT_VTP_ASCII_H
+#define FILE_OUTPUT_VTP_ASCII_H
 #include <string>
 #include <list>
 #include <iostream>
@@ -117,14 +117,14 @@ namespace LPT
         std::ofstream ofs(filename.c_str(),std::ios::app);
         ofs <<"<Points>"<<std::endl;
         ofs <<"<DataArray ";
-        ofs <<"type=\""<<get_type((*(Particles->begin()))->Coord[0])<<"\" ";
+        ofs <<"type=\""<<get_type((*(Particles->begin()))->x)<<"\" ";
         ofs <<"NumberOfComponents=\"3\" ";
         ofs <<"format=\"ascii\">"<<std::endl;
         for (std::list<PPlib::ParticleData *>::iterator it=Particles->begin();it!=Particles->end();++it)
         {
-          ofs << (*it)->Coord[0] << " ";
-          ofs << (*it)->Coord[1] << " ";
-          ofs << (*it)->Coord[2] << " ";
+          ofs << (*it)->x << " ";
+          ofs << (*it)->y << " ";
+          ofs << (*it)->z << " ";
         }
         ofs <<std::endl;
         ofs <<"</DataArray>"<<std::endl;
@@ -200,10 +200,7 @@ namespace LPT
         ofs <<"format=\"ascii\">"<<std::endl;
         for (std::list<PPlib::ParticleData *>::iterator it=Particles->begin();it!=Particles->end();++it)
         {
-          for (int i=0; i< 3; i++)
-          {
-            ofs << ((*it)->ParticleVelocity)[i] << " ";
-          }
+          ofs << (*it)->Vx << " "<< (*it)->Vy << " "<< (*it)->Vz << " ";
         }
         ofs <<std::endl;
         ofs <<"</DataArray>"<<std::endl;
@@ -229,9 +226,8 @@ namespace LPT
       {
         base->write(Particles, filename);
         std::ofstream ofs(filename.c_str(),std::ios::app);
-        T* data_pointer=&((*(Particles->begin()))->*member_pointer);
         ofs <<"<DataArray ";
-        ofs <<"type=\""<<get_type(*data_pointer)<<"\" ";
+        ofs <<"type=\""<<get_type((*Particles->begin())->*member_pointer)<<"\" ";
         ofs <<"Name=\""<<name<<"\" ";
         ofs <<"format=\"ascii\">"<<std::endl;
         for (std::list<PPlib::ParticleData *>::iterator it=Particles->begin();it!=Particles->end();++it)
@@ -248,5 +244,44 @@ namespace LPT
       std::string name;
       T PPlib::ParticleData::* member_pointer;
   };
+
+  template <typename T>
+  class VTK_DataArrayVectorByASCII: public BaseFileOutput
+  {
+    public:
+      explicit VTK_DataArrayVectorByASCII(const char * name, T PPlib::ParticleData::* member_pointer0, T PPlib::ParticleData::* member_pointer1, T PPlib::ParticleData::* member_pointer2, BaseFileOutput *obj)
+        : name(name), member_pointer0(member_pointer0), member_pointer1(member_pointer1), member_pointer2(member_pointer2), base(obj) {}
+
+      ~VTK_DataArrayVectorByASCII()
+      {
+        delete base;
+      }
+      void write(std::list<PPlib::ParticleData *> *Particles, std::string filename)
+      {
+        base->write(Particles, filename);
+        std::ofstream ofs(filename.c_str(),std::ios::app);
+        ofs <<"<DataArray ";
+        ofs <<"type=\""<<get_type((*Particles->begin())->*member_pointer0)<<"\" ";
+        ofs <<"Name=\""<<name<<"\" ";
+        ofs <<"NumberOfComponents=\"3\" ";
+        ofs <<"format=\"ascii\">"<<std::endl;
+        for (std::list<PPlib::ParticleData *>::iterator it=Particles->begin();it!=Particles->end();++it)
+        {
+          ofs << (*it)->*member_pointer0 << " "<< (*it)->*member_pointer1 << " "<< (*it)->*member_pointer2 << " ";
+        }
+        ofs <<std::endl;
+        ofs <<"</DataArray>"<<std::endl;
+      }
+
+    private:
+      VTK_DataArrayVectorByASCII();
+      BaseFileOutput * base;
+      std::string name;
+      T PPlib::ParticleData::* member_pointer0;
+      T PPlib::ParticleData::* member_pointer1;
+      T PPlib::ParticleData::* member_pointer2;
+  };
+
+
 }//end of namespace
 #endif

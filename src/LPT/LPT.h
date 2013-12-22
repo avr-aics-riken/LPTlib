@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <list>
 #include <string>
 #include <mpi.h>
 #include "LPT_Args.h"
@@ -12,11 +13,14 @@ namespace DSlib
   class DSlib;
   class Communicator;
   class DecompositionManager;
+  class CommDataBlockManager;
 }
 namespace PPlib
 {
   class PPlib;
+  class ParticleData;
   class StartPoint;
+  class PP_Transport;
 }
 namespace pm_lib
 {
@@ -26,6 +30,7 @@ namespace pm_lib
 namespace LPT
 {
   //! @brief LPTのインターフェースルーチンを提供するクラス
+  //!
   //! 計算に必要なパラメータ、他クラスへのポインタを保持し
   //! それらを呼び出すことで粒子計算および必要な初期化、後処理を行なう
   class LPT
@@ -147,6 +152,8 @@ namespace LPT
     ~LPT()
     {
     }
+    void DeleteSendBuff(std::list< DSlib::CommDataBlockManager* >* SendBuff);
+    void CalcParticle(PPlib::PP_Transport* Transport, PPlib::PPlib* ptrPPlib, const int& ArrivedBlockID, std::list<PPlib::ParticleData*>* WorkParticles, const double& deltaT, const int& divT, REAL_TYPE* v00, DSlib::DSlib* ptrDSlib, const double& CurrentTime, const double& CurrentTimeStep);
 
   public:
     static LPT *GetInstance()

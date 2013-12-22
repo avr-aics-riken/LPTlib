@@ -10,7 +10,6 @@
 #include "ParticleData.h"
 #include "StartPointAll.h"
 #include "FileManager.h"
-#include "DV3.h"
 #include "DecompositionManager.h"
 
 namespace PPlib
@@ -50,13 +49,13 @@ namespace PPlib
         return;
       }
 
-      std::vector < DSlib::DV3 > Coords;
+      std::vector < REAL_TYPE > Coords;
       GetGridPointCoord(Coords);
 
-      std::vector < DSlib::DV3 >::iterator itCoords = Coords.begin();
+      std::vector < REAL_TYPE >::iterator itCoords = Coords.begin();
       for(std::list < PPlib::ParticleData * >::iterator it = tmpParticleList.begin(); it != tmpParticleList.end(); ++it) {
-        (*it)->StartPointID[0] = ID[0];
-        (*it)->StartPointID[1] = ID[1];
+        (*it)->StartPointID1 = ID[0];
+        (*it)->StartPointID2 = ID[1];
         (*it)->ParticleID = id++;
         (*it)->StartTime = CurrentTime;
         (*it)->LifeTime = ParticleLifeTime;
@@ -65,32 +64,30 @@ namespace PPlib
         //PP_Transport内で計算されたタイミングで更新後の時刻、タイムステップが代入される
         (*it)->CurrentTime = -1.0;
         (*it)->CurrentTimeStep = CurrentTimeStep-1; 
-        (*it)->Coord[0] = (*itCoords).x;
-        (*it)->Coord[1] = (*itCoords).y;
-        (*it)->Coord[2] = (*itCoords).z;
-        (*it)->BlockID = DSlib::DecompositionManager::GetInstance()->FindBlockIDByCoordLinear((*it)->Coord);
-        ++itCoords;
+        (*it)->x = (*itCoords++);
+        (*it)->y = (*itCoords++);
+        (*it)->z = (*itCoords++);
+        (*it)->BlockID = DSlib::DecompositionManager::GetInstance()->FindBlockIDByCoordLinear((*it)->x, (*it)->y, (*it)->z);
       }
       this->LatestEmitTime = CurrentTime;
       ParticleList->splice(ParticleList->end(), tmpParticleList);
     }
   }
 
-  void StartPoint::DividePoints(std::vector < DSlib::DV3 > *Coords, const int &NumPoints, DSlib::DV3 & Coord1, DSlib::DV3 & Coord2)
+  void StartPoint::DividePoints(std::vector < REAL_TYPE >* Coords, const int& NumPoints, const REAL_TYPE Coord1[3], const REAL_TYPE Coord2[3])
   {
     if(NumPoints == 1) {
-      DSlib::DV3 tmpCoord;
-      tmpCoord.x = Coord1.x;
-      tmpCoord.y = Coord1.y;
-      tmpCoord.z = Coord1.z;
-      Coords->push_back(tmpCoord);
+      Coords->push_back(Coord1[0]);
+      Coords->push_back(Coord1[1]);
+      Coords->push_back(Coord1[2]);
     } else {
       for(int i = 0; i < NumPoints; i++) {
-        DSlib::DV3 tmpCoord;
-        tmpCoord.x = Coord1.x == Coord2.x ? Coord1.x : Coord1.x + (Coord2.x - Coord1.x) / (NumPoints - 1) * i;
-        tmpCoord.y = Coord1.y == Coord2.y ? Coord1.y : Coord1.y + (Coord2.y - Coord1.y) / (NumPoints - 1) * i;
-        tmpCoord.z = Coord1.z == Coord2.z ? Coord1.z : Coord1.z + (Coord2.z - Coord1.z) / (NumPoints - 1) * i;
-        Coords->push_back(tmpCoord);
+        REAL_TYPE x = Coord1[0] == Coord2[0] ? Coord1[0] : Coord1[0] + (Coord2[0] - Coord1[0]) / (NumPoints - 1) * i;
+        Coords->push_back(x);
+        REAL_TYPE y = Coord1[1] == Coord2[1] ? Coord1[1] : Coord1[1] + (Coord2[1] - Coord1[1]) / (NumPoints - 1) * i;
+        Coords->push_back(y);
+        REAL_TYPE z = Coord1[2] == Coord2[2] ? Coord1[2] : Coord1[2] + (Coord2[2] - Coord1[2]) / (NumPoints - 1) * i;
+        Coords->push_back(z);
       }
     }
   }

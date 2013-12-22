@@ -50,7 +50,7 @@ namespace PPlib
     //! @param CurrentTime [in] 現在時刻
     //! @retval true  このオブジェクトは破棄の対象
     //! @retval false このオブジェクトは破棄の対象外
-      template < typename T > bool isExpired(const double &CurrentTime, T * obj);
+     template < typename T > bool isExpired(const double &CurrentTime, T * obj);
 
     //! @brief  粒子のマイグレーションが必要かどうか判定する
     void DetermineMigration();

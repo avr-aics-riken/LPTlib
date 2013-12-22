@@ -83,18 +83,10 @@ namespace LPT
      PM.setProperties(tm_MoveParticle,        "MoveParticle",       pm_lib::PerfMonitor::CALC, false);
      PM.setProperties(tm_DelSendBuff,         "DelSendBuff",        pm_lib::PerfMonitor::CALC, false);
 
-     //PP_Transport内の詳細区間
-     /* 全て1e-6/call 以下の実行時間となっていたためこの区間の設定を削除
-     PM.setProperties(tm_Transport1,                  "PPTransport",                pm_lib::PerfMonitor::CALC, false);
-     PM.setProperties(tm_Transport_FindBlockID,       "FindBlockID_in_PPTransport", pm_lib::PerfMonitor::CALC, false);
-     PM.setProperties(tm_Transport_Load,              "Load",                       pm_lib::PerfMonitor::CALC, false);
-     PM.setProperties(tm_Transport_SetupInterPorator, "SetupInterPorator",          pm_lib::PerfMonitor::CALC, false);
-     PM.setProperties(tm_Transport_ConvXtoI,          "ConvXtoI",                   pm_lib::PerfMonitor::CALC, false);
-     PM.setProperties(tm_Transport_Interpolate,       "Interpolate",                pm_lib::PerfMonitor::CALC, false);
-     PM.setProperties(tm_Transport_RKG,               "Runge_Kutta",                pm_lib::PerfMonitor::CALC, false);
-     PM.setProperties(tm_Transport_ConvItoX,          "ConvItoX",                   pm_lib::PerfMonitor::CALC, false);
-     PM.setProperties(tm_Transport_Post,              "PPTransport_Post",           pm_lib::PerfMonitor::CALC, false);
-     */
+     //! memo
+     //PP_Transport::Calc()内で呼びだされるルーチンには区間を設定したことがあったが
+     //1call あたり1e-6以下の実行時間となっておりタイマの解像度以下だったため測定には使えかった。
+     
      PM.setParallelMode("FlatMPI", 1, NumProc);
 #endif
     }

@@ -19,10 +19,11 @@ namespace PPlib
     return stream;
   }
 
-  void Point::GetGridPointCoord(std::vector < DSlib::DV3 > &Coords)
+  void Point::GetGridPointCoord(std::vector < REAL_TYPE > &Coords)
   {
-    DSlib::DV3 DV3Coord(Coord1[0], Coord1[1], Coord1[2]);
-    Coords.push_back(DV3Coord);
+    Coords.push_back(Coord1[0]);
+    Coords.push_back(Coord1[1]);
+    Coords.push_back(Coord1[2]);
   }
 
   void Point::Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints)

@@ -10,6 +10,7 @@ namespace PPlib
 //forward declaration
   class ParticleData;
   //! @brief 円型で定義された開始点の情報を保持するクラス
+  //!
   //! Istart, theta_minは領域に含み、Iend, theta_maxは含まれない
   class Circle:public StartPoint
   {
@@ -95,7 +96,7 @@ namespace PPlib
 
     //! 格子点(粒子の発生位置)の座標を引数で指定したvectorに格納する
     //! @param Coords [out] 格子点座標
-    void GetGridPointCoord(std::vector < DSlib::DV3 > &Coords);
+    void GetGridPointCoord(std::vector < REAL_TYPE >& Coords);
 
     //! Accessor
     void SetCoord1(REAL_TYPE * Coord)
@@ -150,7 +151,10 @@ namespace PPlib
     {
       Radius = org.Radius;
       for(int i = 0; i < 3; ++i)
+      {
+        Coord1[i] = org.Coord1[i];
         NormalVector[i] = org.NormalVector[i];
+      }
       N = org.N;
       a = org.a;
       for(int i = 0; i < 9; ++i)
@@ -165,8 +169,10 @@ namespace PPlib
     Circle & operator=(const Circle & org)
     {
       Radius = org.Radius;
-      for(int i = 0; i < 3; ++i)
+      for(int i = 0; i < 3; ++i){
+        Coord1[i] = org.Coord1[i];
         NormalVector[i] = org.NormalVector[i];
+      }
       N = org.N;
       a = org.a;
       for(int i = 0; i < 9; ++i)

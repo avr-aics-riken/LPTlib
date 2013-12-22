@@ -6,6 +6,60 @@
 
 namespace DSlib
 {
+  void DSlib::DiscardCacheEntry(const int & j,Communicator * ptrComm )
+  {
+    int MaxEntry;
+      
+    if(j==0)
+    {
+      //1回目はCacheSizeまで転送可能
+      MaxEntry = CacheSize * 1024 * 1024 / sizeof(DataBlock);
+    }else{
+      //2回目以降はCommBufferSizeまで転送可能
+      MaxEntry = CommBufferSize / sizeof(DataBlock);
+      PurgeCachedBlocks(MaxEntry);
+    }
+
+    int NumRequest = 0;
+    for(int i = 0; i < ptrComm->GetNumProcs(); i++) {
+      NumRequest += CountRequestQueues(i);
+      if(NumRequest > MaxEntry) {
+        break;
+      }
+      ptrComm->SetSendRequestCounts(i,CountRequestQueues(i));
+    }
+  }
+
+  ///@brief キャッシュサイズと転送量を元に何回転送が必要か計算する
+  ///@attention  NumEntryCommBufferSize を越える数のデータブロックを
+  //             1つの流体プロセスに対して要求した場合
+  //             キャッシュ溢れが生じるので注意が必要
+  int DSlib::CalcNumComm(Communicator * ptrComm)
+  {
+    int SumRequestCount = 0;
+
+    for(int i = 0; i < ptrComm->GetNumProcs(); i++) {
+      SumRequestCount += CountRequestQueues(i);
+    }
+
+    int NumEntryCacheSize = CacheSize * 1024 * 1024 / sizeof(DataBlock);
+    int NumEntryCommBufferSize = CommBufferSize / sizeof(DataBlock);
+    int NumComm = 0;
+
+    if(SumRequestCount < NumEntryCacheSize)
+    {
+      //1回の転送で全てのデータをキャッシュ領域に載せることができる
+      NumComm = 1;
+    } else { 
+      //キャッシュから溢れるため2回以上に分けて転送する必要がある
+      NumComm = 1 + (SumRequestCount - NumEntryCacheSize) / NumEntryCommBufferSize;
+      if(1 > (SumRequestCount - NumEntryCacheSize) / NumEntryCommBufferSize) {
+        NumComm++;
+      }
+    }
+    return NumComm;
+  }
+
   void DSlib::AddRequestQueues(const int &SubDomainID, const long &BlockID)
   {
     RequestQueues.at(SubDomainID)->push_back(BlockID);

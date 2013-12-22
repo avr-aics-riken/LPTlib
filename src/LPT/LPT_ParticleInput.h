@@ -11,26 +11,6 @@
 
 namespace LPT
 {
-  //! @brief ParticleDataを特定する3つのIDメンバ変数をまとめて保持する構造体
-  //! StartPointID[0], StartPointID[1], ParticleID をメンバとして保持する
-  //! 比較演算子をオーバーロードして、STLのアルゴリズムを使うことが目的
-  struct ID
-  {
-    int StartPointID_0;
-    int StartPointID_1;
-    int ParticleID;
-
-    bool operator ==(const ID & obj) const
-    {
-      return (this->StartPointID_0 == obj.StartPointID_0 && this->StartPointID_1 == obj.StartPointID_1 && this->ParticleID == obj.ParticleID);
-    }
-
-    bool operator <(const ID & obj)const
-    {
-      return (this->ParticleID < obj.ParticleID ? true : this->StartPointID_1 < obj.StartPointID_1 ? true : this->StartPointID_0 < obj.StartPointID_0 ? true : false);
-    }
-  };
-
   //! @brief LPT native binary形式の粒子データを読み取る
   class LPT_ParticleInput
   {
@@ -84,17 +64,9 @@ namespace LPT
     //! ファイル内の粒子データを読み込む
     void ReadRecord();
 
-    //! ファイル内の指定されたIDの粒子データを読み込む
-    //! @param [in] ID 読み込み対象の粒子ID
-    void ReadRecord(const ID & ParticleID);
-
     //! ファイル内の指定されたTimeStepの粒子データを読み込む
     //! @param [in] TimeStep 読み込み対象の粒子TimeStep
     void ReadRecord(const int &TimeStep);
-
-    //! ファイル内に書かれている粒子データのIDを引数で渡されたsetに追記する 
-    //! @param IDs [inout] 粒子データのIDを格納したコンテナへのポインタ 
-    void ReadIDs(std::set < ID > *IDs);
 
     //! ファイル内に書かれている粒子データのTimeStepを引数で渡されたsetに追記する
     //!  @param TimeSteps [inout] 粒子データのTimeStepを格納したコンテナへのポインタ

@@ -175,19 +175,19 @@ namespace DSlib
     int GetSumRecvRequestCounts()
     {
       int sum = 0;
-
       for(int i = 0; i < NumProcs; i++)
         sum += RecvRequestCounts[i];
       return sum;
     };
 
-    //単体テスト用Getter/Setter
-#ifndef DEBUG
-  private:
     void SetSendRequestCounts(const int &SubDomainID, const int &Count)
     {
       SendRequestCounts[SubDomainID] = Count;
     };
+
+    //単体テスト用Getter/Setter
+#ifndef DEBUG
+  private:
     void SetRecvRequestCounts(const int &SubDomainID, const int &Count)
     {
       RecvRequestCounts[SubDomainID] = Count;

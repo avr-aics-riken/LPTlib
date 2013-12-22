@@ -2,6 +2,7 @@
 #define LPT_FILE_MANAGER_H
 
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -12,8 +13,7 @@
 
 namespace LPT
 {
-  //! @brief LPTが入/出力するファイルのstreamを生成/保持するクラス
-  //! InputまたはOutputのどちらかでしかファイルストリームを開けないようにしている
+  //! @brief LPTが入/出力するファイルの名前を生成するクラス
   class FileManager
   {
   private:
@@ -23,9 +23,7 @@ namespace LPT
     }
     FileManager(const FileManager & obj);
     FileManager & operator=(const FileManager & obj);
-    ~FileManager()
-    {
-    }
+    ~FileManager() {}
 
   public:
     static FileManager *GetInstance()
@@ -34,47 +32,49 @@ namespace LPT
       return &instance;
     }
 
-    /// 引数で指定した拡張子に対応したファイル名を返す
+    /// 引数で指定した拡張子に対応したタイムステップ無しのファイル名を返す
     std::string GetFileName(const std::string & suffix)
     {
-      int MyRank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
       std::ostringstream oss;
-      oss << GetBaseFileName() << "_" << MyRank << "." << suffix;
+      oss << GetBaseFileName();
+      int nproc;
+      MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+      if(nproc > 1)
+      {
+        int my_rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+        oss << std::setfill('0') <<std::setw(CountDigit(nproc)) <<my_rank << "_";
+      }
+      oss << "." << suffix;
       return oss.str();
     }
 
-    /// 引数で指定した拡張子に対応したファイル名を返す(タイムステップ付き)
+    /// 引数で指定した拡張子に対応したタイムステップ付きのファイル名を返す
     std::string GetFileNameWithTimeStep(const std::string & suffix, const int & timestep)
     {
-      int MyRank;
-      int NumProc;
-      MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-      MPI_Comm_size(MPI_COMM_WORLD, &NumProc);
+      int nproc;
+      MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 
       std::ostringstream oss;
       oss << GetBaseFileName() << "_";
-      oss << std::setfill('0') <<std::setw(CountDigit(NumProc)) <<MyRank << "_";
+      if(nproc > 1)
+      {
+        int my_rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+        oss << std::setfill('0') <<std::setw(CountDigit(nproc)) <<my_rank << "_";
+      }
       oss << std::setfill('0') <<std::setw(CountDigit(MaxTimeStep)) << timestep << "." << suffix;
       return oss.str();
     }
 
     ///Accessor
-    std::string GetBaseFileName(void)
-    {
-      return this->BaseFileName;
-    };
-    void SetBaseFileName(std::string BaseFileName)
-    {
-      this->BaseFileName = BaseFileName;
-    };
-    void SetMaxTimeStep(long MaxTimeStep)
-    {
-      this->MaxTimeStep=MaxTimeStep;
-    }
+    std::string GetBaseFileName(void) { return this->BaseFileName; };
+    void SetBaseFileName(std::string BaseFileName) { this->BaseFileName = BaseFileName; };
+    void SetMaxTimeStep(long MaxTimeStep) { this->MaxTimeStep=MaxTimeStep; }
 
   private:
     //! @brief ファイル入出力メソッドで使われるファイル名のprefix
+    //!
     //! この後にRank番号を付け加えたものが実際のファイル名となる
     std::string BaseFileName;
 
@@ -83,16 +83,7 @@ namespace LPT
 
     //! @brief 10進数の整数の桁数を返す
     template <typename T>
-    int CountDigit(T number)
-    {
-        int count=0;
-        while(number>0)
-        {
-          number/=10;
-          count++;
-        }
-        return count;
-    }
+    int CountDigit(T number){return (int)std::log10(number)+1;}
 
   };
 } // namespace LPT

@@ -16,18 +16,19 @@ namespace PPlib
 //forward declaration
   class ParticleData;
 
-  //! @brief 粒子データの保持、管理とマイグレーション処理を行なう
+  //! @brief 粒子の移動を計算する
   class PP_Transport
   {
     PP_Transport(const PP_Transport & obj){}
   public:
-      PP_Transport()
+      PP_Transport():num_called(0), counter(0)
     {
       gus = new Interpolator;
     };
      ~PP_Transport()
     {
       delete gus;
+      LPT::LPT_LOG::GetInstance()->LOG("% could not be calurated velocity = ", (double)counter/(double)num_called*100);
     };
 
     //! @brief 引数で与えられた粒子データの流速場に沿った移動を計算する
@@ -49,6 +50,13 @@ namespace PPlib
 
     //! @brief 粒子データの時刻、タイムステップ、座標を更新する
     void UpdateParticle(ParticleData * Particle, const double &CurrentTime, const unsigned int &CurrentTimeStep, REAL_TYPE * Coord );
+
+    //! @brief 1タイムステップの間にCalc()が呼ばれた回数
+    //ただし計算済の粒子を対象に呼んだ回数は除く
+    long num_called;
+
+    //! @brief Calc()の最後の段階で未着のデータブロックに移動したために、粒子速度が不正確な値となっている粒子の数
+    long counter;
   };
 
 } // namespace PPlib

@@ -145,31 +145,28 @@ namespace PPlib
     return true;
   }
 
-  void Circle::GetGridPointCoord(std::vector < DSlib::DV3 > &Coords)
+  void Circle::GetGridPointCoord(std::vector < REAL_TYPE >& Coords)
   {
     for(int i = Istart; i <= Iend; i++) {
       REAL_TYPE r = GetRadius() / N * i;
 
       for(int j = 0; j < i * a; j++) {
-        DSlib::DV3 * tmpCoord = new DSlib::DV3;
-        DSlib::DV3 tmp;
         double theta = 2 * M_PI / (i * a) * j;
 
         if(theta_min <= theta && theta < theta_max) {
-          tmp.x = r * std::cos(theta);
-          tmp.y = r * std::sin(theta);
-          tmp.z = 0;
-          tmpCoord->x = R[0] * tmp.x + R[1] * tmp.y + Coord1[0];
-          tmpCoord->y = R[3] * tmp.x + R[4] * tmp.y + Coord1[1];
-          tmpCoord->z = R[6] * tmp.x + R[7] * tmp.y + Coord1[2];
-          Coords.push_back(*tmpCoord);
+          REAL_TYPE x = r * std::cos(theta);
+          REAL_TYPE y = r * std::sin(theta);
+          Coords.push_back(R[0] * x + R[1] * y + Coord1[0]);
+          Coords.push_back(R[3] * x + R[4] * y + Coord1[1]);
+          Coords.push_back(R[6] * x + R[7] * y + Coord1[2]);
         }
       }
     }
     //円の中心の座標はtheta_min=0の領域のみに含める
     if (theta_min == 0 ){
-      DSlib::DV3 tmpCoord(Coord1[0], Coord1[1], Coord1[2]);
-      Coords.push_back(tmpCoord);
+      Coords.push_back(Coord1[0]);
+      Coords.push_back(Coord1[1]);
+      Coords.push_back(Coord1[2]);
     }
 
   }

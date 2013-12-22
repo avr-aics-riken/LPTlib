@@ -9,16 +9,56 @@
 #include <unistd.h>
 #include "ParticleData.h"
 #include "FileManager.h"
-#include "LPT_ParticleInput.h"
-#include "FileOutput.h"
-#include "FileOutput_FVbin.h"
-#include "FileOutput_FVtext.h"
-#include "FileOutput_csv.h"
-#include "FileOutput2.h"
+#include "FileWriter.h"
+
+void print_usage_and_abort(char *cmd)
+{
+  std::cerr << "usage: " << cmd << " [-i input_file_directory] [-o | FV13 | FV14 | vtk | vtk_ascii]" << std::endl;
+  MPI_Finalize();
+  exit(1);
+}
+
+void ComandLineParser(const int &argc, char **argv, std::string &dir_name, BaseWriter **writer)
+{
+  dir_name="./";
+  std::string writer_name="FV13";
+
+  int results;
+  while((results=getopt(argc,argv,"i:o:")) != -1)
+  {
+    switch(results)
+    {
+      case 'i':
+        dir_name=optarg;
+        break;
+      case 'o':
+        writer_name=optarg;
+        break;
+      case '?':
+        print_usage_and_abort(argv[0]);
+        break;
+    }
+  }
+  if(writer_name == "FV14")
+  {
+    BaseParticleFileWriter *file_writer = new FV14Writer;
+    *writer = new TimeSlicedWriter(*file_writer);
+  } else if(writer_name == "vtk"){
+    std::cerr << "vtk binary writer is not implimented"<<std::endl;
+  } else if(writer_name == "vtk_ascii"){
+    BaseParticleFileWriter *file_writer = new VtpAsciiWriter;
+    *writer = new TimeSlicedWriter(*file_writer);
+  } else if(writer_name == "FV13") {
+    BaseParticleFileWriter *file_writer = new FV13Writer;
+    *writer = new BulkWriter(*file_writer);
+  }else{
+     print_usage_and_abort(argv[0]);
+  }
+}
 
 //引数で指定されたディレクトリにある *.prt ファイルを読み込み
 //自Rankが担当するファイル名をlistに入れて返す
-std::list<std::string> * AssignInputFiles(std::string dirname)
+std::list<std::string> * AssignMyInputFiles(std::string dirname)
 {
   DIR *dp;
   if((dp = opendir(dirname.c_str())) == NULL)
@@ -59,144 +99,35 @@ std::list<std::string> * AssignInputFiles(std::string dirname)
   return my_input_files;
 }
 
-/// vtk(ascii)形式で粒子データをtimestep毎に出力する
-void write_vtk_file(std::set<unsigned int> &time_step_tree, std::list < std::ifstream * > &InputFileStream)
-{
-
-  LPT::FileManager::GetInstance()->SetMaxTimeStep(*(time_step_tree.rbegin()));
-  for (std::set<unsigned int>::iterator it_time_step = time_step_tree.begin(); it_time_step != time_step_tree.end(); ++it_time_step)
-  {
-    //粒子データの読み込み
-    std::list < PPlib::ParticleData * >Particles;
-    for(std::list < std::ifstream * >::iterator it_input_file = InputFileStream.begin(); it_input_file != InputFileStream.end(); ++it_input_file)
-    {
-      (*it_input_file)->clear();
-      (*it_input_file)->seekg(0);
-      LPT::LPT_ParticleInput Input(*it_input_file);
-      Input.SetParticles(&Particles);
-      Input.ReadFileHeader();
-      Input.ReadRecord(*it_time_step);
-    }
-    //ID順にソート
-    Particles.sort(PPlib::CompareID());
-
-    LPT::BaseFileOutput * vtk_writer = 
-      new LPT::VTK_PolyDataFileFooter(
-          new LPT::VTK_PointDataFooter(
-            new LPT::VTK_DataArrayParticleVelocity(
-              new LPT::VTK_PointDataHeader(
-                new LPT::VTK_Points(
-                  new LPT::VTK_PolyDataFileHeader(
-                    new LPT::BaseFileOutput()
-                    )
-                  )
-                )
-              )
-            )
-          );
-    vtk_writer->write(&Particles, LPT::FileManager::GetInstance()->GetFileNameWithTimeStep("vtp",(*it_time_step)));
-    delete vtk_writer;
-  }
-}
-
-// FieldView13のParticlePath形式でファイルを出力する
-void write_fv13(std::set<unsigned int> &time_step_tree, std::list < std::ifstream * > &InputFileStream)
-{
-  LPT::FileOutput *writer = LPT::FV_ParticlePathBinary::GetInstance();
-  writer->WriteFileHeader();
-  for (std::set<unsigned int>::iterator it_time_step = time_step_tree.begin(); it_time_step != time_step_tree.end(); ++it_time_step)
-  {
-    //粒子データの読み込み
-    std::list < PPlib::ParticleData * >Particles;
-    for(std::list < std::ifstream * >::iterator it_input_file = InputFileStream.begin(); it_input_file != InputFileStream.end(); ++it_input_file)
-    {
-      (*it_input_file)->clear();
-      (*it_input_file)->seekg(0);
-      LPT::LPT_ParticleInput Input(*it_input_file);
-      Input.SetParticles(&Particles);
-      Input.ReadFileHeader();
-      Input.ReadRecord(*it_time_step);
-    }
-    //ID順にソート
-    Particles.sort(PPlib::CompareID());
-
-    std::multimap < long, PPlib::ParticleData *> Particles2;
-
-    for(std::list < PPlib::ParticleData * >::iterator it =Particles.begin(); it!= Particles.end();++it)
-    {
-      Particles2.insert(std::make_pair((*it)->BlockID, (*it)));
-    }
-
-    //fvp形式で出力
-    writer->SetParticles(&Particles2);
-    writer->WriteRecordHeader();
-    writer->WriteRecord();
-    writer->WriteRecordFooter();
-  }  
-  writer->WriteFileFooter();
-}
-
-void print_usage_and_abort(char *cmd)
-{
-  std::cerr << "usage: " << cmd << " [-i input_file_directory] [-o FV13text | FV13 | FV14 | vtk | vtk_ascii]" << std::endl;
-  MPI_Abort(MPI_COMM_WORLD, -1);
-}
-
-void ComandLineParser(const int &argc, char **argv, std::string &dir_name, std::string& writer_name)
-{
-  dir_name="./";
-  writer_name="FV13";
-
-  int results;
-  while((results=getopt(argc,argv,"i:o:")) != -1)
-  {
-    switch(results)
-    {
-      case 'i':
-        dir_name=optarg;
-        break;
-      case 'o':
-        writer_name=optarg;
-        break;
-      case '?':
-        print_usage_and_abort(argv[0]);
-        break;
-    }
-  }
-  if(writer_name == "FV13txt" || writer_name == "FV14" || writer_name == "vtk")
-  {
-    std::cerr << writer_name <<" is not implimented"<<std::endl;
-  } else if(writer_name == "vtk_ascii" || writer_name == "FV13") {
-    return;
-  }else{
-     print_usage_and_abort(argv[0]);
-  }
-}
-
 int main(int argc, char *argv[])
 {
   using namespace PPlib;
 
   MPI_Init(&argc, &argv);
 
+  LPT::FileManager::GetInstance()->SetBaseFileName("ParticleData");
   std::string dir_name;
-  std::string writer_name;
-  ComandLineParser(argc, argv, dir_name, writer_name);
+  BaseWriter *writer;
+  ComandLineParser(argc, argv, dir_name, &writer);
 
-  std::list<std::string> * input_files = AssignInputFiles(dir_name);
+  std::list<std::string> * input_files = AssignMyInputFiles(dir_name);
 
   //入力ファイルを開く
   std::list < std::ifstream * >InputFileStream;
   for(std::list < std::string >::iterator it = input_files->begin(); it != input_files->end(); ++it)
   {
-    std::cerr << "Reading: " << (*it) << std::endl;
+    std::cerr << "reading: " << (*it) << std::endl;
     std::ifstream * tmp = new std::ifstream;
     tmp->open((*it).c_str(), std::ios::binary);
     InputFileStream.push_back(tmp);
   }
 
-  //IDとTimeStepのsetを作る
-  std::set < LPT::ID > id_tree;
+  if(InputFileStream.size() < 1)
+  {
+    print_usage_and_abort(argv[0]);
+  }
+
+  //TimeStepのsetを作る
   std::set<unsigned int> time_step_tree;
   for(std::list < std::ifstream * >::iterator it = InputFileStream.begin(); it != InputFileStream.end(); it++)
   {
@@ -205,20 +136,10 @@ int main(int argc, char *argv[])
     Input.ReadTimeSteps(&time_step_tree);
     (*it)->clear();
     (*it)->seekg(0);
-    Input.ReadFileHeader();
-    Input.ReadIDs(&id_tree);
-    (*it)->clear();
-    (*it)->seekg(0);
   }
 
   //粒子データを出力
-  LPT::FileManager::GetInstance()->SetBaseFileName("ParticleData");
-  if(writer_name == "vtk_ascii")
-  {
-    write_vtk_file(time_step_tree, InputFileStream);
-  }else if(writer_name == "FV13"){
-    write_fv13(time_step_tree, InputFileStream);
-  }
+  (*writer)(time_step_tree, InputFileStream);
 
   //入力ファイルを閉じる
   for(std::list < std::ifstream * >::iterator it = InputFileStream.begin(); it != InputFileStream.end(); it++)

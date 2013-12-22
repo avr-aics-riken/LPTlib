@@ -20,9 +20,9 @@ namespace PPlib
   {
     Particle->CurrentTime = CurrentTime;
     Particle->CurrentTimeStep = CurrentTimeStep;
-    Particle->Coord[0] = Coord[0];
-    Particle->Coord[1] = Coord[1];
-    Particle->Coord[2] = Coord[2];
+    Particle->x = Coord[0];
+    Particle->y = Coord[1];
+    Particle->z = Coord[2];
   }
   int PP_Transport::Calc(ParticleData * Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const unsigned int &CurrentTimeStep)
   {
@@ -31,10 +31,11 @@ namespace PPlib
     {
       return 0;
     }
+    num_called++;
 
     DSlib::DecompositionManager * ptrDM = DSlib::DecompositionManager::GetInstance();
     REAL_TYPE x_i[3];
-    REAL_TYPE x_new[3];
+    REAL_TYPE x_new[3] = {Particle->x, Particle->y, Particle->z};
     REAL_TYPE v[3];
     DSlib::DataBlock * LoadedDataBlock;
 
@@ -50,9 +51,6 @@ namespace PPlib
     }
 
     //計算用の一時配列に粒子座標をコピー
-    x_new[0] = Particle->Coord[0];
-    x_new[1] = Particle->Coord[1];
-    x_new[2] = Particle->Coord[2];
     LPT::LPT_LOG::GetInstance()->LOG("Coord before calc = ", x_new, 3);
 
     long old_BlockID_in_ParticleData=-1;
@@ -87,12 +85,6 @@ namespace PPlib
       int rkg = PP_Integrator::RKG(*gus, dt, x_i);
       if(rkg != 0) LPT::LPT_LOG::GetInstance()->WARN("return value from PP_Integrator::RKG = ", rkg);
 
-      //粒子位置での速度を計算(ParticleDataに代入するのはCalcの最後)
-#ifdef __INTEL_COMPILER
-#pragma forceinline recursive
-#endif
-      gus->InterpolateData(x_i, v);
-
       // 粒子座標の逆変換
 #ifdef __INTEL_COMPILER
 #pragma forceinline recursive
@@ -106,7 +98,7 @@ namespace PPlib
     UpdateParticle(Particle, CurrentTime, CurrentTimeStep, x_new);
 
     //移動後の位置でのブロックIDと粒子速度を代入
-    NewBlockID = ptrDM->FindBlockIDByCoordLinear(Particle->Coord);
+    NewBlockID = ptrDM->FindBlockIDByCoordLinear(x_new);
     Particle->BlockID = NewBlockID;
 
     if(gus->GetBlockID() != NewBlockID) {
@@ -125,11 +117,15 @@ namespace PPlib
       }
     }
 
-    Particle->ParticleVelocity[0] = v[0] - v00[0];
-    Particle->ParticleVelocity[1] = v[1] - v00[1];
-    Particle->ParticleVelocity[2] = v[2] - v00[2];
+    //粒子位置での速度を計算
+#ifdef __INTEL_COMPILER
+#pragma forceinline recursive
+#endif
+    gus->InterpolateData(x_i, v);
 
-    LPT::LPT_LOG::GetInstance()->LOG("Coord after calc = ", Particle->Coord, 3);
+    Particle->Vx = v[0] - v00[0];
+    Particle->Vy = v[1] - v00[1];
+    Particle->Vz = v[2] - v00[2];
 
     return old_BlockID_in_ParticleData == Particle->BlockID ? 0:2;
   }

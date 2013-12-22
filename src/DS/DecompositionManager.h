@@ -4,7 +4,6 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include "DV3.h"
 #include "LPT_LogOutput.h"
 
 namespace DSlib
@@ -13,29 +12,30 @@ namespace DSlib
   class CommDataBlockHeader;
 
   //! @brief サブドメインおよびデータブロックの分割情報を保持するクラス
+  //!
   //! BlockIDおよびSubDomainIDは1次元のアドレスだが、このクラス内部では3次元のアドレスとして扱い、取り出す時に3Dto1Dの変換を行なう
   class DecompositionManager
   {
     //!  @brief x軸方向の領域分割の境目になる座標を保持する配列
     //!  BoundaryX[i]からBoundaryX[i+1]までがi番目のサブドメイン
-    int *SubDomainBoundaryX;
+    int* SubDomainBoundaryX;
 
     //! SubDomainBoundaryXと同様でY方向の値を保持する配列
-    int *SubDomainBoundaryY;
+    int* SubDomainBoundaryY;
 
     //! SubDomainBoundaryXと同様でZ方向の値を保持する配列
-    int *SubDomainBoundaryZ;
+    int* SubDomainBoundaryZ;
 
     //!  @brief x軸方向のデータブロック分割の境目になるセルidを保持する
     //!  BlockBoundaryX[i]からBlockBoundaryX[i+1]までがi番目のブロック
     //!  ここでは、ブロックIDはグローバルID(サブドメインを跨いで通し番号)となっていることに注意
-    int *BlockBoundaryX;
+    int* BlockBoundaryX;
 
     //! BlockBoundaryXと同様
-    int *BlockBoundaryY;
+    int* BlockBoundaryY;
 
     //! BlockBoundaryXと同様
-    int *BlockBoundaryZ;
+    int* BlockBoundaryZ;
 
     //! x軸方向のデータブロック分割の境目になる座標を保持する
       std::vector < REAL_TYPE > RealBlockBoundaryX;
@@ -110,7 +110,7 @@ namespace DSlib
       initialized = false;
     }
     DecompositionManager(const DecompositionManager & obj);
-      DecompositionManager & operator=(const DecompositionManager & obj);
+    DecompositionManager & operator=(const DecompositionManager & obj);
 
     //! デストラクタ
      ~DecompositionManager()
@@ -230,11 +230,21 @@ namespace DSlib
     //! @param Coord [in] 座標
     //! @retval 引数で渡した座標を含むデータブロックのID
     long FindBlockIDByCoordLinear(REAL_TYPE Coord[3]);
+    long FindBlockIDByCoordLinear(const REAL_TYPE& x, const REAL_TYPE& y, const REAL_TYPE& z)
+    {
+      REAL_TYPE Coord[3]={x,y,z};
+      return FindBlockIDByCoordLinear(Coord);
+    }
 
     //! @brief 与えられた座標を含むデータブロックのIDを返す(二分探索版)
     //! @param Coord [in] 座標
     //! @retval 引数で渡した座標を含むデータブロックのID
     long FindBlockIDByCoordBinary(REAL_TYPE Coord[3]);
+    long FindBlockIDByCoordBinary(const REAL_TYPE& x, const REAL_TYPE& y, const REAL_TYPE& z)
+    {
+      REAL_TYPE Coord[3]={x,y,z};
+      return FindBlockIDByCoordBinary(Coord);
+    }
 
     //! @brief 与えられたブロックIDの周囲にあるブロックIDの配列を返す
     //! @param id        [in]  周辺のブロックを探したいデータブロックのID
@@ -344,6 +354,11 @@ namespace DSlib
     {
       std::cerr << "Allocated vector size in Decomposition Manager = "<< RealBlockBoundaryX.capacity()*sizeof(REAL_TYPE) + RealBlockBoundaryY.capacity()*sizeof(REAL_TYPE) 
         + RealBlockBoundaryZ.capacity()*sizeof(REAL_TYPE) <<std::endl;
+    }
+    // coordがindexで示す境界より左にあるかどうかを判定する
+    bool is_left(const REAL_TYPE& origin, const REAL_TYPE& pitch, const REAL_TYPE& coord, int* index)
+    {
+      return ! ((coord - origin)/pitch  <= *index);
     }
   };
 

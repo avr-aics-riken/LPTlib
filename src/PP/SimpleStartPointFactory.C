@@ -2,9 +2,9 @@
 #include "StartPointAll.h"
 namespace PPlib
 {
-  Point *PointFactory::create(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+  Point* PointFactory::create(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
   {
-    Point *tmpStartPoint = new Point;
+    Point* tmpStartPoint = new Point;
       tmpStartPoint->SetCoord1(Coord1);
       tmpStartPoint->SetSumStartPoints(1);
       tmpStartPoint->SetStartTime(StartTime);
@@ -15,9 +15,9 @@ namespace PPlib
       return tmpStartPoint;
   }
 
-  Line *LineFactory::create(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+  Line* LineFactory::create(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
   {
-    Line * tmpStartPoint = new Line;
+    Line* tmpStartPoint = new Line;
     tmpStartPoint->SetCoord1(Coord1);
     tmpStartPoint->SetCoord2(Coord2);
     tmpStartPoint->SetSumStartPoints(SumStartPoints);
@@ -29,7 +29,7 @@ namespace PPlib
     return tmpStartPoint;
   }
 
-  Rectangle *RectangleFactory::create(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+  Rectangle* RectangleFactory::create(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
   {
     if(Coord1[0] == Coord2[0]) {
       if(NumStartPoints[0] != 1)
@@ -56,7 +56,7 @@ namespace PPlib
     return tmpStartPoint;
   }
 
-  Cuboid *CuboidFactory::create(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+  Cuboid* CuboidFactory::create(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
   {
     Cuboid* tmpStartPoint = new Cuboid;
     tmpStartPoint->SetCoord1(Coord1);

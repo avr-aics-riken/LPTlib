@@ -93,10 +93,6 @@ namespace DSlib
     delete[]array_of_statuses;
   }
 
-  void Communicator::CommDataP2F()
-  {
-  }
-
   void Communicator::CommDataF2P(REAL_TYPE * Data, REAL_TYPE * v00, int *Mask, const int &vlen, std::list < CommDataBlockManager * >*SendBuff, std::list < CommDataBlockManager * >*RecvBuff)
   {
     //流体プロセスから粒子プロセスに要求されたデータブロックを1つづつ送る
@@ -154,11 +150,6 @@ namespace DSlib
 
     SendBuffMemSize *= sizeof(REAL_TYPE);
     LPT::LPT_LOG::GetInstance()->LOG("Memory size for Send Buffer = ", SendBuffMemSize);
-  }
-
-  void Communicator::MakeSendRequestCounts(const int &SubDomainID, DSlib * ptrDSlib)
-  {
-    SendRequestCounts[SubDomainID] = ptrDSlib->CountRequestQueues(SubDomainID);
   }
 
   void Communicator::CommPacking(const long &BlockID, REAL_TYPE * Data, int *Mask, const int &vlen, REAL_TYPE * SendBuff, CommDataBlockHeader * Header, int *SendSize, const int &MyRank)

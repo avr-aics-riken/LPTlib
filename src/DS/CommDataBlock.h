@@ -2,6 +2,7 @@
 #define DSLIB_COMM_DATA_BLOCK_H
 
 #include <mpi.h>
+#include "LPT_LogOutput.h"
 
 namespace DSlib
 {
@@ -17,16 +18,51 @@ namespace DSlib
   };
 
   //! @brief データブロックのヘッダ部をまとめた構造体とデータ領域ヘのポインタ、それぞれの転送用MPI_Request変数をまとめて保持するクラス
-  //! サイズ指定のコンストラクタを呼ぶと、データ領域用のメモリを指定されたサイズで確保する
-  //! DSlib::AddCache内でポインタを移動させて、NULLを入れている
-  //! この領域はデストラクタ内で解放しているが、キャッシュに移したデータは解放されないので注意
+  //!
+  //! サイズ指定のコンストラクタを呼ぶと、データ領域用のメモリ(Buff)を指定されたサイズで確保する
+  //! Buffは、DSlib::AddCache()内でキャッシュにポインタを移動されBuffにはNULLが代入されるので
+  //！デストラクタ内でBuffを解放しているが、通常はこの処理ではメモリ領域は解放されないはず
   class CommDataBlockManager
   {
-    CommDataBlockManager();
-    CommDataBlockManager(const CommDataBlockManager& obj);
-    CommDataBlockManager& operator=(const CommDataBlockManager& obj);
-
     public:
+    CommDataBlockManager(int size)
+    {
+      Buff   = new REAL_TYPE [size];
+      Header = new CommDataBlockHeader;
+    }
+    ~CommDataBlockManager()
+    {
+      delete Header;
+      delete [] Buff;
+    }
+
+    void Wait()
+    {
+      MPI_Status status;
+      if(MPI_SUCCESS != MPI_Wait(&Request0, &status)) {
+        LPT::LPT_LOG::GetInstance()->ERROR("MPI_Wait 1 Failed");
+      }
+      if(MPI_SUCCESS != MPI_Wait(&Request1, &status)) {
+        LPT::LPT_LOG::GetInstance()->ERROR("MPI_Wait 2 Failed");
+      }
+    }
+
+    bool Test()
+    {
+      MPI_Status status;
+      int flag0 = 0;
+      int flag1 = 0;
+      if(MPI_SUCCESS != MPI_Test(&Request0, &flag0, &status)) {
+        LPT::LPT_LOG::GetInstance()->ERROR("MPI_Test for Data Failed");
+      }
+      if(MPI_SUCCESS != MPI_Test(&Request1, &flag1, &status)) {
+        LPT::LPT_LOG::GetInstance()->ERROR("MPI_Test for Header Failed");
+      }
+
+      // MPI_Test後に flag == 0であれば転送は完了していない
+      return (flag0!=0 && flag1!=0);
+    }
+
     //! @brief データ送受信に使う領域へのポインタ
     //! ポインタの先の領域には、最大サイズのデータブロック(BlockID=0)の
     //! データが収まるサイズで領域を確保しておくこと
@@ -41,16 +77,11 @@ namespace DSlib
     //!  データ送受信につかうMPI_Request(ヘッダ部用)
     MPI_Request Request1;
 
-    CommDataBlockManager(int size)
-    {
-      Buff   = new REAL_TYPE [size];
-      Header = new CommDataBlockHeader;
-    }
-    ~CommDataBlockManager()
-    {
-      delete Header;
-      delete [] Buff;
-    }
+    private:
+    CommDataBlockManager();
+    CommDataBlockManager(const CommDataBlockManager& obj);
+    CommDataBlockManager& operator=(const CommDataBlockManager& obj);
+
   };
 
 } // namespace DSlib

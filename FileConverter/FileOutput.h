@@ -79,15 +79,15 @@ namespace LPT
   class FileOutput
   {
   protected:
-    /// 出力先のファイルストリームへのポインタ
-    std::ofstream Out2;
+    /// 出力先のファイルストリーム
+    std::ofstream Out;
 
     /// 出力する粒子データのリストへのポインタ
-    std::multimap < long, PPlib::ParticleData *> *Particles;
+    std::list <PPlib::ParticleData *> *Particles;
 
   public:
     /// 出力する粒子データを受け取る
-    virtual void SetParticles(std::multimap < long, PPlib::ParticleData *> * Particles) 
+    virtual void SetParticles(std::list<PPlib::ParticleData *> * Particles) 
     {
       this->Particles = Particles;
     };
