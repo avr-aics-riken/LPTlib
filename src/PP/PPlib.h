@@ -8,6 +8,7 @@
 #include <map>
 #include "ParticleData.h"
 #include "StartPointAll.h"
+#include "ParticleContainer.h"
 //forward declaration
 namespace DSlib
 {
@@ -25,15 +26,12 @@ namespace PPlib
     std::vector < StartPoint * >StartPoints;
 
     //!  @brief 計算を担当する粒子データオブジェクトへのポインタを格納する。
-    std::multimap < long, ParticleData *> Particles;
-
-    //!  @brief タイムステップ中に再計算が必要な粒子データオブジェクトへのポインタを格納するWORK領域
-   // std::list < ParticleData *> WorkParticles;
+    ParticleContainer Particles;
 
     //! @brief StartPointsに登録されている全ての開始点から粒子を放出させる
     //! 開始点がMovingPoints型だった場合は現在時刻に応じた位置へ移動させてから粒子を放出する
     //! @param CurrentTime [in] 現在時刻
-    void EmitNewParticles(const double &CurrentTime, const unsigned int &CurrentTimeStep);
+    void EmitNewParticles(const double &CurrentTime, const int &CurrentTimeStep);
 
     //! @brief Particlesに登録されている粒子が存在する位置のデータブロックIDをDSlib::RequestQueuesに登録する
     void MakeRequestQueues(DSlib::DSlib * ptrDSlib);

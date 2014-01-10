@@ -36,6 +36,7 @@ libLPT_a_SOURCES = \
    PP/Interpolator.C \
    PP/PP_Integrator.C \
    PP/ParticleData.C \
+   PP/ParticleContainerIterator.C \
    DS/Cache.h \
    DS/Communicator.h \
    DS/DSlib.h \
@@ -62,6 +63,8 @@ libLPT_a_SOURCES = \
    PP/Utility.h \
    PP/Interpolator.h \
    PP/PP_Integrator.h \
+   PP/ParticleContainer.h \
+   PP/ParticleContainerIterator.h \
    PP/ParticleData.h
 
 

@@ -43,7 +43,7 @@ namespace LPT
       {
         int my_rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-        oss << std::setfill('0') <<std::setw(CountDigit(nproc)) <<my_rank << "_";
+        oss << "_" << std::setfill('0') <<std::setw(CountDigit(nproc)) <<my_rank;
       }
       oss << "." << suffix;
       return oss.str();
@@ -56,14 +56,14 @@ namespace LPT
       MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 
       std::ostringstream oss;
-      oss << GetBaseFileName() << "_";
+      oss << GetBaseFileName();
       if(nproc > 1)
       {
         int my_rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-        oss << std::setfill('0') <<std::setw(CountDigit(nproc)) <<my_rank << "_";
+        oss << "_" << std::setfill('0') <<std::setw(CountDigit(nproc)) <<my_rank;
       }
-      oss << std::setfill('0') <<std::setw(CountDigit(MaxTimeStep)) << timestep << "." << suffix;
+      oss << "_" << std::setfill('0') <<std::setw(CountDigit(MaxTimeStep)) << timestep << "." << suffix;
       return oss.str();
     }
 
@@ -83,7 +83,7 @@ namespace LPT
 
     //! @brief 10進数の整数の桁数を返す
     template <typename T>
-    int CountDigit(T number){return (int)std::log10(number)+1;}
+    int CountDigit(T number){return (int)std::log10((double)number)+1;}
 
   };
 } // namespace LPT

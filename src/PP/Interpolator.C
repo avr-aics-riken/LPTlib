@@ -36,10 +36,8 @@ namespace PPlib
 
   bool Interpolator::InterpolateData(const REAL_TYPE x_I[3], REAL_TYPE dval[3])
   {
-    if(!p_vecd)
-      return false;
+    if(!p_vecd) return false;
 
-    REAL_TYPE X[8];
     int i = int (x_I[0]);
     int j = int (x_I[1]);
     int k = int (x_I[2]);
@@ -85,16 +83,16 @@ namespace PPlib
     REAL_TYPE jm = (REAL_TYPE) (j + 1) - x_I[1];
     REAL_TYPE km = (REAL_TYPE) (k + 1) - x_I[2];
 
-    for(int dkind = 0; dkind < m_vecLen; dkind++) {
-      X[0] = (REAL_TYPE) p_vecd[DSlib::DecompositionManager::Convert4Dto1D(i, j, k, dkind, m_dims[0], m_dims[1], m_dims[2])]; // (i,  j,  k  )
-      X[1] = (REAL_TYPE) p_vecd[DSlib::DecompositionManager::Convert4Dto1D(i + 1, j, k, dkind, m_dims[0], m_dims[1], m_dims[2])]; // (i+1,j,  k  )
-      X[2] = (REAL_TYPE) p_vecd[DSlib::DecompositionManager::Convert4Dto1D(i + 1, j + 1, k, dkind, m_dims[0], m_dims[1], m_dims[2])]; // (i+1,j+1,k  )
-      X[3] = (REAL_TYPE) p_vecd[DSlib::DecompositionManager::Convert4Dto1D(i, j + 1, k, dkind, m_dims[0], m_dims[1], m_dims[2])]; // (i,  j+1,k  )
-      X[4] = (REAL_TYPE) p_vecd[DSlib::DecompositionManager::Convert4Dto1D(i, j, k + 1, dkind, m_dims[0], m_dims[1], m_dims[2])]; // (i,  j,  k+1)
-      X[5] = (REAL_TYPE) p_vecd[DSlib::DecompositionManager::Convert4Dto1D(i + 1, j, k + 1, dkind, m_dims[0], m_dims[1], m_dims[2])]; // (i+1,j  ,k+1)
-      X[6] = (REAL_TYPE) p_vecd[DSlib::DecompositionManager::Convert4Dto1D(i + 1, j + 1, k + 1, dkind, m_dims[0], m_dims[1], m_dims[2])]; // (i+1,j+1,k+1)
-      X[7] = (REAL_TYPE) p_vecd[DSlib::DecompositionManager::Convert4Dto1D(i, j + 1, k + 1, dkind, m_dims[0], m_dims[1], m_dims[2])]; // (i,  j+1,k+1)
-      dval[dkind] = (REAL_TYPE) (im * jm * km * X[0] + ip * jm * km * X[1] + ip * jp * km * X[2] + im * jp * km * X[3] + im * jm * kp * X[4] + ip * jm * kp * X[5] + ip * jp * kp * X[6] + im * jp * kp * X[7]);
+    for(int l = 0; l < 3; l++) {
+      dval[l] = (im * jm * km * p_vecd[(i  ) + (j  ) * m_dims[0] + (k  ) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i,  j,  k  )
+                +ip * jm * km * p_vecd[(i+1) + (j  ) * m_dims[0] + (k  ) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i+1,j,  k  )
+                +ip * jp * km * p_vecd[(i+1) + (j+1) * m_dims[0] + (k  ) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i+1,j+1,k  )
+                +im * jp * km * p_vecd[(i  ) + (j+1) * m_dims[0] + (k  ) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i,  j+1,k  )
+                +im * jm * kp * p_vecd[(i  ) + (j  ) * m_dims[0] + (k+1) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i,  j,  k+1)
+                +ip * jm * kp * p_vecd[(i+1) + (j  ) * m_dims[0] + (k+1) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i+1,j  ,k+1)
+                +ip * jp * kp * p_vecd[(i+1) + (j+1) * m_dims[0] + (k+1) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i+1,j+1,k+1)
+                +im * jp * kp * p_vecd[(i  ) + (j+1) * m_dims[0] + (k+1) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i,  j+1,k+1)
+                );
     }
     return true;
   }

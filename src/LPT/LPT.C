@@ -65,6 +65,7 @@ namespace LPT
     PPlib::StartPoint *tmpStartPoint = PPlib::RectangleFactory::create(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
     if (tmpStartPoint == NULL)
     {
+      std::cerr << "PPlib::RectangleFactory::create failed"<<std::endl;
       return false;
     }else{
       StartPoints.push_back(tmpStartPoint);
@@ -92,6 +93,7 @@ namespace LPT
 
   int LPT::LPT_OutputParticleData()
   {
+    if(!initialized) return 1;
     PMlibWrapper & PM = PMlibWrapper::GetInstance();
     PM.start(PM.tm_FileOutput);
     LPT_ParticleOutput::GetInstance()->SetParticles(&(ptrPPlib->Particles));
@@ -103,6 +105,11 @@ namespace LPT
 
   int LPT::LPT_Initialize(LPT_InitializeArgs args)
   {
+    if(initialized)
+    {
+      std::cerr << "LPT_Initialize() is called more than 1 time"<<std::endl;
+      return 1;
+    }
     PMlibWrapper & PM = PMlibWrapper::GetInstance();
     PM.Initialize(args.PMlibOutputFileName, args.PMlibDetailedOutputFileName);
 
@@ -157,12 +164,14 @@ namespace LPT
       LPT_LOG::GetInstance()->ERROR("instantiation failed!!");
       return -1;
     }
+    initialized=true;
     PM.stop(PM.tm_Initialize);
     return 0;
   }
 
   int LPT::LPT_Post(void)
   {
+    if(!initialized) return 1;
     PMlibWrapper & PM = PMlibWrapper::GetInstance();
     PM.start(PM.tm_Post);
     delete ptrComm;
@@ -178,6 +187,16 @@ namespace LPT
 
   int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
   {
+    static bool error_messaged_loged=false;
+    if(!initialized)
+    {
+      if(!error_messaged_loged)
+      {
+        std::cerr << "LPT_CalcParticleData is called before LPT_Initialize()"<<std::endl;
+        error_messaged_loged=true;
+      }
+      return 1;
+    }
     PMlibWrapper & PM = PMlibWrapper::GetInstance();
     PM.start(PM.tm_PrepareCalc);
     CurrentTime = args.CurrentTime;
@@ -313,7 +332,7 @@ namespace LPT
           LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
           delete (*it_Particle);
         }else {
-          ptrPPlib->Particles.insert(std::make_pair((*it_Particle)->BlockID, (*it_Particle)));
+          ptrPPlib->Particles.insert(*it_Particle);
         }
         it_Particle=WorkParticles.erase(it_Particle);
       }
@@ -324,46 +343,32 @@ namespace LPT
       PM.stop(PM.tm_DelSendBuff);
       PM.stop(PM.tm_CalcParticle);
     } //転送回数のループ
-#ifdef DEBUG
-    LPT_LOG::GetInstance()->LOG("WorkParticles.size() = ", WorkParticles.size());
-    for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=ptrPPlib->Particles.begin();it_Particle != ptrPPlib->Particles.end();++it_Particle){
-      if ((*it_Particle).second->CurrentTimeStep <CurrentTimeStep)
-      {
-        LPT_LOG::GetInstance()->LOG("This particle is not calculated: ID = ", (*it_Particle).second->GetAllID());
-        LPT_LOG::GetInstance()->LOG("Particle Current Time Step = ", (*it_Particle).second->CurrentTimeStep);
-      }
-    }
-#endif
     PM.start(PM.tm_Discard_Cache);
     //キャッシュデータを全て削除
     ptrDSlib->PurgeAllCacheLists();
     PM.stop(PM.tm_Discard_Cache);
-      
-
-
     return 0;
   }
 
-  void LPT::CalcParticle(PPlib::PP_Transport* Transport, PPlib::PPlib* ptrPPlib, const int& ArrivedBlockID, std::list<PPlib::ParticleData*>* WorkParticles, const double &deltaT, const int& divT, REAL_TYPE* v00, DSlib::DSlib* ptrDSlib, const double& CurrentTime, const double& CurrentTimeStep)
+  void LPT::CalcParticle(PPlib::PP_Transport* Transport, PPlib::PPlib* ptrPPlib, const int& ArrivedBlockID, std::list<PPlib::ParticleData*>* WorkParticles, const double &deltaT, const int& divT, REAL_TYPE* v00, DSlib::DSlib* ptrDSlib, const double& CurrentTime, const int& CurrentTimeStep)
   {
-    std::pair< std::multimap< long, PPlib::ParticleData*>::iterator, std::multimap<long, PPlib::ParticleData*>::iterator > range
-      = ptrPPlib->Particles.equal_range(ArrivedBlockID);
-    for(std::multimap<long, PPlib::ParticleData*>::iterator it_Particle=range.first;it_Particle != range.second;){
-      int ierr = Transport->Calc((*it_Particle).second, deltaT, divT, v00, ptrDSlib, CurrentTime, CurrentTimeStep);
+    std::pair<PPlib::ParticleContainer::iterator, PPlib::ParticleContainer::iterator> work = ptrPPlib->Particles.equal_range(ArrivedBlockID);
+    for(PPlib::ParticleContainer::iterator it_Particle=work.first;it_Particle != work.second;){
+      int ierr = Transport->Calc(*it_Particle, deltaT, divT, v00, ptrDSlib, CurrentTime, CurrentTimeStep);
       if(ierr == 1) {
-        LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle).second->GetAllID());
-        delete (*it_Particle).second;
+        LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
+        delete *it_Particle;
         ptrPPlib->Particles.erase(it_Particle++);
       }else if(ierr == 2){
-        ptrPPlib->Particles.insert(std::make_pair((*it_Particle).second->BlockID, (*it_Particle).second));
+        ptrPPlib->Particles.insert(*it_Particle);
         ptrPPlib->Particles.erase(it_Particle++);
       }else if(ierr == 3){
-        WorkParticles->push_back((*it_Particle).second);
+        WorkParticles->push_back(*it_Particle);
         ptrPPlib->Particles.erase(it_Particle++);
       }else if(ierr == 0||ierr==4){
         ++it_Particle;
       }else {
-        LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle).second->GetAllID());
+        LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle)->GetAllID());
       }
     }
   }

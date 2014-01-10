@@ -160,7 +160,7 @@ namespace LPT
     double CurrentTime;
 
     //! 現在のタイムステップ
-    unsigned int CurrentTimeStep;
+    int CurrentTimeStep;
 
     //! 時間積分幅 無次元
     double deltaT;

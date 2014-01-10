@@ -38,13 +38,13 @@ namespace DSlib
     int* BlockBoundaryZ;
 
     //! x軸方向のデータブロック分割の境目になる座標を保持する
-      std::vector < REAL_TYPE > RealBlockBoundaryX;
+    std::vector < REAL_TYPE > RealBlockBoundaryX;
 
     //!  RealBlockBoundaryXと同様
-      std::vector < REAL_TYPE > RealBlockBoundaryY;
+    std::vector < REAL_TYPE > RealBlockBoundaryY;
 
     //! RealBlockBoundaryXと同様
-      std::vector < REAL_TYPE > RealBlockBoundaryZ;
+    std::vector < REAL_TYPE > RealBlockBoundaryZ;
 
     //!  計算領域のx方向のサイズ 単位はセル数
     int Nx;
@@ -350,16 +350,6 @@ namespace DSlib
         * (GetSubDomainSizeY(GetSubDomainIDY(SubDomainID)) + GetGuideCellSize() * 2);
     }
 
-    void PrintVectorSize(void)
-    {
-      std::cerr << "Allocated vector size in Decomposition Manager = "<< RealBlockBoundaryX.capacity()*sizeof(REAL_TYPE) + RealBlockBoundaryY.capacity()*sizeof(REAL_TYPE) 
-        + RealBlockBoundaryZ.capacity()*sizeof(REAL_TYPE) <<std::endl;
-    }
-    // coordがindexで示す境界より左にあるかどうかを判定する
-    bool is_left(const REAL_TYPE& origin, const REAL_TYPE& pitch, const REAL_TYPE& coord, int* index)
-    {
-      return ! ((coord - origin)/pitch  <= *index);
-    }
   };
 
 } // namespace DSlib

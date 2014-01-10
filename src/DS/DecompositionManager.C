@@ -190,14 +190,11 @@ namespace DSlib
       return -1;
     }
 
-    int BlockID3D[3]={0,0,0};
-
-    /*
-     * not implimented!!
-     * ここで自前でbinary searchを書く
-     * std::lower_boundを使おうとしたけど駄目だった・・・
-     */
-
+    int BlockID3D[3]={
+      Coord[0] == OriginX ? 0 : std::distance(RealBlockBoundaryX.begin(), std::lower_bound(RealBlockBoundaryX.begin(), RealBlockBoundaryX.end(),Coord[0]))-1,
+      Coord[1] == OriginY ? 0 : std::distance(RealBlockBoundaryY.begin(), std::lower_bound(RealBlockBoundaryY.begin(), RealBlockBoundaryY.end(),Coord[1]))-1,
+      Coord[2] == OriginZ ? 0 : std::distance(RealBlockBoundaryZ.begin(), std::lower_bound(RealBlockBoundaryZ.begin(), RealBlockBoundaryZ.end(),Coord[2]))-1
+    };
     return Convert3Dto1Dlong(BlockID3D[0], BlockID3D[1], BlockID3D[2], NBx * NPx, NBy * NPy);
 
   }
@@ -210,24 +207,26 @@ namespace DSlib
 
     int BlockID3D[3]={0,0,0};
     if(Coord[0] != OriginX){
-      for(int i = 1; (i <= NBx*NPx)&&is_left(OriginX, dx, Coord[0], &BlockBoundaryX[i]); i++)
+      int num_blocks=NBx*NPx;
+      for(int i = 1; (i <= num_blocks)&&(Coord[0] > RealBlockBoundaryX[i]); i++)
       {
         ++BlockID3D[0];
       }
     }
     if(Coord[1] != OriginY){
-      for(int i = 1; (i <= NBy*NPy)&&is_left(OriginY, dy, Coord[1], &BlockBoundaryY[i]); i++)
+      int num_blocks=NBy*NPy;
+      for(int i = 1; (i <= num_blocks)&&(Coord[1] > RealBlockBoundaryY[i]); i++)
       {
         ++BlockID3D[1];
       }
     }
     if(Coord[2] != OriginZ){
-      for(int i = 1; (i <= NBz*NPz)&&is_left(OriginZ, dz, Coord[2], &BlockBoundaryZ[i]); i++)
+      int num_blocks=NBz*NPz;
+      for(int i = 1; (i <= num_blocks)&&(Coord[2] > RealBlockBoundaryZ[i]); i++)
       {
         ++BlockID3D[2];
       }
     }
-
     return Convert3Dto1Dlong(BlockID3D[0], BlockID3D[1], BlockID3D[2], NBx * NPx, NBy * NPy);
   }
 

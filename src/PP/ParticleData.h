@@ -60,7 +60,7 @@ namespace PPlib
     double CurrentTime;
 
     //! どの時点の粒子データかを格納する(タイムステップ)
-    unsigned int CurrentTimeStep;
+    int CurrentTimeStep;
 
     ///////////////////////////////////////////////////////////////////////////////////
     //

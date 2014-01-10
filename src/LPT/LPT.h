@@ -36,6 +36,9 @@ namespace LPT
   class LPT
   {
   private:
+    //! LPT_Initialize()が正常に終了したかどうかを表すフラグ
+    bool initialized;
+
     //! 自RankのRank番号
     int MyRank;
 
@@ -139,7 +142,7 @@ namespace LPT
 
   private:
     //Singletonパターンを適用
-    LPT()
+    LPT():initialized(false)
     {
       MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
       MPI_Comm_size(MPI_COMM_WORLD, &NProc);
@@ -153,7 +156,7 @@ namespace LPT
     {
     }
     void DeleteSendBuff(std::list< DSlib::CommDataBlockManager* >* SendBuff);
-    void CalcParticle(PPlib::PP_Transport* Transport, PPlib::PPlib* ptrPPlib, const int& ArrivedBlockID, std::list<PPlib::ParticleData*>* WorkParticles, const double& deltaT, const int& divT, REAL_TYPE* v00, DSlib::DSlib* ptrDSlib, const double& CurrentTime, const double& CurrentTimeStep);
+    void CalcParticle(PPlib::PP_Transport* Transport, PPlib::PPlib* ptrPPlib, const int& ArrivedBlockID, std::list<PPlib::ParticleData*>* WorkParticles, const double& deltaT, const int& divT, REAL_TYPE* v00, DSlib::DSlib* ptrDSlib, const double& CurrentTime, const int& CurrentTimeStep);
 
   public:
     static LPT *GetInstance()

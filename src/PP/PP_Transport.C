@@ -16,7 +16,7 @@
 
 namespace PPlib
 {
-  void PP_Transport::UpdateParticle(ParticleData * Particle, const double &CurrentTime, const unsigned int &CurrentTimeStep, REAL_TYPE * Coord )
+  void PP_Transport::UpdateParticle(ParticleData* Particle, const double &CurrentTime, const int &CurrentTimeStep, REAL_TYPE * Coord )
   {
     Particle->CurrentTime = CurrentTime;
     Particle->CurrentTimeStep = CurrentTimeStep;
@@ -24,7 +24,7 @@ namespace PPlib
     Particle->y = Coord[1];
     Particle->z = Coord[2];
   }
-  int PP_Transport::Calc(ParticleData * Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const unsigned int &CurrentTimeStep)
+  int PP_Transport::Calc(ParticleData* Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const int &CurrentTimeStep)
   {
     //もし計算済の粒子だったらすぐにreturn
     if(CurrentTimeStep <= Particle->CurrentTimeStep)
@@ -50,17 +50,15 @@ namespace PPlib
       numT = divT;
     }
 
-    //計算用の一時配列に粒子座標をコピー
     LPT::LPT_LOG::GetInstance()->LOG("Coord before calc = ", x_new, 3);
-
-    long old_BlockID_in_ParticleData=-1;
+    long old_BlockID_in_ParticleData=Particle->BlockID;
     long NewBlockID=-1;
     for(int t = 0; t < numT; t++) {
       NewBlockID = ptrDM->FindBlockIDByCoordLinear(x_new);
       if(gus->GetBlockID() != NewBlockID) {
         LPT::LPT_LOG::GetInstance()->LOG("New BlockID = ", NewBlockID);
-
         int retval = ptrDSlib->Load(NewBlockID, &LoadedDataBlock);
+
         if(retval == 1 || retval == 2){
           //再度PP_Transport::Calcが呼び出されるので、粒子データは変更せずに終了
           return 3;

@@ -12,7 +12,7 @@ namespace LPT
 
   void LPT_ParticleOutput::WriteRecordHeader()
   {
-    unsigned long ParticleSize = Particles->size();
+    unsigned long ParticleSize = Particles.size();
 
     if(ParticleSize > 0) {
       Out.write((char *)&ParticleSize, sizeof(unsigned long));
@@ -21,9 +21,10 @@ namespace LPT
 
   void LPT_ParticleOutput::WriteRecord()
   {
-    for(std::multimap< long, PPlib::ParticleData*>::iterator it = Particles->begin(); it != Particles->end(); ++it) {
-      (*it).second->BinaryWrite(Out);
+    for(std::list<PPlib::ParticleData*>::iterator it = Particles.begin(); it != Particles.end(); ++it) {
+      (*it)->BinaryWrite(Out);
     }
+    Particles.clear();
   }
 
 } //namespace LPT

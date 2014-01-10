@@ -7,6 +7,7 @@
 //ParticleData.hは粒子データフォーマットのバージョン番号
 //(マクロ変数 PARTICLE_DATA_FORMAT_VERSION)を取得するためにincludeしている
 #include "ParticleData.h"
+#include "ParticleContainer.h"
 
 namespace LPT
 {
@@ -17,7 +18,7 @@ namespace LPT
     std::ofstream Out;
 
     /// 出力する粒子データのリストへのポインタ
-    std::multimap < long, PPlib::ParticleData *> *Particles;
+    std::list<PPlib::ParticleData *> Particles;
 
     /// Byte Order Mark (big/little Endian判別用のデータ) を格納する配列
     int BOM[4];
@@ -47,7 +48,6 @@ namespace LPT
       {
         initialized = true;
         instance.Out.open((FileManager::GetInstance()->GetFileName("prt")).c_str(), std::ios::binary);
-        instance.Particles = NULL;
         instance.BOM[0] = 0xff;
         instance.BOM[1] = 0xef;
         instance.BOM[2] = 0xff;
@@ -59,9 +59,19 @@ namespace LPT
     }
 
     /// 出力する粒子データを受け取る
-    void SetParticles(std::multimap < long, PPlib::ParticleData *> * Particles) 
+    void SetParticles(std::list<PPlib::ParticleData*>* arg_Particles) 
     {
-      this->Particles = Particles;
+      Particles.swap(*arg_Particles);
+    }
+
+    /// 出力する粒子データを受け取る
+    void SetParticles(PPlib::ParticleContainer* arg_Particles) 
+    {
+      Particles.clear();
+      for (PPlib::ParticleContainerIterator it=arg_Particles->begin(); it !=arg_Particles->end();++it)
+      {
+        Particles.push_back(*it);
+      }
     };
     void WriteFileHeader();
     void WriteRecordHeader();

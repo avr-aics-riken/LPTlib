@@ -31,7 +31,7 @@ namespace PPlib
     out.write((char *)&(this->StartTime), sizeof(double));
     out.write((char *)&(this->LifeTime), sizeof(double));
     out.write((char *)&(this->CurrentTime), sizeof(double));
-    out.write((char *)&(this->CurrentTimeStep), sizeof(unsigned int));
+    out.write((char *)&(this->CurrentTimeStep), sizeof(int));
   }
 
   void ParticleData::BinaryRead(std::ifstream & in)
@@ -49,7 +49,7 @@ namespace PPlib
     in.read((char *)&(this->StartTime), sizeof(double));
     in.read((char *)&(this->LifeTime), sizeof(double));
     in.read((char *)&(this->CurrentTime), sizeof(double));
-    in.read((char *)&(this->CurrentTimeStep), sizeof(unsigned int));
+    in.read((char *)&(this->CurrentTimeStep), sizeof(int));
   }
 
 } // namespace PPlib

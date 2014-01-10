@@ -71,7 +71,7 @@ namespace PPlib
     void DividePoints(std::vector < REAL_TYPE >* Coords, const int& NumPoints, const REAL_TYPE Coord1[3], const REAL_TYPE Coord2[3]);
 
     //! @brief LatestEmitTimeからTimeSpan時間経過していた場合に、新しく粒子を放出する
-    void EmitNewParticle(std::list < ParticleData * >* ParticleList, const double &CurrentTime, const unsigned int &CurrentTimeStep);
+    void EmitNewParticle(std::list < ParticleData * >* ParticleList, const double &CurrentTime, const int &CurrentTimeStep);
 
     //! テキスト出力を行う
     virtual std::ostream & TextPrint(std::ostream & stream) const =0;

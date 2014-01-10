@@ -23,7 +23,24 @@ namespace PPlib
 
   void Line::GetGridPointCoord(std::vector < REAL_TYPE > &Coords)
   {
-    DividePoints(&Coords, GetSumStartPoints(), Coord1, Coord2);
+    std::vector<REAL_TYPE> coord_x;
+    utility::DivideLine1D(&coord_x, SumStartPoints, Coord1[0], Coord2[0]);
+    std::vector<REAL_TYPE> coord_y;
+    utility::DivideLine1D(&coord_y, SumStartPoints, Coord1[1], Coord2[1]);
+    std::vector<REAL_TYPE> coord_z;
+    utility::DivideLine1D(&coord_z, SumStartPoints, Coord1[2], Coord2[2]);
+
+    std::vector<REAL_TYPE>::iterator it_x = coord_x.begin();
+    std::vector<REAL_TYPE>::iterator it_y = coord_y.begin();
+    std::vector<REAL_TYPE>::iterator it_z = coord_z.begin();
+    for(int i=0;i<SumStartPoints;i++)
+    {
+       Coords.push_back(*it_x++);
+       Coords.push_back(*it_y++);
+       Coords.push_back(*it_z++);
+    }
+    
+    LPT::LPT_LOG::GetInstance()->LOG("Number of grid points = ", Coords.size()/3);
   }
 
   void Line::Divider(std::vector < StartPoint * >*StartPoints, const int &MaxNumStartPoints)
@@ -31,7 +48,6 @@ namespace PPlib
     //オブジェクトの開始点数が引数で指定された数以下の場合は、自分自身のコピーを格納したvectorを返す
     if(MaxNumStartPoints >= GetSumStartPoints()) {
       Line *NewLine = new Line(*this);
-
       StartPoints->push_back(NewLine);
       return;
     } else if(MaxNumStartPoints <= 0){
@@ -57,6 +73,7 @@ namespace PPlib
     for(int i = 0; i < NumParts; i++)
     {
       REAL_TYPE Coord1[3] = { (*itCoords++), (*itCoords++), (*itCoords++) };
+      itCoords+=3*(NumGridPoints-2);
       REAL_TYPE Coord2[3] = { (*itCoords++), (*itCoords++), (*itCoords++) };
       StartPoints->push_back(LineFactory::create(Coord1, Coord2, NumGridPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     }

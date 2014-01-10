@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <list>
+#include "LPT_LogOutput.h"
 #include "Interpolator.h"
 //forward declaration
 namespace DSlib
@@ -42,14 +43,14 @@ namespace PPlib
     //! 返り値が3の時は再計算用リストに登録すること
     //! 再計算用リストに登録された粒子データは全ての通信が完了した後で再計算を行う
     //! 返り値が4の時は計算終了とみなすので、呼び出し元では処理は不要
-    int Calc(ParticleData * Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const unsigned int &CurrentTimeStep);
+    int Calc(ParticleData * Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const int &CurrentTimeStep);
 
   private:
     /// 物理量の補間を行うオブジェクトへのポインタ
     Interpolator * gus;
 
     //! @brief 粒子データの時刻、タイムステップ、座標を更新する
-    void UpdateParticle(ParticleData * Particle, const double &CurrentTime, const unsigned int &CurrentTimeStep, REAL_TYPE * Coord );
+    void UpdateParticle(ParticleData * Particle, const double &CurrentTime, const int &CurrentTimeStep, REAL_TYPE * Coord );
 
     //! @brief 1タイムステップの間にCalc()が呼ばれた回数
     //ただし計算済の粒子を対象に呼んだ回数は除く

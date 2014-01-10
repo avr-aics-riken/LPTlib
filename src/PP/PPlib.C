@@ -15,7 +15,7 @@
 
 namespace PPlib
 {
-  void PPlib::EmitNewParticles(const double &CurrentTime, const unsigned int &CurrentTimeStep)
+  void PPlib::EmitNewParticles(const double &CurrentTime, const int &CurrentTimeStep)
   {
     std::list < ParticleData * > tmpParticles;
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
@@ -28,7 +28,7 @@ namespace PPlib
       LPT::LPT_LOG::GetInstance()->INFO("Number of New Particles = ", tmpParticles.size());
       for(std::list<ParticleData * >::iterator it = tmpParticles.begin(); it!=tmpParticles.end();++it)
       {
-        Particles.insert(std::make_pair((*it)->BlockID, (*it)));
+        Particles.insert(*it);
       }
     }
   }
@@ -39,8 +39,8 @@ namespace PPlib
     std::set < long >tmpIDs;
 
     //ブロックIDの集合(重複無し)を作る
-    for( std::multimap< long, ParticleData*>::iterator it = Particles.begin(); it != Particles.end(); ++it) {
-      tmpIDs.insert((*it).second->BlockID);
+    for(ParticleContainer::iterator it = Particles.begin(); it != Particles.end(); ++it) {
+      tmpIDs.insert((*it)->BlockID);
     }
 
     //周辺のデータブロックを探す(元のデータブロックも含む)
@@ -68,10 +68,10 @@ namespace PPlib
 
   void PPlib::DestroyExpiredParticles(const double &CurrentTime)
   {
-    for( std::multimap< long, ParticleData*>::iterator it = Particles.begin(); it != Particles.end();) {
-      if(isExpired(CurrentTime, (*it).second)) {
-        LPT::LPT_LOG::GetInstance()->INFO("Particle Deleted. ID= ", (*it).second->GetID());
-        delete (*it).second;
+    for( ParticleContainer::iterator it = Particles.begin(); it != Particles.end();) {
+      if(isExpired(CurrentTime, *it)) {
+        LPT::LPT_LOG::GetInstance()->INFO("Particle Deleted. ID= ", (*it)->GetID());
+        delete *it;
         Particles.erase(it++);
       } else {
         ++it;
@@ -183,33 +183,33 @@ namespace PPlib
 
     //開始点の格子座標をTimeStep0の粒子として出力
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it) {
-      std::multimap < long, ParticleData *> ParticleList;
+      std::list< ParticleData *> ParticleList;
       for(int i = 0; i < (*it)->GetSumStartPoints(); i++) {
         ParticleData *tmp = new ParticleData;
-        ParticleList.insert(std::make_pair(-1,tmp));
+        ParticleList.push_back(tmp);
       }
 
       std::vector < REAL_TYPE > Coords;
       (*it)->GetGridPointCoord(Coords);
       std::vector < REAL_TYPE >::iterator itCoords = Coords.begin();
 
-      for(std::multimap < long, ParticleData *>::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
-        (*it_list).second->StartPointID1   = (*it)->GetID1();
-        (*it_list).second->StartPointID2   = (*it)->GetID2();
-        (*it_list).second->ParticleID      = 0;
-        (*it_list).second->StartTime       = 0.0;
-        (*it_list).second->LifeTime        = 0.0;
-        (*it_list).second->CurrentTime     = 0.0;
-        (*it_list).second->CurrentTimeStep = 0;
-        (*it_list).second->x = (*itCoords++);
-        (*it_list).second->y = (*itCoords++);
-        (*it_list).second->z = (*itCoords++);
+      for(std::list<ParticleData *>::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
+        (*it_list)->StartPointID1   = (*it)->GetID1();
+        (*it_list)->StartPointID2   = (*it)->GetID2();
+        (*it_list)->ParticleID      = 0;
+        (*it_list)->StartTime       = 0.0;
+        (*it_list)->LifeTime        = 0.0;
+        (*it_list)->CurrentTime     = 0.0;
+        (*it_list)->CurrentTimeStep = 0;
+        (*it_list)->x = (*itCoords++);
+        (*it_list)->y = (*itCoords++);
+        (*it_list)->z = (*itCoords++);
       }
       LPT::LPT_ParticleOutput::GetInstance()->SetParticles(&ParticleList);
       LPT::LPT_ParticleOutput::GetInstance()->WriteRecordHeader();
       LPT::LPT_ParticleOutput::GetInstance()->WriteRecord();
-      for(std::multimap < long, ParticleData *>::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
-        delete (*it_list).second;
+      for(std::list<ParticleData *>::iterator it_list = ParticleList.begin(); it_list != ParticleList.end(); ++it_list) {
+        delete *it_list;
       }
     }
 

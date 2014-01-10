@@ -187,8 +187,8 @@ namespace DSlib
         for(int k = 0; k < Header->BlockSize[1]; k++) {
 #pragma ivdep
           for(int j = 0; j < Header->BlockSize[0]; j++) {
-            SendBuff[indexS + j] = Data[BlockLocalOffset + ptrDM->Convert4Dto1D(j, k, l, i, SubDomainSize[0], SubDomainSize[1], SubDomainSize[2])] 
-                                 * Mask[BlockLocalOffset + ptrDM->Convert3Dto1D(j, k, l, SubDomainSize[0], SubDomainSize[1])];
+            SendBuff[indexS + j] = Data[BlockLocalOffset + DecompositionManager::Convert4Dto1D(j, k, l, i, SubDomainSize[0], SubDomainSize[1], SubDomainSize[2])] 
+                                 * Mask[BlockLocalOffset + DecompositionManager::Convert3Dto1D(j, k, l, SubDomainSize[0], SubDomainSize[1])];
           }
           indexS += Header->BlockSize[0];
         }

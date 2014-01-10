@@ -94,13 +94,18 @@ namespace PPlib
 
   void utility::DivideLine1D(std::vector<REAL_TYPE>* rt, const int& num_points, const REAL_TYPE& point1, const REAL_TYPE& point2)
   {
-    if(num_points ==1 || point1 == point2)
+    if(num_points ==1)
     {
       rt->push_back(point1);
     }else{
       for(int i=0;i<num_points;i++)
       {
-        rt->push_back(point1 + (point2 - point1)/(num_points - 1) * i);
+        if (point1 != point2)
+        {
+          rt->push_back(point1 + (point2 - point1)/(num_points - 1) * i);
+        }else{
+          rt->push_back(point1);
+        }
       }
     }
     std::sort(rt->begin(), rt->end());

@@ -19,7 +19,7 @@ namespace PPlib
     return stream;
   }
 
-  void StartPoint::EmitNewParticle(std::list < ParticleData * >* ParticleList, const double &CurrentTime, const unsigned int &CurrentTimeStep) {
+  void StartPoint::EmitNewParticle(std::list < ParticleData * >* ParticleList, const double &CurrentTime, const int &CurrentTimeStep) {
     static int id = 0;
     bool DoEmit = false;
 
@@ -60,10 +60,10 @@ namespace PPlib
         (*it)->StartTime = CurrentTime;
         (*it)->LifeTime = ParticleLifeTime;
         //放出直後の時刻は不正値(-1.0)を入れておく
-        //TimeStepは計算前なのでCurrentTimeStep -1の値とする
-        //PP_Transport内で計算されたタイミングで更新後の時刻、タイムステップが代入される
         (*it)->CurrentTime = -1.0;
-        (*it)->CurrentTimeStep = CurrentTimeStep-1; 
+        //放出されたタイミングでは粒子移動の計算前なのでCurrentTimeStep -1の値とする
+        //PP_Transport内で計算されたタイミングで更新後の時刻、タイムステップが代入される
+        (*it)->CurrentTimeStep = CurrentTimeStep-1;
         (*it)->x = (*itCoords++);
         (*it)->y = (*itCoords++);
         (*it)->z = (*itCoords++);

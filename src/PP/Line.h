@@ -59,6 +59,11 @@ namespace PPlib
       for(int i = 0; i < 3; i++) {
         this->Coord2[i] = Coord[i];
     }};
+    void GetCoord1(REAL_TYPE * Coord)
+    {
+      for(int i = 0; i < 3; i++) {
+        Coord[i] = this->Coord1[i];
+      }};
     void GetCoord2(REAL_TYPE * Coord)
     {
       for(int i = 0; i < 3; i++) {
