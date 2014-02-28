@@ -5,76 +5,17 @@
 #include "Interpolator.h"
 #include "DecompositionManager.h"
 #include "LPT_LogOutput.h"
+#include "DataBlock.h"
 
 namespace PPlib
 {
-  bool Interpolator::setup(DSlib::DataBlock * DataBlock)
+  bool Interpolator::InterpolateData(const DSlib::DataBlock& DataBlock, const REAL_TYPE x_I[3], REAL_TYPE dval[3])
   {
-    if((DataBlock == NULL)
-        ||(DataBlock->Pitch[0] <= 0.0 || DataBlock->Pitch[1] <= 0.0 || DataBlock->Pitch[2] <= 0.0)
-        ||(DataBlock->BlockSize[0] * DataBlock->BlockSize[1] * DataBlock->BlockSize[2] < 1))
-    //TODO  エラー発生時にfalseを返すのではなく例外を投げるorアボート
-      return false;
-
-
-    m_dims[0] = DataBlock->BlockSize[0];
-    m_dims[1] = DataBlock->BlockSize[1];
-    m_dims[2] = DataBlock->BlockSize[2];
-    p_vecd = DataBlock->Data;
-    m_vecLen = 3;
-    m_halo = DSlib::DecompositionManager::GetInstance()->GetGuideCellSize();
-    m_orig[0] = DataBlock->Origin[0];
-    m_orig[1] = DataBlock->Origin[1];
-    m_orig[2] = DataBlock->Origin[2];
-    m_pitch[0] = DataBlock->Pitch[0];
-    m_pitch[1] = DataBlock->Pitch[1];
-    m_pitch[2] = DataBlock->Pitch[2];
-    BlockID    = DataBlock->BlockID;
-
-    return true;
-  }
-
-  bool Interpolator::InterpolateData(const REAL_TYPE x_I[3], REAL_TYPE dval[3])
-  {
-    if(!p_vecd) return false;
+    if(!DataBlock.Data) return false;
 
     int i = int (x_I[0]);
     int j = int (x_I[1]);
     int k = int (x_I[2]);
-
-    if(x_I[0] > m_dims[0] - 1) {
-      i = m_dims[0] - 1;
-      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[0]  is too large");
-      LPT::LPT_LOG::GetInstance()->LOG("x_I[0] = ", x_I[0]);
-      LPT::LPT_LOG::GetInstance()->LOG("m_dims[0] - 1 = ", m_dims[0] - 1);
-
-    } else if(x_I[0] < 0) {
-      i = 0;
-      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[0]  is too small");
-      LPT::LPT_LOG::GetInstance()->LOG("x_I[0] = ", x_I[0]);
-    }
-
-    if(x_I[1] > m_dims[1] - 1) {
-      j = m_dims[1] - 1;
-      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[1]  is too large");
-      LPT::LPT_LOG::GetInstance()->LOG("x_I[1] = ", x_I[1]);
-      LPT::LPT_LOG::GetInstance()->LOG("m_dims[1] - 1 = ", m_dims[1] - 1);
-    } else if(x_I[1] < 0) {
-      j = 0;
-      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[1]  is too small");
-      LPT::LPT_LOG::GetInstance()->LOG("x_I[1] = ", x_I[1]);
-    }
-
-    if(x_I[2] > m_dims[2] - 1) {
-      k = m_dims[2] - 1;
-      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[2]  is too large");
-      LPT::LPT_LOG::GetInstance()->LOG("x_I[2] = ", x_I[2]);
-      LPT::LPT_LOG::GetInstance()->LOG("m_dims[2] - 1 = ", m_dims[2] - 1);
-    } else if(x_I[2] < 0) {
-      k = 0;
-      LPT::LPT_LOG::GetInstance()->LOG("using extrapolation:x_i[2]  is too small");
-      LPT::LPT_LOG::GetInstance()->LOG("x_I[2] = ", x_I[2]);
-    }
 
     REAL_TYPE ip = x_I[0] - (REAL_TYPE) i;
     REAL_TYPE jp = x_I[1] - (REAL_TYPE) j;
@@ -83,32 +24,36 @@ namespace PPlib
     REAL_TYPE jm = (REAL_TYPE) (j + 1) - x_I[1];
     REAL_TYPE km = (REAL_TYPE) (k + 1) - x_I[2];
 
+#define INDEX(i,j,k,l) ((i)+(j)*DataBlock.BlockSize[0]+(k)*DataBlock.BlockSize[0]*DataBlock.BlockSize[1]+l*DataBlock.BlockSize[0]*DataBlock.BlockSize[1]*DataBlock.BlockSize[2])
     for(int l = 0; l < 3; l++) {
-      dval[l] = (im * jm * km * p_vecd[(i  ) + (j  ) * m_dims[0] + (k  ) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i,  j,  k  )
-                +ip * jm * km * p_vecd[(i+1) + (j  ) * m_dims[0] + (k  ) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i+1,j,  k  )
-                +ip * jp * km * p_vecd[(i+1) + (j+1) * m_dims[0] + (k  ) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i+1,j+1,k  )
-                +im * jp * km * p_vecd[(i  ) + (j+1) * m_dims[0] + (k  ) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i,  j+1,k  )
-                +im * jm * kp * p_vecd[(i  ) + (j  ) * m_dims[0] + (k+1) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i,  j,  k+1)
-                +ip * jm * kp * p_vecd[(i+1) + (j  ) * m_dims[0] + (k+1) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i+1,j  ,k+1)
-                +ip * jp * kp * p_vecd[(i+1) + (j+1) * m_dims[0] + (k+1) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i+1,j+1,k+1)
-                +im * jp * kp * p_vecd[(i  ) + (j+1) * m_dims[0] + (k+1) * m_dims[0] * m_dims[1] + l * m_dims[0] * m_dims[1] * m_dims[2]] // (i,  j+1,k+1)
+      dval[l] = (im * jm * km * DataBlock.Data[(i  ) + (j  ) * DataBlock.BlockSize[0] + (k  ) * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] + l * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] * DataBlock.BlockSize[2]] // (i,  j,  k  )
+                +ip * jm * km * DataBlock.Data[(i+1) + (j  ) * DataBlock.BlockSize[0] + (k  ) * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] + l * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] * DataBlock.BlockSize[2]] // (i+1,j,  k  )
+                +ip * jp * km * DataBlock.Data[(i+1) + (j+1) * DataBlock.BlockSize[0] + (k  ) * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] + l * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] * DataBlock.BlockSize[2]] // (i+1,j+1,k  )
+                +im * jp * km * DataBlock.Data[(i  ) + (j+1) * DataBlock.BlockSize[0] + (k  ) * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] + l * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] * DataBlock.BlockSize[2]] // (i,  j+1,k  )
+                +im * jm * kp * DataBlock.Data[(i  ) + (j  ) * DataBlock.BlockSize[0] + (k+1) * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] + l * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] * DataBlock.BlockSize[2]] // (i,  j,  k+1)
+                +ip * jm * kp * DataBlock.Data[(i+1) + (j  ) * DataBlock.BlockSize[0] + (k+1) * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] + l * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] * DataBlock.BlockSize[2]] // (i+1,j  ,k+1)
+                +ip * jp * kp * DataBlock.Data[(i+1) + (j+1) * DataBlock.BlockSize[0] + (k+1) * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] + l * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] * DataBlock.BlockSize[2]] // (i+1,j+1,k+1)
+                +im * jp * kp * DataBlock.Data[(i  ) + (j+1) * DataBlock.BlockSize[0] + (k+1) * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] + l * DataBlock.BlockSize[0] * DataBlock.BlockSize[1] * DataBlock.BlockSize[2]] // (i,  j+1,k+1)
                 );
     }
+#undef INDEX
     return true;
   }
 
-  void Interpolator::ConvItoX(const REAL_TYPE x_I[3], REAL_TYPE x[3])
+  void Interpolator::ConvXtoI(const REAL_TYPE x_g[3], REAL_TYPE x_l[3], const REAL_TYPE orig[3], const REAL_TYPE pitch[3])
   {
-    x[0] = m_orig[0] + (x_I[0] - (m_halo - 0.5)) * m_pitch[0];
-    x[1] = m_orig[1] + (x_I[1] - (m_halo - 0.5)) * m_pitch[1];
-    x[2] = m_orig[2] + (x_I[2] - (m_halo - 0.5)) * m_pitch[2];
+    static const int halo=DSlib::DecompositionManager::GetInstance()->GetGuideCellSize();
+    x_l[0] = ((x_g[0] - orig[0]) / pitch[0] + (halo - 0.5));
+    x_l[1] = ((x_g[1] - orig[1]) / pitch[1] + (halo - 0.5));
+    x_l[2] = ((x_g[2] - orig[2]) / pitch[2] + (halo - 0.5));
   }
 
-  void Interpolator::ConvXtoI(const REAL_TYPE x[3], REAL_TYPE x_i[3])
+  void Interpolator::ConvItoX(const REAL_TYPE x_l[3], REAL_TYPE x_g[3], const REAL_TYPE orig[3], const REAL_TYPE pitch[3])
   {
-    x_i[0] = ((x[0] - m_orig[0]) / m_pitch[0] + (m_halo - 0.5));
-    x_i[1] = ((x[1] - m_orig[1]) / m_pitch[1] + (m_halo - 0.5));
-    x_i[2] = ((x[2] - m_orig[2]) / m_pitch[2] + (m_halo - 0.5));
+    static const int halo=DSlib::DecompositionManager::GetInstance()->GetGuideCellSize();
+    x_g[0] = orig[0] + (x_l[0] - (halo - 0.5)) * pitch[0];
+    x_g[1] = orig[1] + (x_l[1] - (halo - 0.5)) * pitch[1];
+    x_g[2] = orig[2] + (x_l[2] - (halo - 0.5)) * pitch[2];
   }
 
 } // namespace PPlib

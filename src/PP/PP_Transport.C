@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <cmath>
+#include <omp.h>
 
 #include "PPlib.h"
 #include "Interpolator.h"
@@ -16,7 +17,7 @@
 
 namespace PPlib
 {
-  void PP_Transport::UpdateParticle(ParticleData* Particle, const double &CurrentTime, const int &CurrentTimeStep, REAL_TYPE * Coord )
+  void PP_Transport::UpdateParticle(ParticleData* Particle, const double &CurrentTime, const int &CurrentTimeStep, REAL_TYPE * Coord)
   {
     Particle->CurrentTime = CurrentTime;
     Particle->CurrentTimeStep = CurrentTimeStep;
@@ -24,22 +25,23 @@ namespace PPlib
     Particle->y = Coord[1];
     Particle->z = Coord[2];
   }
-  int PP_Transport::Calc(ParticleData* Particle, const double &deltaT, const int &divT, REAL_TYPE * v00, DSlib::DSlib * ptrDSlib, const double &CurrentTime, const int &CurrentTimeStep)
+  int PP_Transport::Calc(ParticleData* Particle, const double &deltaT, const int &divT, REAL_TYPE* v00, const double &CurrentTime, const int &CurrentTimeStep)
   {
     //もし計算済の粒子だったらすぐにreturn
     if(CurrentTimeStep <= Particle->CurrentTimeStep)
     {
-      return 0;
+      return 5;
     }
     num_called++;
 
-    DSlib::DecompositionManager * ptrDM = DSlib::DecompositionManager::GetInstance();
+    DSlib::DecompositionManager* ptrDM = DSlib::DecompositionManager::GetInstance();
+    DSlib::DSlib*             ptrDSlib = DSlib::DSlib::GetInstance();
     REAL_TYPE x_i[3];
     REAL_TYPE x_new[3] = {Particle->x, Particle->y, Particle->z};
     REAL_TYPE v[3];
-    DSlib::DataBlock * LoadedDataBlock;
 
-    LPT::LPT_LOG::GetInstance()->LOG("Old BlockID = ", gus->GetBlockID());
+
+    if(LoadedDataBlock != NULL) LPT::LPT_LOG::GetInstance()->LOG("Old BlockID = ", LoadedDataBlock->BlockID);
 
     // deltaTの再分割
     double dt = deltaT;
@@ -55,12 +57,12 @@ namespace PPlib
     long NewBlockID=-1;
     for(int t = 0; t < numT; t++) {
       NewBlockID = ptrDM->FindBlockIDByCoordLinear(x_new);
-      if(gus->GetBlockID() != NewBlockID) {
+      if(LoadedDataBlock == NULL || LoadedDataBlock->BlockID != NewBlockID) {
         LPT::LPT_LOG::GetInstance()->LOG("New BlockID = ", NewBlockID);
         int retval = ptrDSlib->Load(NewBlockID, &LoadedDataBlock);
-
         if(retval == 1 || retval == 2){
-          //再度PP_Transport::Calcが呼び出されるので、粒子データは変更せずに終了
+          //再度LPT_CalcParticleData()から呼び出されるので、今回は呼び出されなかったことにして終了
+          num_called--;
           return 3;
         } else if(retval == 4) {
           //現在の粒子座標をこのタイムステップでの更新後の座標として計算を終了
@@ -70,24 +72,23 @@ namespace PPlib
           LPT::LPT_LOG::GetInstance()->WARN("Particle moved too far. Particle ID = ", Particle->GetAllID());
           return 4;
         }
-        gus->setup(LoadedDataBlock);
       }
 
       // 粒子座標をデータブロック内の座標値に変換
 #ifdef __INTEL_COMPILER
 #pragma forceinline recursive
 #endif
-      gus->ConvXtoI(x_new, x_i);
+      Interpolator::ConvXtoI(x_new, x_i, LoadedDataBlock->Origin, LoadedDataBlock->Pitch);
 
       // ルンゲ=クッタ積分
-      int rkg = PP_Integrator::RKG(*gus, dt, x_i);
+      int rkg = PP_Integrator::RKG(*LoadedDataBlock, dt, x_i);
       if(rkg != 0) LPT::LPT_LOG::GetInstance()->WARN("return value from PP_Integrator::RKG = ", rkg);
 
       // 粒子座標の逆変換
 #ifdef __INTEL_COMPILER
 #pragma forceinline recursive
 #endif
-      gus->ConvItoX(x_i, x_new);
+      Interpolator::ConvItoX(x_i, x_new, LoadedDataBlock->Origin, LoadedDataBlock->Pitch);
 
       if(ptrDM->CheckBounds(x_new) != 0) return 1;
     } // end of for(t)
@@ -99,16 +100,17 @@ namespace PPlib
     NewBlockID = ptrDM->FindBlockIDByCoordLinear(x_new);
     Particle->BlockID = NewBlockID;
 
-    if(gus->GetBlockID() != NewBlockID) {
-      if(ptrDSlib->Load(NewBlockID, &LoadedDataBlock) == 0) {
-        gus->setup(LoadedDataBlock);
+    if(LoadedDataBlock == NULL || LoadedDataBlock->BlockID != NewBlockID) {
+        int retval = ptrDSlib->Load(NewBlockID, &LoadedDataBlock);
+      if(retval == 0) {
         //粒子がルンゲ=クッタの最後のステップで別のデータブロックに移動し
         //なおかつ、移動先のデータブロックがキャッシュ内にある場合のみ速度を再計算
 #ifdef __INTEL_COMPILER
 #pragma forceinline recursive
 #endif
-        gus->InterpolateData(x_i, v);
+        Interpolator::InterpolateData(*LoadedDataBlock, x_i, v);
       } else {
+        counter++;
         LPT::LPT_LOG::GetInstance()->LOG("Requested Block was not found. using old ParticleVelocity for this time step");
         LPT::LPT_LOG::GetInstance()->LOG("Current Time = ", Particle->CurrentTime);
         LPT::LPT_LOG::GetInstance()->LOG("ParticleID = ", Particle->GetAllID());
@@ -119,7 +121,7 @@ namespace PPlib
 #ifdef __INTEL_COMPILER
 #pragma forceinline recursive
 #endif
-    gus->InterpolateData(x_i, v);
+    Interpolator::InterpolateData(*LoadedDataBlock, x_i, v);
 
     Particle->Vx = v[0] - v00[0];
     Particle->Vy = v[1] - v00[1];

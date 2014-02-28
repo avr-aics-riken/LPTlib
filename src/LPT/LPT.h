@@ -36,6 +36,24 @@ namespace LPT
   class LPT
   {
   private:
+    //Singletonパターンを適用
+    LPT():initialized(false)
+    {
+      MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
+      MPI_Comm_size(MPI_COMM_WORLD, &NProc);
+      NumPolling = 10000;
+      PollingRatio = 0.8;
+    }
+    LPT(const LPT & obj);
+    LPT & operator=(const LPT & obj);
+    ~LPT() {}
+  public:
+    static LPT *GetInstance()
+    {
+      static LPT instance;
+      return &instance;
+    }
+  private:
     //! LPT_Initialize()が正常に終了したかどうかを表すフラグ
     bool initialized;
 
@@ -47,6 +65,12 @@ namespace LPT
 
     //! データブロックの到着をポーリングする回数
     int NumPolling;
+
+    //! データブロックの到着をポーリングする割合
+    //
+    //要求したデータブロック数*PollingRatio < 到着したデータブロック数
+    //となったらMPI_Testを止めてMPI_Waitに切り替える
+    float PollingRatio;
 
     //! @brief ソルバー側からLPT_SetStartPoint*() 経由で渡されてきた開始点のインスタンスを一時保存するvector
     //! PPlibのインスタンス生成後にそっちに渡して中身は破棄する
@@ -78,18 +102,19 @@ namespace LPT
     //! この後にRank番号を付け加えたものが実際のファイル名となる
       std::string OutputFileName;
 
-  public:
     //! DSlibのオブジェクトへのポインタ
       DSlib::DSlib * ptrDSlib;
-
-    //! Communicatorのオブジェクトへのポインタ
-      DSlib::Communicator * ptrComm;
 
     //! DecompositionManagerのオブジェクトへのポインタ
       DSlib::DecompositionManager * ptrDM;
 
     //! PPlibのオブジェクトへのポインタ
-      PPlib::PPlib * ptrPPlib;
+      PPlib::PPlib* ptrPPlib;
+
+  public:
+    //! Communicatorのオブジェクトへのポインタ
+      DSlib::Communicator * ptrComm;
+
 
     //!  @brief 粒子計算に必要なパラメータを受け取り、DSlib, PPlib等のインスタンスを生成する
     //! 開始点のインスタンス生成およびデータ分散もこの関数内で処理する
@@ -140,35 +165,25 @@ namespace LPT
       this->NumPolling = NumPolling;
     };
 
+    //! MPI_Testによるポーリング比率を取得
+    float GetPollingRatio()
+    {
+      return this->PollingRatio;
+    };
+
+    //! MPI_Testによるポーリング比率を設定
+    void SetPollingRatio(const float &PollingRatio)
+    {
+      this->PollingRatio = PollingRatio;
+    };
+
+
   private:
-    //Singletonパターンを適用
-    LPT():initialized(false)
-    {
-      MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-      MPI_Comm_size(MPI_COMM_WORLD, &NProc);
-      NumPolling = 10;
-    }
-    LPT(const LPT & obj);
-    LPT & operator=(const LPT & obj);
+    //! 送受信バッファの管理に使っていたCommDataBlockManagerのオブジェクトを削除する
+    //
+    //オブジェクトが保持する個々の領域はデストラクタ内でdeleteされる
+  void DeleteCommBuff(std::list< DSlib::CommDataBlockManager* >* SendBuff, std::list< DSlib::CommDataBlockManager* >* RecvBuff);
 
-    //! デストラクタ
-    ~LPT()
-    {
-    }
-    void DeleteSendBuff(std::list< DSlib::CommDataBlockManager* >* SendBuff);
-    void CalcParticle(PPlib::PP_Transport* Transport, PPlib::PPlib* ptrPPlib, const int& ArrivedBlockID, std::list<PPlib::ParticleData*>* WorkParticles, const double& deltaT, const int& divT, REAL_TYPE* v00, DSlib::DSlib* ptrDSlib, const double& CurrentTime, const int& CurrentTimeStep);
-
-  public:
-    static LPT *GetInstance()
-    {
-      static LPT instance;
-      return &instance;
-    }
-
-    void PrintVectorSize(void)
-    {
-      std::cerr << "Allocated vector size in LPT = "<< StartPoints.capacity()*sizeof(size_t)<<std::endl;
-    }
   };
 
 } // namespace LPT

@@ -21,7 +21,6 @@ namespace DSlib
     }
     ~Cache()
     {
-      delete ptrData;
     }
 
   };

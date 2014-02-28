@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 #include "LPT_LogOutput.h"
+#include "PMlibWrapper.h"
 
 namespace DSlib
 {
@@ -20,8 +21,9 @@ namespace DSlib
   //! @brief データブロックのヘッダ部をまとめた構造体とデータ領域ヘのポインタ、それぞれの転送用MPI_Request変数をまとめて保持するクラス
   //!
   //! サイズ指定のコンストラクタを呼ぶと、データ領域用のメモリ(Buff)を指定されたサイズで確保する
-  //! Buffは、DSlib::AddCache()内でキャッシュにポインタを移動されBuffにはNULLが代入されるので
-  //！デストラクタ内でBuffを解放しているが、通常はこの処理ではメモリ領域は解放されないはず
+  //! 受信側はBuffは、DSlib::AddCache()内でキャッシュにポインタを移動されBuffにはNULLが代入されるので
+  //! デストラクタ内のdeleteでは解放されない。
+  //! 逆に送信側ではこのdleteで全て解放される
   class CommDataBlockManager
   {
     public:
@@ -34,10 +36,13 @@ namespace DSlib
     {
       delete Header;
       delete [] Buff;
+      Buff=NULL;
     }
 
-    void Wait()
+    bool Wait()
     {
+      LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+        PM.start(PM.tm_MPI_Wait);
       MPI_Status status;
       if(MPI_SUCCESS != MPI_Wait(&Request0, &status)) {
         LPT::LPT_LOG::GetInstance()->ERROR("MPI_Wait 1 Failed");
@@ -45,10 +50,14 @@ namespace DSlib
       if(MPI_SUCCESS != MPI_Wait(&Request1, &status)) {
         LPT::LPT_LOG::GetInstance()->ERROR("MPI_Wait 2 Failed");
       }
+        PM.stop(PM.tm_MPI_Wait);
+      return true;
     }
 
     bool Test()
     {
+      LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+      PM.start(PM.tm_MPI_Test);
       MPI_Status status;
       int flag0 = 0;
       int flag1 = 0;
@@ -59,7 +68,9 @@ namespace DSlib
         LPT::LPT_LOG::GetInstance()->ERROR("MPI_Test for Header Failed");
       }
 
-      // MPI_Test後に flag == 0であれば転送は完了していない
+      PM.stop(PM.tm_MPI_Test);
+
+      // MPI_Test後に flag == 0の時、転送は未完了
       return (flag0!=0 && flag1!=0);
     }
 

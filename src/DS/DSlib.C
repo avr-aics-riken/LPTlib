@@ -3,11 +3,14 @@
 
 #include "DSlib.h"
 #include "LPT_LogOutput.h"
+#include "PMlibWrapper.h"
 
 namespace DSlib
 {
   void DSlib::DiscardCacheEntry(const int & j,Communicator * ptrComm )
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_PrepareComm);
     int MaxEntry;
       
     if(j==0)
@@ -28,6 +31,8 @@ namespace DSlib
       }
       ptrComm->SetSendRequestCounts(i,CountRequestQueues(i));
     }
+    PM.stop(PM.tm_PrepareComm);
+    LPT::LPT_LOG::GetInstance()->LOG("DiscardCache done");
   }
 
   ///@brief キャッシュサイズと転送量を元に何回転送が必要か計算する
@@ -36,6 +41,8 @@ namespace DSlib
   //             キャッシュ溢れが生じるので注意が必要
   int DSlib::CalcNumComm(Communicator * ptrComm)
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_CalcNumComm);
     int SumRequestCount = 0;
 
     for(int i = 0; i < ptrComm->GetNumProcs(); i++) {
@@ -57,7 +64,15 @@ namespace DSlib
         NumComm++;
       }
     }
-    return NumComm;
+    PM.stop(PM.tm_CalcNumComm);
+    LPT::LPT_LOG::GetInstance()->LOG("NumComm at this Rank = ", NumComm);
+    PM.start(PM.tm_CommNumComm);
+    int GlobalNumComm;
+    MPI_Allreduce(&NumComm, &GlobalNumComm, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    PM.stop(PM.tm_CommNumComm);
+    LPT::LPT_LOG::GetInstance()->LOG("CalcNumComm done");
+
+    return GlobalNumComm;
   }
 
   void DSlib::AddRequestQueues(const int &SubDomainID, const long &BlockID)
@@ -87,11 +102,21 @@ namespace DSlib
     RequestedBlocks.erase(BlockID);
   }
 
-  void DSlib::AddCachedBlocks(CommDataBlockManager * RecvData, const double &Time)
+  long DSlib::AddCachedBlocks(CommDataBlockManager* RecvData, const double &Time)
   {
-    if(CachedBlocks.size() < (CacheSize * 1024 * 1024 / sizeof(DataBlock))) {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_AddCache);
+    LPT::LPT_LOG::GetInstance()->LOG("Arrived Block = ", RecvData->Header->BlockID);
+    int ArrivedBlockID=-1;
+    // 次のif文内のCachedBlocks.size()はlockせずに実行しているので、
+    // 他のスレッドがpush_backする前のsizeを取得する可能性がある
+    // したがって、ワーストケースではキャッシュサイズを(スレッド数-1)*sizeof(DataBlock)
+    // 越えてしまう可能性があるが、性能を優先させるためにこの実装にしている
+    if(CachedBlocks.size() < (CacheSize * 1024 * 1024 / sizeof(DataBlock)))
+    {
+      ArrivedBlockID = RecvData->Header->BlockID;
       DataBlock *tmp = new DataBlock;
-      tmp->BlockID = RecvData->Header->BlockID;
+      tmp->BlockID = ArrivedBlockID;
       tmp->SubDomainID = RecvData->Header->SubDomainID;
       tmp->Time = Time;
       for(int i = 0; i < 3; i++) {
@@ -104,24 +129,33 @@ namespace DSlib
       RecvData->Buff=NULL;
 
       Cache *tmp2 = new Cache;
-      tmp2->BlockID = RecvData->Header->BlockID;
+      tmp2->BlockID = ArrivedBlockID;
       tmp2->ptrData = tmp;
+      omp_set_lock(&CachedBlocksLock);
       CachedBlocks.push_back(tmp2);
+      omp_unset_lock(&CachedBlocksLock);
     } else {
       LPT::LPT_LOG::GetInstance()->WARN("DataBlock Cache overflowed");
       LPT::LPT_LOG::GetInstance()->WARN("CachedBlocks size = ", CachedBlocks.size() );
       LPT::LPT_LOG::GetInstance()->WARN("Reserved cache size = ", (CacheSize * 1024 * 1024 / sizeof(DataBlock)));
     }
 
+    PM.stop(PM.tm_AddCache);
+    return ArrivedBlockID;
   }
 
   void DSlib::PurgeCachedBlocks(const int &NumEntry)
   {
+    //TODO rbeginからnum_del個削除するようにロジックを修正
+    // const int num_del =  NumEntry >= CachedBlocks.size() ? NumEntry : CachedBlocks.size();
     if(NumEntry >= CachedBlocks.size()) {
+    omp_set_lock(&CachedBlocksLock);
       for(std::CACHE_CONTAINER < Cache * >::iterator it = CachedBlocks.begin(); it != CachedBlocks.end(); ++it) {
-        delete(*it);
+        delete (*it)->ptrData;
+        delete *it;
       }
       std::CACHE_CONTAINER < Cache * >().swap(CachedBlocks);
+    omp_unset_lock(&CachedBlocksLock);
       LPT::LPT_LOG::GetInstance()->LOG("All CachedBlocks is purged");
     } else {
       int DeleteCount = 0;
@@ -131,11 +165,13 @@ namespace DSlib
         if(DeleteCount == NumEntry) {
           break;
         }
-        delete(*rit);
+        delete *rit;
         FirstEntry = rit.base();
         DeleteCount++;
       }
+    omp_set_lock(&CachedBlocksLock);
       CachedBlocks.erase(FirstEntry, CachedBlocks.end());
+    omp_unset_lock(&CachedBlocksLock);
       std::CACHE_CONTAINER < Cache * >(CachedBlocks).swap(CachedBlocks);
     }
 
@@ -143,26 +179,33 @@ namespace DSlib
 
   void DSlib::PurgeAllCacheLists(void)
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_Discard_Cache);
     for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); ++it) {
       std::vector<long>().swap(**it);
     }
     RequestedBlocks.clear();
     PurgeCachedBlocks(CachedBlocks.size());
+    PM.stop(PM.tm_Discard_Cache);
   }
 
   int DSlib::Load(const long &BlockID, DataBlock ** DataBlock)
   {
     //CachedBlocksの中を探索
+    bool found = false;
+    omp_set_lock(&CachedBlocksLock);
     for(std::CACHE_CONTAINER < Cache * >::iterator it = CachedBlocks.begin(); it != CachedBlocks.end(); ++it) {
       if((*it)->BlockID == BlockID) {
         *DataBlock = (*it)->ptrData;
         Cache *tmp_Cache = (*it);
-
         CachedBlocks.erase(it);
         CachedBlocks.push_front(tmp_Cache);
-        return 0;
+        found = true;
+        break;
       }
     }
+    omp_unset_lock(&CachedBlocksLock);
+    if(found) return 0;
 
     //RequestedBlocksの中を探索
     if(RequestedBlocks.end() == RequestedBlocks.find(BlockID)) {

@@ -186,8 +186,8 @@ namespace DSlib
     };
 
     //単体テスト用Getter/Setter
-#ifndef DEBUG
-  private:
+#ifdef DEBUG
+  public:
     void SetRecvRequestCounts(const int &SubDomainID, const int &Count)
     {
       RecvRequestCounts[SubDomainID] = Count;

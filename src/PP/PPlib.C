@@ -12,11 +12,14 @@
 #include "StartPointAll.h"
 #include "LPT_LogOutput.h"
 #include "LPT_ParticleOutput.h"
+#include "PMlibWrapper.h"
 
 namespace PPlib
 {
   void PPlib::EmitNewParticles(const double &CurrentTime, const int &CurrentTimeStep)
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_EmitParticle);
     std::list < ParticleData * > tmpParticles;
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
     {
@@ -31,10 +34,14 @@ namespace PPlib
         Particles.insert(*it);
       }
     }
+    PM.stop(PM.tm_EmitParticle);
+    LPT::LPT_LOG::GetInstance()->LOG("Particle Emission done");
   }
 
   void PPlib::MakeRequestQueues(DSlib::DSlib * ptrDSlib)
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_MakeRequestQ);
     DSlib::DecompositionManager * ptrDM = DSlib::DecompositionManager::GetInstance();
     std::set < long >tmpIDs;
 
@@ -55,6 +62,8 @@ namespace PPlib
 
       ptrDSlib->AddRequestQueues(SubDomainID, *it);
     }
+    PM.stop(PM.tm_MakeRequestQ);
+    LPT::LPT_LOG::GetInstance()->LOG("make request queues done");
   }
 
   template < typename T > bool PPlib::isExpired(const double &CurrentTime, T * obj)
@@ -68,6 +77,8 @@ namespace PPlib
 
   void PPlib::DestroyExpiredParticles(const double &CurrentTime)
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_DestroyParticle);
     for( ParticleContainer::iterator it = Particles.begin(); it != Particles.end();) {
       if(isExpired(CurrentTime, *it)) {
         LPT::LPT_LOG::GetInstance()->INFO("Particle Deleted. ID= ", (*it)->GetID());
@@ -77,10 +88,14 @@ namespace PPlib
         ++it;
       }
     }
+    PM.stop(PM.tm_DestroyParticle);
+    LPT::LPT_LOG::GetInstance()->LOG("destroy Particle done");
   }
 
   void PPlib::DestroyExpiredStartPoints(const double &CurrentTime)
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_DestroyStartPoints);
     for(std::vector < StartPoint * >::iterator it = StartPoints.begin(); it != StartPoints.end();) {
       if(isExpired(CurrentTime, (*it))) {
         LPT::LPT_LOG::GetInstance()->INFO("Start Point Deleted. ID= ", (*it)->GetID());
@@ -91,6 +106,8 @@ namespace PPlib
       }
     }
     std::vector<StartPoint *>(StartPoints).swap(StartPoints);
+    PM.stop(PM.tm_DestroyStartPoints);
+    LPT::LPT_LOG::GetInstance()->LOG("destroy Start point done");
   }
 
   void PPlib::DistributeStartPoints(const int &NParticleProcs)

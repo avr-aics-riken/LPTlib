@@ -6,7 +6,9 @@
 #include "Communicator.h"
 #include "DecompositionManager.h"
 #include "DSlib.h"
+#include "PMlibWrapper.h"
 #include "LPT_LogOutput.h"
+
 
 namespace DSlib
 {
@@ -34,14 +36,21 @@ namespace DSlib
 
   void Communicator::CommRequestsAlltoall()
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_AlltoAllRequest);
     int ierr = MPI_Alltoall(SendRequestCounts, 1, MPI_INT, RecvRequestCounts, 1, MPI_INT, Comm);
-
     if(ierr != MPI_SUCCESS)
+    {
       LPT::LPT_LOG::GetInstance()->ERROR("MPI_Alltoall returns error in DSlib::Communicator::CommRequestsAlltoall() ierr = ", ierr);
+    }
+    LPT::LPT_LOG::GetInstance()->LOG("AlltoAll request done");
+    PM.stop(PM.tm_AlltoAllRequest);
   }
 
   void Communicator::CommRequest(DSlib * ptrDSlib)
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_P2PRequest);
     int tag = 0;
     MPI_Request *array_of_requests = new MPI_Request[NumProcs];
     MPI_Request *array_of_requests2 = new MPI_Request[NumProcs];
@@ -91,10 +100,14 @@ namespace DSlib
     delete[]array_of_requests;
     delete[]array_of_requests2;
     delete[]array_of_statuses;
+    PM.stop(PM.tm_P2PRequest);
+    LPT::LPT_LOG::GetInstance()->LOG("P2P request done");
   }
 
   void Communicator::CommDataF2P(REAL_TYPE * Data, REAL_TYPE * v00, int *Mask, const int &vlen, std::list < CommDataBlockManager * >*SendBuff, std::list < CommDataBlockManager * >*RecvBuff)
   {
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start(PM.tm_CommDataF2P);
     //流体プロセスから粒子プロセスに要求されたデータブロックを1つづつ送る
     //prepare to recieve Datablocks
     DecompositionManager *ptrDM = DecompositionManager::GetInstance();
@@ -150,6 +163,7 @@ namespace DSlib
 
     SendBuffMemSize *= sizeof(REAL_TYPE);
     LPT::LPT_LOG::GetInstance()->LOG("Memory size for Send Buffer = ", SendBuffMemSize);
+    PM.stop(PM.tm_CommDataF2P);
   }
 
   void Communicator::CommPacking(const long &BlockID, REAL_TYPE * Data, int *Mask, const int &vlen, REAL_TYPE * SendBuff, CommDataBlockHeader * Header, int *SendSize, const int &MyRank)
@@ -185,7 +199,9 @@ namespace DSlib
     for(int i = 0; i < vlen; i++) {
       for(int l = 0; l < Header->BlockSize[2]; l++) {
         for(int k = 0; k < Header->BlockSize[1]; k++) {
+#ifdef __INTEL_COMPILER
 #pragma ivdep
+#endif
           for(int j = 0; j < Header->BlockSize[0]; j++) {
             SendBuff[indexS + j] = Data[BlockLocalOffset + DecompositionManager::Convert4Dto1D(j, k, l, i, SubDomainSize[0], SubDomainSize[1], SubDomainSize[2])] 
                                  * Mask[BlockLocalOffset + DecompositionManager::Convert3Dto1D(j, k, l, SubDomainSize[0], SubDomainSize[1])];

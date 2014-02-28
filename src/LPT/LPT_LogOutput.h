@@ -15,7 +15,7 @@ namespace LPT
   private:
     //Singletonパターンを適用
     LPT_LOG():
-#ifdef DEBUG
+#if defined(LPT_DEBUG) || defined(LPT_DEBUG_ENABLE)
       FileFlushFlag(true)
 #else
       FileFlushFlag(false)
@@ -34,23 +34,50 @@ namespace LPT
       static LPT_LOG instance;
       return &instance;
     }
+    void DEBUG(std::string message)
+    {
+#if defined(LPT_DEBUG_ENABLE) || defined(LPT_VERBOSE)
+      logfile << "LPT DEBUG  : " << message << "\n";
+      if(FileFlushFlag) logfile.flush();
+#endif
+    }
+    template < typename T > void DEBUG(std::string message, T value)
+    {
+#if defined(LPT_DEBUG_ENABLE) || defined(LPT_VERBOSE)
+      logfile << "LPT DEBUG  : " << message << value << "\n";
+      if(FileFlushFlag) logfile.flush();
+#endif
+    }
+    template < typename T > void DEBUG(std::string message, T * value, int max)
+    {
+#if defined(LPT_DEBUG_ENABLE) || defined(LPT_VERBOSE)
+      logfile << "LPT DEBUG  : " << message;
+      for(int i = 0; i < max - 1; i++) {
+        logfile << value[i] << ",";
+      }
+      logfile << value[max - 1] << "\n";
+
+      if(FileFlushFlag) logfile.flush();
+#endif
+    }
+
     void LOG(std::string message)
     {
-#ifdef LPT_LOG_ENABLE
+#if defined(LPT_LOG_ENABLE) || defined(LPT_VERBOSE)
       logfile << "LPT LOG  : " << message << "\n";
       if(FileFlushFlag) logfile.flush();
 #endif
     }
     template < typename T > void LOG(std::string message, T value)
     {
-#ifdef LPT_LOG_ENABLE
+#if defined(LPT_LOG_ENABLE) || defined(LPT_VERBOSE)
       logfile << "LPT LOG  : " << message << value << "\n";
       if(FileFlushFlag) logfile.flush();
 #endif
     }
     template < typename T > void LOG(std::string message, T * value, int max)
     {
-#ifdef LPT_LOG_ENABLE
+#if defined(LPT_LOG_ENABLE) || defined(LPT_VERBOSE)
       logfile << "LPT LOG  : " << message;
       for(int i = 0; i < max - 1; i++) {
         logfile << value[i] << ",";

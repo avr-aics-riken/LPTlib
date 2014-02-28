@@ -4,7 +4,7 @@
 
 namespace PPlib
 {
-  //forward decralation
+  //forward declaration
   class Point;
   class Line;
   class Rectangle;

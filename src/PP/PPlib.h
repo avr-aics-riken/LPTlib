@@ -21,6 +21,25 @@ namespace PPlib
   class PPlib
   {
   private:
+    //Singletonパターンを適用
+    PPlib() {};
+    PPlib(const PPlib & obj);
+    PPlib& operator=(const PPlib & obj);
+    ~PPlib()
+    {
+      for (std::vector < StartPoint * >::iterator it = StartPoints.begin(); it!=StartPoints.end(); ++it)
+      {
+        delete *it;
+      }
+    }
+  public:
+    static PPlib *GetInstance()
+    {
+      static PPlib instance;
+      return &instance;
+    }
+
+
   public:
     //! 担当する開始点データへのポインタのvector
     std::vector < StartPoint * >StartPoints;
@@ -58,24 +77,6 @@ namespace PPlib
 
     //!  引数で指定されたプロセス数を目標に、開始点のデータ分散を行なう
     void DistributeStartPoints(const int &NParticleProcs);
-    void PrintVectorSize(void)
-    {
-      std::cerr << "Allocated vector size in PPlib = "<< StartPoints.capacity()*sizeof(size_t)<<std::endl;
-    }
-
-    //! コンストラクタ
-    PPlib()
-    {
-    }
-    //! デストラクタ
-    ~PPlib()
-    {
-      for (std::vector < StartPoint * >::iterator it = StartPoints.begin(); it!=StartPoints.end(); ++it)
-      {
-        delete *it;
-      }
-    }
-
   };
 
 } // namespace PPlib

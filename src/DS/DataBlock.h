@@ -36,7 +36,7 @@ namespace DSlib
     REAL_TYPE Pitch[3];
 
     //! 代入オペレータ
-    DataBlock & operator=(const DataBlock & org)
+    DataBlock& operator=(const DataBlock & org)
     {
       BlockID = org.BlockID;
       SubDomainID = org.SubDomainID;
