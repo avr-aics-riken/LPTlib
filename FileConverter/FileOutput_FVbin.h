@@ -1,3 +1,12 @@
+/*
+ * LPTlib
+ * Lagrangian Particle Tracking library
+ *
+ * Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN.
+ * All rights reserved.
+ *
+ */
+
 #ifndef FV_PARTICLE_PATH_BINARY_OUTPUT_H
 #define FV_PARTICLE_PATH_BINARY_OUTPUT_H
 #include "FileManager.h"

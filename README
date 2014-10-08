@@ -2,7 +2,7 @@
  * LPTlib
  * Lagrangian Particle Tracking library
  *
- * Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN. 
+ * Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN. 
  * All rights reserved.
  *
  */
@@ -16,6 +16,7 @@ ChangeLog              History of modification
 COPYING                Copyright
 doc/                   Document
   Doxyfile             Configuration file to generate a doxygen file
+  LPTdesign.pdf        Design of LPTlib
   LPTlib.pdf           User's manual (in Japanese)
 FileConverter          Source files of file converter, 
                        which transform from LPT native output to FieldView 

@@ -2,7 +2,7 @@
 #
 # LPTlib - Lagrangian Particle Tracking library
 # 
-# Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN.
+# Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN.
 # All right reserved.
 #
 ##############################################################################
@@ -10,15 +10,15 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.63])
-AC_INIT([LPTlib], [0.9], [keno@riken.jp], [LPTlib])
+AC_PREREQ([2.57])
+AC_INIT([LPTlib], [1.0.0], [keno@riken.jp], [LPTlib])
 AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR([src/LPT/LPT.C])
 AC_CONFIG_HEADERS([config.h])
 
 
 # revision No.
-LPT_REVISION="20130617_1600"
+LPT_REVISION="20141009_0800"
 AC_SUBST(LPT_REVISION)
 
 
@@ -238,10 +238,10 @@ AC_CHECK_FUNCS([pow sqrt gettimeofday])
 
 
 AC_CONFIG_FILES([Makefile \
-                 doc/Makefile \
                  src/Makefile \
                  FileConverter/Makefile \
                  lpt-config \
+                 doc/Makefile \
                 ])
 
 AC_OUTPUT

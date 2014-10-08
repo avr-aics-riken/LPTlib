@@ -2,7 +2,7 @@
  * LPTlib
  * Lagrangian Particle Tracking library
  *
- * Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN. 
+ * Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN. 
  * All rights reserved.
  *
  */
@@ -70,13 +70,13 @@ Compiled library and a FileConverter program will be installed at the specified 
 
 Here is a example for Intel compile and OpenMPI.
 
-$.configure --with-pm=/usr/local/PMlib \
+$./configure --with-pm=/usr/local/FFV/PMlib \
             --with-comp=INTEL \
             --with-ompi=/opt/openmpi \
             --with-log=enable \
-            CXXFLAGS=-O3 \
-            CXX=icpc \
-            FC=ifort
+            CXXFLAGS="-O3 -openmp -qopt-report=5" \
+            CXX=mpicxx \
+            FC=mpif90
 
 
 Following example is for K-computer.

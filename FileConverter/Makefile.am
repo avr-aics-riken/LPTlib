@@ -2,7 +2,7 @@
 #
 # LPTlib - Lagrangian Particle Tracking library
 # 
-# Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN.
+# Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN.
 # All right reserved.
 #
 ##############################################################################
@@ -10,7 +10,14 @@
 bin_PROGRAMS = FileConverter
 
 FileConverter_SOURCES = \
-   main.C
+   main.C \
+   FileOutput.h \
+   FileOutput_csv.h \
+   FileOutput_FV14bin.h \
+   FileOutput_FVbin.h \
+   FileOutput_FVtext.h \
+   FileOutput_vtp.h \
+   FileWriter.h
 
 FileConverter_CXXFLAGS = @MPICH_CFLAGS@ @LPT_CFLAGS@ \
         -I$(top_builddir)/include \

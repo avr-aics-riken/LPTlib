@@ -1,7 +1,7 @@
 #
 # LPTlib - Lagrangian Particle Tracking library
 # 
-# Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN.
+# Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN.
 # All right reserved.
 #
 #! /bin/sh
@@ -47,7 +47,7 @@ while test $# -gt 0; do
     --version)
 cat <<EOF
 LPTlib - Lagrangian Particle Tracking library @VERSION@ @LPT_REVISION@
-Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN. All rights reserved.
+Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN. All rights reserved.
 
 EOF
       exit 0

@@ -2,7 +2,7 @@
  * LPTlib
  * Lagrangian Particle Tracking library
  *
- * Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN. 
+ * Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN. 
  * All rights reserved.
  *
  */
@@ -12,11 +12,10 @@ Release
 =======
 
 
-Version 0.9        15 June 2013
-  - Autotool version
+Version 1.0.0      2014-10-09
 
-Version 0.8        13 June 2013
-  - Beta
+Version 0.9.0      2013-06-15
 
-Version 0.7        10 June 2013
-  - Alpha
+Version 0.8.0      2013-06-13
+
+Version 0.7.0      2013-06-10

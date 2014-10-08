@@ -2,10 +2,12 @@
 #
 # LPTlib - Lagrangian Particle Tracking library
 # 
-# Copyright (c) 2012-2013 Advanced Institute for Computational Science, RIKEN.
+# Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN.
 # All right reserved.
 #
 ##############################################################################
+
+AUTOMAKE_OPTIONS = subdir-objects
 
 lib_LIBRARIES = libLPT.a
 
@@ -65,7 +67,8 @@ libLPT_a_SOURCES = \
    PP/PP_Integrator.h \
    PP/ParticleContainer.h \
    PP/ParticleContainerIterator.h \
-   PP/ParticleData.h
+   PP/ParticleData.h \
+   PP/StartPointAll.h
 
 
 LPT_includedir = $(includedir)

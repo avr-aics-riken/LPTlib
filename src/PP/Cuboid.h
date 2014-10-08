@@ -1,3 +1,12 @@
+/*
+ * LPTlib
+ * Lagrangian Particle Tracking library
+ *
+ * Copyright (c) 2012-2014 Advanced Institute for Computational Science, RIKEN.
+ * All rights reserved.
+ *
+ */
+
 #ifndef PPLIB_CUBOID_H
 #define PPLIB_CUBOID_H
 
