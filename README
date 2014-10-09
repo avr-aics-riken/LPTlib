@@ -7,9 +7,40 @@
  *
  */
  
- 
+LPTlib
+======
+
+Lagrangian Particle Tracking library is a C++ class library to compute trajectories of numerous particles.
+This library is designed to achieve higher scalability in large-scale parallel environments using
+particle-based load balancing and data caching algorithm to hide the communication cost of data transfer.
+
+
+Contributors
+------------
+- Kenji Ono
+- Naoyuki Sogo
+
+
+Copyright
+---------
+Copyright (c) 2014 Advanced Institute for Computational Science, RIKEN.
+All rights reserved.
+
+
+License
+-------
+BSD (2-clause) license
+
+
+Software Requirement
+--------------------
+- MPI library
+- Text parser library
+
+
+
 Ingredients
-===========
+-----------
 
 AUTHORS                Contributors
 ChangeLog              History of modification
