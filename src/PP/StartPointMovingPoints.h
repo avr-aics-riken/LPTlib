@@ -58,15 +58,9 @@ private:
     void Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumStartPoints);
     void GetGridPointCoord(std::vector<REAL_TYPE>& Coords);
 
-    //!@brief 現在時刻で有効な開始点の座標
-    //! インスタンス生成時に値が設定されていてもUpdateStartPoint()内で上書きされる
-    REAL_TYPE              Coord1[3];
-
-    //! 時系列で指定した開始点座標
-    std::vector<REAL_TYPE> Coords;
-
-    //! Coordsで指定した時刻
-    std::vector<double>    Time;
+    REAL_TYPE              Coord1[3]; //!< 現在時刻の開始点座標
+    std::vector<REAL_TYPE> Coords;    //!< 時系列で指定した開始点座標群
+    std::vector<double>    Time;      //!< Coordsで指定した時刻
 
     friend MovingPoints* MovingPointsFactory(const int& NumPoints, REAL_TYPE* Coords, double* Time, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime);
 };

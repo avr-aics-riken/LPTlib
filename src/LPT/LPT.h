@@ -93,7 +93,6 @@ private:
     bool                         work_for_rerun_flag;      //!< データブロックの再送フラグを通信するためのワーク領域(粒子プロセスのrank0のみが使用)
     int                          root_rank_for_rerun_flag; //!< データブロックの再送フラグのBcastを行うroot rank
 
-
 public:
     //!  @brief 粒子計算に必要なパラメータを受け取り、DSlib, PPlib等のインスタンスを生成する
     //! 開始点のインスタンス生成およびデータ分散もこの関数内で処理する

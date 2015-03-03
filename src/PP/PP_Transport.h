@@ -38,7 +38,7 @@ public:
     ~PP_Transport()
     {
         LoadedDataBlock = NULL;
-        if(num_called > 0 && counter > 0) LPT::LPT_LOG::GetInstance()->LOG("% could not be calurated velocity = ", (double)counter/(double)num_called*100);
+        if(num_called > 0 && counter > 0)LPT::LPT_LOG::GetInstance()->LOG("% could not be calurated velocity = ", (double)counter/(double)num_called*100);
     }
 
     //! @brief 引数で与えられた粒子データの流速場に沿った移動を計算する

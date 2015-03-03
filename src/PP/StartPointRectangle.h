@@ -22,6 +22,8 @@ namespace PPlib
 class Rectangle;
 Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime);
 //! @brief 矩形領域型で定義された開始点の情報を保持するクラス
+//
+//領域は座標軸に直交した平面内で定義され、各辺はどれかひとつの座標軸に並行でなければならない
 class Rectangle: public StartPoint
 {
     Rectangle():StartPoint(){}
@@ -60,23 +62,16 @@ public:
         }
     }
 private:
-    //! @brief 開始点が存在する矩形領域の頂点の座標
-    //! Coord2とは異なる座標かつ、両方の点が xy, yz, zx いずれかの平面上に存在しなければならない
-    REAL_TYPE Coord1[3];
-
-    //! @brief 開始点が存在する矩形領域の頂点の座標
-    //! Coord1とは異なる座標かつ、両方の点が xy, yz, zx いずれかの平面上に存在しなければならない
-    REAL_TYPE Coord2[3];
-
-    //!  x,y,z方向へ並ぶ開始点の個数(どれかひとつは必ず1になる)
-    int       NumStartPoints[3];
+    REAL_TYPE Coord1[3];         //!< 開始点が存在する矩形領域のひとつの頂点の座標
+    REAL_TYPE Coord2[3];         //!< Coord1と対角線上にある頂点の座標
+    int       NumStartPoints[3]; //!< x,y,z方向へ並ぶ開始点の個数(どれかひとつは必ず1になる)
 
     //! @brief 矩形領域の頂点のうち、Coord1,2以外の2点と、各辺上の格子点数(両端を含む)を求める
     //! @param Coord3     [out] 格子点座標
     //! @param NumPoints1 [out] Coord1とCoord3の間の格子点数
     //! @param Coord4     [out] 格子点座標
     //! @param NumPoints2 [out] Coord1とCoord4の間の格子点数
-    void MakeCoord3_4(REAL_TYPE Coord3[3], int* NumPoints1, REAL_TYPE Coord4[3], int* NumPoints2);
+    void              MakeCoord3_4(REAL_TYPE Coord3[3], int* NumPoints1, REAL_TYPE Coord4[3], int* NumPoints2);
 
     friend Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime);
 };
@@ -90,11 +85,11 @@ static Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int
 
     if(Coord1[0] == Coord2[0])
     {
-        if(NumStartPoints[0] != 1) return NULL;
+        if(NumStartPoints[0] != 1)return NULL;
     }else if(Coord1[1] == Coord2[1]){
-        if(NumStartPoints[1] != 1) return NULL;
+        if(NumStartPoints[1] != 1)return NULL;
     }else if(Coord1[2] == Coord2[2]){
-        if(NumStartPoints[2] != 1) return NULL;
+        if(NumStartPoints[2] != 1)return NULL;
     }else{
         return NULL;
     }

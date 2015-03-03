@@ -58,6 +58,7 @@ struct LPT_InitializeArgs
     int NumInitialParticleProcs; //!< 粒子計算に使う初期プロセス数
 
     bool OutputDimensional;      //!< ファイル出力を有次元に換算してから行うかどうかのフラグ
+    
 
 
     //! Constructor

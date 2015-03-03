@@ -112,7 +112,7 @@ public:
 
     int GetLatestEmitParticleID(void){return this->LatestEmitParticleID;}
 
-    //!  sort用のファンクタ
+    //!  sort用の比較演算子オーバーロード
     bool operator<(const StartPoint& obj)
     {
         return SumStartPoints < obj.SumStartPoints;

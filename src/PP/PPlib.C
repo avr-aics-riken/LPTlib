@@ -75,7 +75,9 @@ void PPlib::ReadStartPoints(const std::string& filename, const REAL_TYPE& RefLen
         }else{
             LPT::LPT_LOG::GetInstance()->WARN("unknown startpoint type : ", startpoint);
         }
+        startpoint.erase();
     }
+
 }
 
 void PPlib::EmitNewParticles(const double& CurrentTime, const int& CurrentTimeStep)
@@ -127,8 +129,8 @@ void PPlib::MakeRequestQueues(DSlib::DSlib* ptrDSlib)
 
         ptrDSlib->AddRequestQueues(SubDomainID, *it);
     }
-    PM.stop("MakeRequestQ");
     LPT::LPT_LOG::GetInstance()->LOG("make request queues done");
+    PM.stop("MakeRequestQ");
 }
 
 template<typename T>
@@ -157,8 +159,9 @@ void PPlib::DestroyExpiredParticles(const double& CurrentTime)
             ++it;
         }
     }
-    PM.stop("DestroyParticle");
+    LPT::LPT_LOG::GetInstance()->INFO("Number of particles = ", Particles.size());
     LPT::LPT_LOG::GetInstance()->LOG("destroy Particle done");
+    PM.stop("DestroyParticle");
 }
 
 void PPlib::DestroyExpiredStartPoints(const double& CurrentTime)
@@ -184,7 +187,7 @@ void PPlib::DestroyExpiredStartPoints(const double& CurrentTime)
 void PPlib::DistributeStartPoints(const int& NParticleProcs)
 {
     LPT::LPT_LOG::GetInstance()->LOG("DistributeStartPoints() start");
-    int MyRank = LPT::MPI_Manager::GetInstance()->get_myrank();
+    int MyRank = LPT::MPI_Manager::GetInstance()->get_myrank_p();
 
     //開始点の総数を計算
     int TotalNumStartPoints = 0;

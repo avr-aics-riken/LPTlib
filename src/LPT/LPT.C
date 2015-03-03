@@ -246,26 +246,30 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
     LPT_LOG::GetInstance()->Init(args.OutputFileName);
     LPT_LOG::GetInstance()->INFO("LPT_Initialize called");
 
-    //DSlibクラスの初期化
-    ptrDSlib = DSlib::DSlib::GetInstance();
-    ptrDSlib->Initialize(args.CacheSize, args.CacheSize/2);
-    LPT_LOG::GetInstance()->LOG("DSlib instantiated");
-
     //DecompositionManagerクラスの初期化
     ptrDM = DSlib::DecompositionManager::GetInstance();
     ptrDM->Initialize(args.Nx, args.Ny, args.Nz, args.NPx, args.NPy, args.NPz, args.NBx, args.NBy, args.NBz, args.OriginX, args.OriginY, args.OriginZ, args.dx, args.dy, args.dz, args.GuideCellSize);
     LPT_LOG::GetInstance()->LOG("DecompositionManager initialized");
 
+    int vlen=3;
+    const int MaxDataBlockSize=vlen*(ptrDM->GetInstance()->GetLargestBlockSize());
+
+    //DSlibクラスの初期化
+    ptrDSlib = DSlib::DSlib::GetInstance();
+    ptrDSlib->Initialize(args.CacheSize*1024*1024/MaxDataBlockSize);
+    LPT_LOG::GetInstance()->LOG("DSlib initialized");
+
     //PPlibクラスの初期化
     ptrPPlib = PPlib::PPlib::GetInstance();
-    LPT_LOG::GetInstance()->LOG("PPlib instantiated");
+    LPT_LOG::GetInstance()->LOG("PPlib initialized");
 
     //Comunicatorクラスの初期化
-    ptrComm = new DSlib::Communicator;
-    LPT_LOG::GetInstance()->LOG("Communicator instantiated");
+    ptrComm = new DSlib::Communicator(args.MaxRequestSize, MaxDataBlockSize);
+//    ptrComm = new DSlib::Communicator(10, MaxDataBlockSize); //for rerun feature test
+    LPT_LOG::GetInstance()->LOG("Communicator initialized");
 
     //d_bcv(FFVC内でのd_bcd)の30bit目からmask情報を取り出す
-    int myrank = MPI_Manager::GetInstance()->get_myrank();
+    int myrank = MPI_Manager::GetInstance()->get_myrank_p();
     int N      = (ptrDM->GetSubDomainSizeX(myrank)+args.GuideCellSize*2)*(ptrDM->GetSubDomainSizeY(myrank)+args.GuideCellSize*2)*(ptrDM->GetSubDomainSizeZ(myrank)+args.GuideCellSize*2);
     Mask = new int[N];
 
@@ -411,7 +415,12 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
     }
 
     //開始点の分散処理
-    ptrPPlib->DistributeStartPoints(MPI_Manager::GetInstance()->get_nproc());
+    int NumInitialParticleProcs=MPI_Manager::GetInstance()->get_nproc_p();
+    if(args.NumInitialParticleProcs>0 && args.NumInitialParticleProcs < NumInitialParticleProcs)
+    {
+        NumInitialParticleProcs=args.NumInitialParticleProcs;
+    }
+    ptrPPlib->DistributeStartPoints(NumInitialParticleProcs);
     if(!restart) ptrPPlib->OutputStartPoints(RefLength);
     LPT_LOG::GetInstance()->LOG("Distribute StartPoints done");
 
@@ -435,6 +444,21 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
         LPT_LOG::GetInstance()->ERROR("instantiation failed!!");
         return -1;
     }
+
+    //再送フラグの通信用領域の初期化
+    //データの送信は粒子プロセスのみが行い(粒子プロセスの)Rank0のみがデータを受けとる
+    root_rank_for_rerun_flag=MPI_Manager::GetInstance()->get_rank_p2w(0);
+    if(MPI_Manager::GetInstance()->is_particle_proc())
+    {
+        if(MPI_Manager::GetInstance()->get_myrank_w() == root_rank_for_rerun_flag)
+        {
+            MPI_Win_create(&work_for_rerun_flag, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &window_for_rerun_flag);
+        }else{
+            MPI_Win_create(&work_for_rerun_flag, 0, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &window_for_rerun_flag);
+        }
+        MPI_Win_fence(0, window_for_rerun_flag);
+    }
+
     initialized = true;
     LPT_LOG::GetInstance()->FLUSH();
     PM.stop("Initialize");
@@ -449,6 +473,10 @@ int LPT::LPT_Post(void)
     PM.start("Post");
     delete ptrComm;
     delete[] Mask;
+    if(MPI_Manager::GetInstance()->is_particle_proc())
+    {
+        MPI_Win_free(& window_for_rerun_flag);
+    }
 
     PM.stop("Post");
     PM.Finalize();
@@ -485,13 +513,8 @@ int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
     //寿命を過ぎた粒子を破棄
     ptrPPlib->DestroyExpiredParticles(args.CurrentTime);
 
-    LPT_LOG::GetInstance()->INFO("Number of particles = ", ptrPPlib->Particles.size());
-
     //粒子位置および周辺のデータブロックをRequestQueueに登録
     ptrPPlib->MakeRequestQueues(ptrDSlib);
-
-    //このタイムステップ中に必要な転送回数(転送量の最大値/キャッシュサイズ)を計算
-    int                                           GlobalNumComm = ptrDSlib->CalcNumComm(ptrComm);
 
     PPlib::PP_Transport                           Transport;
     std::vector<std::list<PPlib::ParticleData*>*> calced;
@@ -501,54 +524,49 @@ int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
     std::vector<PPlib::ParticleData*>             moved;
     omp_lock_t                                    moved_particles_lock;
     omp_init_lock(&moved_particles_lock);
+    int need_to_rerun=0;
 
-    //キャッシュサイズでブロッキングしたループ
-    for(int j = 0; j < GlobalNumComm; j++)
+    int fence=0;
+    do
     {
-        //キャッシュ領域を空けて、転送可能な量のデータブロックをリクエストする
-        ptrDSlib->DiscardCacheEntry(j, ptrComm);
-
-        //Alltoallで必要なブロック数を通信
-        ptrComm->CommRequestsAlltoall();
-
-        //P2P通信で必要なブロックIDを通信
-        ptrComm->CommRequest(ptrDSlib);
-
-        //データブロックの転送開始
-        const int                               vlen = 3;
-        std::list<DSlib::CommDataBlockManager*> SendBuff;
         std::list<DSlib::CommDataBlockManager*> RecvBuff;
-        ptrComm->CommDataF2P(args.FluidVelocity, Mask, vlen, &SendBuff, &RecvBuff);
+        std::list<DSlib::CommDataBlockManager*> SendBuff;
+
+        //データブロックのリクエストを送り、非同期受信処理を行う
+        need_to_rerun=ptrComm->CommRequest2(ptrDSlib, &RecvBuff, fence++);
+        
+        //必要なだけキャッシュ領域を空ける
+        ptrDSlib->DiscardCacheEntry2(ptrDSlib->get_num_requested_block_id());
+
+        //データブロックの送信開始
+        ptrComm->SendDataBlock(args.FluidVelocity, Mask, 3, &SendBuff);
+
+        //再送が必要な場合はフラグを粒子計算プロセスのRank0へ送る
+        if(need_to_rerun&&MPI_Manager::GetInstance()->is_particle_proc())
+        {
+            MPI_Put(&need_to_rerun, 1, MPI_INT, 0, 0, 1, MPI_INT, window_for_rerun_flag);
+        }
+
 
         PM.start("CalcParticle");
         int polling_counter = NumPolling;
         //polling & calc PP_Transport
-      #pragma omp parallel private(Transport)
+        #pragma omp parallel private(Transport)
         {
-        #pragma omp single
+            #pragma omp single
             while(!RecvBuff.empty())
             {
                 polling_counter--;
                 for(std::list<DSlib::CommDataBlockManager*>::iterator it_RecvBuff = RecvBuff.begin(); it_RecvBuff != RecvBuff.end();)
                 {
-                    //TODO
-                    // MPI_Test/MPI_Waitの切り替えをiteration回数ではなく
-                    // 送信完了の割合で指定できる方が良いかもしれない
-                    bool is_arived = false;
-                    if(polling_counter < 1)
-                    {
-                        // 最後のPolling loopでは未受信のデータ転送を1つづつ完了させてから計算
-                        is_arived = (*it_RecvBuff)->Wait();
-                    }else{
-                        is_arived = (*it_RecvBuff)->Test();
-                    }
-                    if(is_arived)
+                    if(is_arrived(*it_RecvBuff, polling_counter))
                     {
                         long ArrivedBlockID = ptrDSlib->AddCachedBlocks((*it_RecvBuff), args.CurrentTime);
+                        ptrDSlib->DeleteRequestedBlocks(ArrivedBlockID);
                         delete(*it_RecvBuff);
                         it_RecvBuff = RecvBuff.erase(it_RecvBuff);
                         PM.start("PP_Transport");
-              #pragma omp task firstprivate(ArrivedBlockID)
+                        #pragma omp task firstprivate(ArrivedBlockID)
                         {
                             std::list<PPlib::ParticleData*>* work = ptrPPlib->Particles.find(ArrivedBlockID);
                             if(work != NULL)
@@ -591,57 +609,49 @@ int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
                 }
             } //omp end single
         } //omp end parallel
-        PM.start("PP_Transport");
+
         //計算済ブロックに含まれていた粒子をParticleContainerに戻す
-        //ParticleContainer::insertの中でロックしているので、
-        //ここの2つのループをOpenMP並列化しても性能向上は期待できない
-        for(std::vector<std::list<PPlib::ParticleData*>*>::iterator it_ParticleList = calced.begin(); it_ParticleList != calced.end(); ++it_ParticleList)
-        {
-            ptrPPlib->Particles.insert(*it_ParticleList);
-        }
-        for(std::vector<PPlib::ParticleData*>::iterator it_Particle = moved.begin(); it_Particle != moved.end(); ++it_Particle)
-        {
-            ptrPPlib->Particles.insert(*it_Particle);
-        }
-        calced.clear();
-        moved.clear();
-        PM.stop("PP_Transport");
+        MoveBackToParticleContainer(calced, moved);
 
         //ここまでで計算できていなかった粒子を再計算
-        PM.start("PP_Transport");
-        long re_calced_particles = 0;
-        for(PPlib::ParticleContainer::iterator it_Particle = ptrPPlib->Particles.begin(); it_Particle != ptrPPlib->Particles.end();)
-        {
-            int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.CurrentTime, args.CurrentTimeStep);
-            if(ierr == 0 || ierr == 3 || ierr == 4)
-            {
-                re_calced_particles++;
-                ++it_Particle;
-            }else if(ierr == 1){
-                LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
-                delete  *it_Particle;
-                it_Particle = ptrPPlib->Particles.erase(it_Particle);
-                re_calced_particles++;
-            }else if(ierr == 2){
-                LPT_LOG::GetInstance()->LOG("moved to another datablock: ID = ", (*it_Particle)->GetAllID());
-                ptrPPlib->Particles.insert(*it_Particle);
-                it_Particle = ptrPPlib->Particles.erase(it_Particle);
-                re_calced_particles++;
-            }else if(ierr == 5){
-                ++it_Particle;
-            }else{
-                LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle)->GetAllID());
-                ++it_Particle;
-            }
-        }
-        LPT_LOG::GetInstance()->LOG("Number of Particle (re-calculated) = ", re_calced_particles);
-        PM.stop("PP_Transport");
+        ReCalcParticlesAll(Transport, args.deltaT, args.divT, args.CurrentTime, args.CurrentTimeStep);
+
+        //データブロック転送を完了させて、送受信バッファを削除する
         DeleteCommBuff(&SendBuff, &RecvBuff);
         PM.stop("CalcParticle");
-    } //転送回数のループ
-      //キャッシュデータを全て削除
+
+        //データブロックの再送フラグの通信を完了させる
+        if(MPI_Manager::GetInstance()->is_particle_proc())
+        {
+            MPI_Win_fence(0, window_for_rerun_flag);
+            if(MPI_Manager::GetInstance()->get_myrank_w()==root_rank_for_rerun_flag)
+            {
+                need_to_rerun=work_for_rerun_flag;
+                work_for_rerun_flag=0;
+            }
+        }
+
+        //再送フラグをCOMM_WORLD内で共有
+        MPI_Bcast(&need_to_rerun, 1, MPI_INT, root_rank_for_rerun_flag, MPI_COMM_WORLD);
+    }while(need_to_rerun);
+
+    //キャッシュデータを全て削除
     ptrDSlib->PurgeAllCacheLists();
     return 0;
+}
+
+bool LPT::is_arrived(DSlib::CommDataBlockManager* RecvBuffManager, const int& polling_counter)
+{
+    //TODO
+    // MPI_Test/MPI_Waitの切り替えをiteration回数ではなく
+    // 送信完了の割合で指定できる方が良いかもしれない
+    if(polling_counter < 1)
+    {
+        // 最後のPolling loopでは未受信のデータ転送を1つづつ完了させてから計算
+        return RecvBuffManager->Wait();
+    }else{
+        return RecvBuffManager->Test();
+    }
 }
 
 void LPT::DeleteCommBuff(std::list<DSlib::CommDataBlockManager*>* SendBuff, std::list<DSlib::CommDataBlockManager*>* RecvBuff)
@@ -663,5 +673,57 @@ void LPT::DeleteCommBuff(std::list<DSlib::CommDataBlockManager*>* SendBuff, std:
         it_RecvBuff = RecvBuff->erase(it_RecvBuff);
     }
     PM.stop("DelSendBuff");
+}
+
+void LPT::ReCalcParticlesAll(PPlib::PP_Transport& Transport, const double& deltaT, const int& divT, const double& CurrentTime, const int& CurrentTimeStep)
+{
+    PMlibWrapper& PM = PMlibWrapper::GetInstance();
+    PM.start("PP_Transport");
+    long          re_calced_particles = 0;
+    for(PPlib::ParticleContainer::iterator it_Particle = ptrPPlib->Particles.begin(); it_Particle != ptrPPlib->Particles.end();)
+    {
+        int ierr = Transport.Calc(*it_Particle, deltaT, divT, CurrentTime, CurrentTimeStep);
+        if(ierr == 0 || ierr == 3 || ierr == 4)
+        {
+            re_calced_particles++;
+            ++it_Particle;
+        }else if(ierr == 1){
+            LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
+            delete  *it_Particle;
+            it_Particle = ptrPPlib->Particles.erase(it_Particle);
+            re_calced_particles++;
+        }else if(ierr == 2){
+            LPT_LOG::GetInstance()->LOG("moved to another datablock: ID = ", (*it_Particle)->GetAllID());
+            ptrPPlib->Particles.insert(*it_Particle);
+            it_Particle = ptrPPlib->Particles.erase(it_Particle);
+            re_calced_particles++;
+        }else if(ierr == 5){
+            ++it_Particle;
+        }else{
+            LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle)->GetAllID());
+            ++it_Particle;
+        }
+    }
+    LPT_LOG::GetInstance()->LOG("Number of Particle (re-calculated) = ", re_calced_particles);
+    PM.stop("PP_Transport");
+}
+
+void LPT::MoveBackToParticleContainer(std::vector<std::list<PPlib::ParticleData*>*>& calced, std::vector<PPlib::ParticleData*>& moved)
+{
+    PMlibWrapper& PM = PMlibWrapper::GetInstance();
+    PM.start("PP_Transport");
+    //ParticleContainer::insert()の中でロックしているので、
+    //ここの2つのループはOpenMP並列化しても性能向上は期待できない
+    for(std::vector<std::list<PPlib::ParticleData*>*>::iterator it_ParticleList = calced.begin(); it_ParticleList != calced.end(); ++it_ParticleList)
+    {
+        ptrPPlib->Particles.insert(*it_ParticleList);
+    }
+    for(std::vector<PPlib::ParticleData*>::iterator it_Particle = moved.begin(); it_Particle != moved.end(); ++it_Particle)
+    {
+        ptrPPlib->Particles.insert(*it_Particle);
+    }
+    calced.clear();
+    moved.clear();
+    PM.stop("PP_Transport");
 }
 } // namespace LPT

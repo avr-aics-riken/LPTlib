@@ -36,14 +36,14 @@ bool Interpolator::InterpolateData(const DSlib::DataBlock& DataBlock, const REAL
 #define INDEX(i, j, k, l) ((i)+(j)*DataBlock.BlockSize[0]+(k)*DataBlock.BlockSize[0]*DataBlock.BlockSize[1]+(l)*DataBlock.BlockSize[0]*DataBlock.BlockSize[1]*DataBlock.BlockSize[2])
     for(int l = 0; l < 3; l++)
     {
-        dval[l] = (im*jm*km*(DataBlock.Data[INDEX(i, j, k, l)])
-                   +ip*jm*km*(DataBlock.Data[INDEX(i+1, j, k, l)])
-                   +ip*jp*km*(DataBlock.Data[INDEX(i+1, j+1, k, l)])
-                   +im*jp*km*(DataBlock.Data[INDEX(i, j+1, k, l)])
-                   +im*jm*kp*(DataBlock.Data[INDEX(i, j, k+1, l)])
-                   +ip*jm*kp*(DataBlock.Data[INDEX(i+1, j, k+1, l)])
+        dval[l] = ( im*jm*km*(DataBlock.Data[INDEX(i,   j,   k,   l)])
+                   +ip*jm*km*(DataBlock.Data[INDEX(i+1, j,   k,   l)])
+                   +ip*jp*km*(DataBlock.Data[INDEX(i+1, j+1, k,   l)])
+                   +im*jp*km*(DataBlock.Data[INDEX(i,   j+1, k,   l)])
+                   +im*jm*kp*(DataBlock.Data[INDEX(i,   j,   k+1, l)])
+                   +ip*jm*kp*(DataBlock.Data[INDEX(i+1, j,   k+1, l)])
                    +ip*jp*kp*(DataBlock.Data[INDEX(i+1, j+1, k+1, l)])
-                   +im*jp*kp*(DataBlock.Data[INDEX(i, j+1, k+1, l)])
+                   +im*jp*kp*(DataBlock.Data[INDEX(i,   j+1, k+1, l)])
                    );
     }
 #undef INDEX

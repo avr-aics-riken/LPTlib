@@ -45,13 +45,8 @@ public:
     void GetGridPointCoord(std::vector<REAL_TYPE>& Coords);
 
 private:
-    //! @brief 開始点が存在する線分の端点の座標
-    //!  Coord2とは異なる座標でなければならない
-    REAL_TYPE Coord1[3];
-
-    //! @brief 開始点が存在する線分の端点の座標
-    //!  Coord1とは異なる座標でなければならない
-    REAL_TYPE    Coord2[3];
+    REAL_TYPE Coord1[3]; //!< 開始点が存在する線分の端点の座標
+    REAL_TYPE Coord2[3]; //!< Coord1とは異なる端点の座標
 
     friend Line* LineFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime);
 };

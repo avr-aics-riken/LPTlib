@@ -48,9 +48,7 @@ public:
     void GetGridPointCoord(std::vector<REAL_TYPE>& Coords);
 
 private:
-    //! @brief 開始点を定義する座標
-    //! 配列の先頭から順にx,y,zの各成分を意味する
-    REAL_TYPE     Coord1[3];
+    REAL_TYPE     Coord1[3]; //開始点座標
 
     friend Point* PointFactory(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime);
 };

@@ -46,16 +46,9 @@ public:
     virtual void GetGridPointCoord(std::vector<REAL_TYPE>& Coords);
 
 private:
-    //! @brief 開始点が存在する直方体領域の頂点
-    //! Coord2の対角線上に存在する頂点の座標
-    REAL_TYPE Coord1[3];
-
-    //! @brief 開始点が存在する直方体領域の頂点の座標
-    //! Coord1の対角線上に存在する頂点の座標
-    REAL_TYPE Coord2[3];
-
-    //! x,y,z方向へ並ぶ開始点の個数
-    int       NumStartPoints[3];
+    REAL_TYPE Coord1[3];         //!< 開始点が存在する直方体領域の1つの頂点座標
+    REAL_TYPE Coord2[3];         //!< Coord1と対角線上に位置する頂点の座標
+    int       NumStartPoints[3]; //!< x,y,z方向へ並ぶ開始点の個数
 
     //! x方向の余りオブジェクトを分割
     void ShrinkX(std::vector<StartPoint*>* StartPoints, int* N, const int& NB, const std::vector<REAL_TYPE>& coord_x);

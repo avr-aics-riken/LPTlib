@@ -59,8 +59,7 @@ public:
         return this->ParticleID;
     }
 
-    //! @brief 全プロセスを通して一意な粒子IDを返す
-    //! 数値ではなく文字列として返すことに注意
+    //! @brief 全プロセスを通して一意な粒子IDを文字列として返す
     std::string GetAllID(void)
     {
         std::ostringstream oss;

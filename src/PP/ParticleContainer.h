@@ -57,9 +57,7 @@ public:
     //!            パフォーマンス上の理由により、同一Blockに所属するかどうかのチェックはしていないので注意
     void insert(std::list<ParticleData*>* particles)
     {
-        if(particles == NULL) return;
-
-        if(particles->empty()) return;
+        if(particles == NULL || particles->empty())return;
 
         omp_set_lock(&ParticleContainerLock);
         LPT::LPT_LOG::GetInstance()->LOG("particles = ", particles);
@@ -86,11 +84,13 @@ public:
         return sum_size;
     }
 
+    //! コンテナの先頭を指すイテレータを返す
     iterator begin(void)
     {
         return id_table.empty() ? ParticleContainerIterator(this) : ParticleContainerIterator(this, id_table.begin(), (*id_table.begin()).second->begin());
     }
 
+    //! コンテナの末尾+1を指すイテレータを返す
     iterator end(void)
     {
         return ParticleContainerIterator(this);
