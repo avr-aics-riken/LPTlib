@@ -13,19 +13,19 @@
 //forward declaration
 namespace DSlib
 {
-  class  DataBlock;
+class DataBlock;
 }
 namespace PPlib
 {
-  //! @brief 流速の補間を行なうクラス
-  class Interpolator
-  {
-  public:
+//! @brief 流速の補間を行なうクラス
+class Interpolator
+{
+public:
     //! @brief ベクトルデータの補間
     //! @param x_I  [in]  粒子座標
     //! @param didx [in]  補間対象データのindex番号
     //! @param dval [out] 補間したベクトルデータを格納する領域
-    static bool InterpolateData(const DSlib::DataBlock& DataBlock, const REAL_TYPE x_I[3], REAL_TYPE dval[3]);
+    static bool InterpolateData(const DSlib::DataBlock&DataBlock, const REAL_TYPE x_I[3], REAL_TYPE dval[3]);
 
     //! @brief 解析領域全体でのグローバル座標の座標値を、データブロック内のローカル座標に変換する
     //! @param [in]  x   解析領域内でのグローバル座標
@@ -38,7 +38,6 @@ namespace PPlib
     //! @param x_I [in]  データブロック内でのローカル座標
     //! @param x   [out] 解析領域内でのグローバル座標
     static void ConvItoX(const REAL_TYPE x_l[3], REAL_TYPE x_g[3], const REAL_TYPE orig[3], const REAL_TYPE pitch[3]);
-  };
-
+};
 } // namespace PPlib
 #endif

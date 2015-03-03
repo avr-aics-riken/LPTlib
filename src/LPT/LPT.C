@@ -25,368 +25,547 @@
 #include "ParticleData.h"
 #include "Cache.h"
 #include "CommDataBlock.h"
-#include "FileManager.h"
-#include "LPT_ParticleOutput.h"
 #include "LPT_LogOutput.h"
 #include "PP_Transport.h"
 #include "PMlibWrapper.h"
-#include "SimpleStartPointFactory.h"
+#include "PDMlib.h"
+#include "MPI_Manager.h"
 
 namespace LPT
 {
-  std::ostream & operator <<(std::ostream & stream, LPT_InitializeArgs args)
-  {
-    stream << std::endl;
-    stream << "Nx,       Ny,       Nz      = " << args.Nx << "," << args.Ny << "," << args.Nz << std::endl;
-    stream << "NPx,      NPy,      NPz     = " << args.NPx << "," << args.NPy << "," << args.NPz << std::endl;
-    stream << "NBx,      NBy,      NBz     = " << args.NBx << "," << args.NBy << "," << args.NBz << std::endl;
-    stream << "dx,       dy,       dz      = " << args.dx << "," << args.dy << "," << args.dz << std::endl;
-    stream << "OriginX,  OriginY,  OriginZ = " << args.OriginX << "," << args.OriginY << "," << args.OriginZ << std::endl;
-    stream << "GuideCellSize = " << args.GuideCellSize;
-    return stream;
-  }
-  std::istream & operator >>(std::istream & stream, LPT_InitializeArgs & args)
-  {
-    stream >> args.Nx >> args.Ny >> args.Nz;
-    stream >> args.NPx >> args.NPy >> args.NPz;
-    stream >> args.NBx >> args.NBy >> args.NBz;
-    stream >> args.dx >> args.dy >> args.dz;
-    stream >> args.OriginX >> args.OriginY >> args.OriginZ;
-    stream >> args.GuideCellSize;
-
-    return stream;
-  }
-
-  bool LPT::LPT_SetStartPoint(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    StartPoints.push_back(PPlib::PointFactory::create(Coord1, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+bool LPT::LPT_SetStartPoint(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+{
+    StartPoints.push_back(PPlib::PointFactory(Coord1, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     return true;
-  }
+}
 
-  bool LPT::LPT_SetStartPointLine(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    StartPoints.push_back(PPlib::LineFactory::create(Coord1, Coord2, SumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+bool LPT::LPT_SetStartPointLine(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+{
+    StartPoints.push_back(PPlib::LineFactory(Coord1, Coord2, SumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     return true;
-  }
+}
 
-  bool LPT::LPT_SetStartPointRectangle(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    PPlib::StartPoint *tmpStartPoint = PPlib::RectangleFactory::create(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
-    if (tmpStartPoint == NULL)
-    {
-      std::cerr << "PPlib::RectangleFactory::create failed"<<std::endl;
-      return false;
-    }else{
-      StartPoints.push_back(tmpStartPoint);
-      return true;
-    }
-  }
+bool LPT::LPT_SetStartPointRectangle(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+{
+    PPlib::StartPoint* tmpStartPoint = PPlib::RectangleFactory(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
+    if(tmpStartPoint == NULL) return false;
 
-  bool LPT::LPT_SetStartPointCuboid(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    StartPoints.push_back(PPlib::CuboidFactory::create(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+    StartPoints.push_back(tmpStartPoint);
     return true;
-  }
+}
 
-  bool LPT::LPT_SetStartPointCircle(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE Radius, REAL_TYPE NormalVector[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    StartPoints.push_back(PPlib::CircleFactory::create(Coord1, SumStartPoints, Radius, NormalVector, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+bool LPT::LPT_SetStartPointCuboid(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+{
+    StartPoints.push_back(PPlib::CuboidFactory(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     return true;
-  }
+}
 
-  bool LPT::LPT_SetStartPointMoovingPoints(REAL_TYPE * Coord, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
-  {
-    return false;
-  }
+bool LPT::LPT_SetStartPointCircle(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE Radius, REAL_TYPE NormalVector[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+{
+    StartPoints.push_back(PPlib::CircleFactory(Coord1, SumStartPoints, Radius, NormalVector, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+    return true;
+}
 
+bool LPT::LPT_SetStartPointMovingPoints(const int& NumPoints, REAL_TYPE* Coords, double* Times, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
+{
+    StartPoints.push_back(PPlib::MovingPointsFactory(NumPoints, Coords, Times, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
+    return true;
+}
 
-  int LPT::LPT_OutputParticleData()
-  {
+int LPT::LPT_OutputParticleData(const int& TimeStep, const double& Time)
+{
     if(!initialized) return 1;
-    PMlibWrapper& PM = PMlibWrapper::GetInstance();
-    PM.start(PM.tm_FileOutput);
-    LPT_ParticleOutput::GetInstance()->SetParticles(&(ptrPPlib->Particles));
-    LPT_ParticleOutput::GetInstance()->WriteRecordHeader();
-    LPT_ParticleOutput::GetInstance()->WriteRecord();
-    PM.stop(PM.tm_FileOutput);
-    return 0;
-  }
 
-  int LPT::LPT_Initialize(LPT_InitializeArgs args)
-  {
+    PMlibWrapper& PM = PMlibWrapper::GetInstance();
+    PM.start("FileOutput");
+    size_t        NumParticles = ptrPPlib->Particles.size();
+    //粒子座標の出力
+    REAL_TYPE*    rwork = NULL;
+    try
+    {
+        rwork = new REAL_TYPE[NumParticles*3];
+    }
+    catch(std::bad_alloc)
+    {
+        std::cerr<<"faild to allocate memory for OutputBuffer. ParticleData output is skipped."<<std::endl;
+        return 1;
+    }
+    size_t index = 0;
+    for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+    {
+        rwork[index++] = (*it)->x*RefLength;
+        rwork[index++] = (*it)->y*RefLength;
+        rwork[index++] = (*it)->z*RefLength;
+    }
+    PDMlib::PDMlib::GetInstance().Write("Coordinate", NumParticles, rwork, (REAL_TYPE*)NULL, 3, TimeStep, Time);
+
+    //粒子速度の出力
+    PPlib::ParticleData* front      = *(ptrPPlib->Particles.begin());
+    REAL_TYPE            u          = std::sqrt((front->Vx*front->Vx)+(front->Vy*front->Vy)+(front->Vz*front->Vz));
+    REAL_TYPE            vMinMax[8] = {u, u, front->Vx, front->Vx, front->Vy, front->Vy, front->Vz, front->Vz};
+    index = 0;
+    for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+    {
+        rwork[index++] = (*it)->Vx;
+        rwork[index++] = (*it)->Vy;
+        rwork[index++] = (*it)->Vz;
+        double u = std::sqrt(((*it)->Vx)*((*it)->Vx)+((*it)->Vy)*((*it)->Vy)+((*it)->Vz)*((*it)->Vz));
+        if(vMinMax[0] < u) vMinMax[0] = u;
+        if(vMinMax[1] > u) vMinMax[1] = u;
+        if(vMinMax[2] < (*it)->Vx) vMinMax[2] = (*it)->Vx;
+        if(vMinMax[3] > (*it)->Vx) vMinMax[3] = (*it)->Vx;
+        if(vMinMax[4] < (*it)->Vy) vMinMax[4] = (*it)->Vy;
+        if(vMinMax[5] > (*it)->Vy) vMinMax[5] = (*it)->Vy;
+        if(vMinMax[6] < (*it)->Vz) vMinMax[6] = (*it)->Vz;
+        if(vMinMax[7] > (*it)->Vz) vMinMax[7] = (*it)->Vz;
+    }
+    PDMlib::PDMlib::GetInstance().Write("Velocity", NumParticles, rwork, vMinMax, 3, TimeStep, Time);
+    delete[] rwork;
+
+    //IDはまとめて3要素をベクトルとして出力
+    // rworkの領域が確保できていれば、こっちのnewは失敗しないはず
+    int* iwork = new int[ptrPPlib->Particles.size()*3];
+    index = 0;
+    for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+    {
+        iwork[index++] = (*it)->StartPointID1;
+        iwork[index++] = (*it)->StartPointID2;
+        iwork[index++] = (*it)->ParticleID;
+    }
+    PDMlib::PDMlib::GetInstance().Write("ID", NumParticles, iwork, (int*)NULL, 3, TimeStep, Time);
+    delete[] iwork;
+
+    //粒子が放出された時刻
+    // rworkの領域が確保できていれば、こっちのnewは失敗しないはず
+    double* dwork = new double[ptrPPlib->Particles.size()];
+    index = 0;
+    for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+    {
+        dwork[index++] = (*it)->StartTime;
+    }
+    PDMlib::PDMlib::GetInstance().Write("StartTime", NumParticles, dwork, (double*)NULL, 1, TimeStep, Time);
+
+    //粒子の寿命
+    index = 0;
+    for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+    {
+        dwork[index++] = (*it)->LifeTime;
+    }
+    PDMlib::PDMlib::GetInstance().Write("LifeTime", NumParticles, dwork, (double*)NULL, 1, TimeStep, Time);
+    delete[] dwork;
+
+    PM.stop("FileOutput");
+    return 0;
+}
+
+int LPT::LPT_Initialize(LPT_InitializeArgs args)
+{
     if(initialized)
     {
-      std::cerr << "LPT_Initialize() is called more than 1 time"<<std::endl;
-      return 1;
+        std::cerr<<"LPT_Initialize() is called more than 1 time"<<std::endl;
+        return 1;
     }
+
+    //MPI Manager クラスの初期化
+    MPI_Manager::GetInstance()->Init(args.ParticleComm, args.FluidComm);
+
+    //PMlibWrpperクラスの初期化
     PMlibWrapper& PM = PMlibWrapper::GetInstance();
     PM.Initialize(args.PMlibOutputFileName, args.PMlibDetailedOutputFileName);
 
-    PM.start(PM.tm_Initialize);
-    FileManager::GetInstance()->SetBaseFileName(args.OutputFileName);
+    PM.start("Initialize");
+
+    //ログ出力クラスの初期化
+    LPT_LOG::GetInstance()->Init(args.OutputFileName);
+
     LPT_LOG::GetInstance()->INFO("LPT_Initialize called");
-    LPT_LOG::GetInstance()->INFO("Init args = ", args);
+    //LPT_LOG::GetInstance()->INFO("Init args = ", args);
 
-    NumParticleProcs = args.NumParticleProcs;
-    OutputFileName = args.OutputFileName;
+    RefLength   = args.RefLength;
+    RefVelocity = args.RefVelocity;
+    RefTime     = args.RefTime;
 
+    //DSlibクラスの初期化
     ptrDSlib = DSlib::DSlib::GetInstance();
     ptrDSlib->Initialize(args.CacheSize, args.CommBufferSize);
     LPT_LOG::GetInstance()->LOG("DSlib instantiated");
+
+    //DecompositionManagerクラスの初期化
     ptrDM = DSlib::DecompositionManager::GetInstance();
-    LPT_LOG::GetInstance()->LOG("DecompositionManager instantiated");
     ptrDM->Initialize(args.Nx, args.Ny, args.Nz, args.NPx, args.NPy, args.NPz, args.NBx, args.NBy, args.NBz, args.OriginX, args.OriginY, args.OriginZ, args.dx, args.dy, args.dz, args.GuideCellSize);
     LPT_LOG::GetInstance()->LOG("DecompositionManager initialized");
+
+    //PPlibクラスの初期化
     ptrPPlib = PPlib::PPlib::GetInstance();
     LPT_LOG::GetInstance()->LOG("PPlib instantiated");
+
+    //Comunicatorクラスの初期化
     ptrComm = new DSlib::Communicator;
     LPT_LOG::GetInstance()->LOG("Communicator instantiated");
-    LPT_ParticleOutput::GetInstance()->WriteFileHeader();
-    LPT_LOG::GetInstance()->LOG("Write output file header done");
 
-//d_bcvの30bit目を配列にする
-//d_bcvはFFV-C内でセルの情報を保持しているビット配列
-    int N = (ptrDM->GetSubDomainSizeX(MyRank) + args.GuideCellSize * 2) * (ptrDM->GetSubDomainSizeY(MyRank) + args.GuideCellSize * 2) * (ptrDM->GetSubDomainSizeZ(MyRank) + args.GuideCellSize * 2);
+    //d_bcv(FFVC内でのd_bcd)の30bit目からmask情報を取り出す
+    int myrank = MPI_Manager::GetInstance()->get_myrank();
+    int N      = (ptrDM->GetSubDomainSizeX(myrank)+args.GuideCellSize*2)*(ptrDM->GetSubDomainSizeY(myrank)+args.GuideCellSize*2)*(ptrDM->GetSubDomainSizeZ(myrank)+args.GuideCellSize*2);
     Mask = new int[N];
 
-    if(args.d_bcv != NULL) {
-      for(int i = 0; i < N; ++i) {
-        Mask[i] = ((((args.d_bcv)[i] >> 30) & 0x1) ? 1 : 0);
-      }
-    } else {
-      for(int i = 0; i < N; ++i) {
-        Mask[i] = 1;
-      }
-    }
-
-//開始点の分散処理 
-    ptrPPlib->StartPoints = StartPoints;
-
-    // clear and minimize LPT.StartPoints
+    if(args.d_bcv != NULL)
     {
-      std::vector<PPlib::StartPoint *>().swap(StartPoints);
+        for(int i = 0; i < N; ++i)
+        {
+            Mask[i] = ((((args.d_bcv)[i]>>30)&0x1) ? 1 : 0);
+        }
+    }else{
+        for(int i = 0; i < N; ++i)
+        {
+            Mask[i] = 1;
+        }
     }
 
-    ptrPPlib->DistributeStartPoints(NumParticleProcs);
+    //開始点情報をPPlibに渡す
+    const bool restart = args.CurrentTimeStep > 0;
+    if(!restart)
+    {
+        //通常実行
+        LPT_LOG::GetInstance()->INFO("Get start points from API");
+        ptrPPlib->StartPoints = StartPoints;
+        if(myrank == 0)
+        {
+            std::ofstream startpoint("LPTlibStartPoints.txt");
+            for(std::vector<PPlib::StartPoint*>::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
+            {
+                startpoint<<(*it)->TextPrint();
+            }
+        }
+        // clear and minimize LPT.StartPoints
+        std::vector<PPlib::StartPoint*>().swap(StartPoints);
+
+        //PDMlibのセットアップ
+        PDMlib::PDMlib::GetInstance().Init(args.argc, args.argv, args.OutputFileName+".dfi");
+        PDMlib::PDMlib::GetInstance().SetBaseFileName(args.OutputFileName);
+
+        PDMlib::ContainerInfo ID         = {"ID", "ID", "zip", PDMlib::INT32, "id", 3, PDMlib::NIJK};
+        PDMlib::ContainerInfo Coordinate = {"Coordinate", "Coordinate", "fpzip", PDMlib::FLOAT, "coord", 3, PDMlib::NIJK};
+        PDMlib::ContainerInfo Velocity   = {"Velocity", "Velocity", "fpzip", PDMlib::FLOAT, "vel", 3, PDMlib::NIJK};
+        // REAL_TYPEが8byteだったら座標と速度コンテナをDOUBLEに変更
+        if(sizeof(REAL_TYPE) == 8)
+        {
+            Coordinate.Type = PDMlib::DOUBLE;
+            Velocity.Type   = PDMlib::DOUBLE;
+        }
+        PDMlib::ContainerInfo StartTime = {"StartTime", "starttime", "fpzip", PDMlib::DOUBLE, "start", 1};
+        PDMlib::ContainerInfo LifeTime  = {"LifeTime", "lifetime", "fpzip", PDMlib::DOUBLE, "life", 1};
+        PDMlib::PDMlib::GetInstance().AddContainer(ID);
+        PDMlib::PDMlib::GetInstance().AddContainer(Coordinate);
+        PDMlib::PDMlib::GetInstance().AddContainer(Velocity);
+        PDMlib::PDMlib::GetInstance().AddContainer(StartTime);
+        PDMlib::PDMlib::GetInstance().AddContainer(LifeTime);
+        /*
+         * BlockID, CurrentTime, CurrentTimeStepは再計算可能なので出力しない
+        PDMlib::ContainerInfo BlockID         = {"BlockID",         "BlockID",                            "zip",   PDMlib::INT64,  "temp", 1};
+        PDMlib::ContainerInfo CurrentTime     = {"CurrentTime",     "CurrentTime",                        "fpzip",  PDMlib::DOUBLE, "temp", 1};
+        PDMlib::ContainerInfo CurrentTimeStep = {"CurrentTimeStep", "CurrentTimeStep",                    "zip",   PDMlib::INT32,  "temp", 1};
+        PDMlib::PDMlib::GetInstance().AddContainer(BlockID);
+        PDMlib::PDMlib::GetInstance().AddContainer(CurrentTime);
+        PDMlib::PDMlib::GetInstance().AddContainer(CurrentTimeStep);
+        */
+        double bbox[6] = {args.OriginX, args.OriginY, args.OriginZ, args.OriginX+args.Nx*args.dx, args.OriginY+args.Ny*args.dy, args.OriginZ+args.Nz*args.dz};
+        for(int i = 0; i < 6; i++)
+        {
+            bbox[i] *= args.RefLength;
+        }
+        PDMlib::PDMlib::GetInstance().SetBoundingBox(bbox);
+        LPT_LOG::GetInstance()->LOG("PDMlib Initialized");
+    }else{
+        //restart実行
+        LPT_LOG::GetInstance()->INFO("Read start points and Particle Data from file");
+        ptrPPlib->ReadStartPoints("LPTlibStartPoints.txt");
+
+        //PDMlibを使ってリスタートデータを読み込む
+        PDMlib::PDMlib::GetInstance().Init(args.argc, args.argv, args.OutputFileName+".dfi", args.OutputFileName+".dfi");
+        PDMlib::PDMlib::GetInstance().SetBaseFileName(args.OutputFileName);
+
+        // コンテナの一覧を取得
+        std::vector<PDMlib::ContainerInfo> containers = PDMlib::PDMlib::GetInstance().GetContainerInfo();
+
+        int*                               ID    = NULL;
+        REAL_TYPE*                         coord = NULL;
+        REAL_TYPE*                         v     = NULL;
+        double*                            start = NULL;
+        double*                            life  = NULL;
+
+        // 読み込み対象のデータポインタをPDMlibに登録する
+        PDMlib::PDMlib::GetInstance().RegisterContainer("ID", &ID);
+        PDMlib::PDMlib::GetInstance().RegisterContainer("Coordinate", &coord);
+        PDMlib::PDMlib::GetInstance().RegisterContainer("Velocity", &v);
+        PDMlib::PDMlib::GetInstance().RegisterContainer("StartTime", &start);
+        PDMlib::PDMlib::GetInstance().RegisterContainer("LifeTime", &life);
+
+        // データを読み込む
+        size_t NumParticles = PDMlib::PDMlib::GetInstance().ReadAll(&args.CurrentTimeStep, args.MigrateOnRestart, "Coordinate");
+
+        //粒子オブジェクトを作成して値を代入
+        for(size_t i = 0; i < NumParticles; i++)
+        {
+            PPlib::ParticleData* tmp = new PPlib::ParticleData;
+            tmp->StartPointID1   = ID[3*i+0];
+            tmp->StartPointID2   = ID[3*i+1];
+            tmp->ParticleID      = ID[3*i+2];
+            tmp->x               = coord[3*i+0]/RefLength;
+            tmp->y               = coord[3*i+1]/RefLength;
+            tmp->z               = coord[3*i+2]/RefLength;
+            tmp->Vx              = v[3*i+0];
+            tmp->Vy              = v[3*i+1];
+            tmp->Vz              = v[3*i+2];
+            tmp->StartTime       = start[i];
+            tmp->LifeTime        = life[i];
+            tmp->CurrentTimeStep = args.CurrentTimeStep;
+            tmp->CurrentTime     = args.CurrentTime;
+            tmp->BlockID         = DSlib::DecompositionManager::GetInstance()->FindBlockIDByCoordLinear(tmp->x, tmp->y, tmp->z);
+            ptrPPlib->Particles.insert(tmp);
+        }
+        delete[] ID;
+        delete[] coord;
+        delete[] v;
+        delete[] start;
+        delete[] life;
+    }
+
+    //開始点の分散処理
+    ptrPPlib->DistributeStartPoints(MPI_Manager::GetInstance()->get_nproc());
+    if(!restart) ptrPPlib->OutputStartPoints(RefLength);
     LPT_LOG::GetInstance()->LOG("Distribute StartPoints done");
 
-    if(ptrDSlib == NULL || ptrDM == NULL || ptrPPlib == NULL || ptrComm == NULL) {
-      LPT_LOG::GetInstance()->ERROR("instantiation failed!!");
-      return -1;
+    if(ptrDSlib == NULL || ptrDM == NULL || ptrPPlib == NULL || ptrComm == NULL)
+    {
+        LPT_LOG::GetInstance()->ERROR("instantiation failed!!");
+        return -1;
     }
-    initialized=true;
-    PM.stop(PM.tm_Initialize);
+    initialized = true;
+    PM.stop("Initialize");
     return 0;
-  }
+}
 
-  int LPT::LPT_Post(void)
-  {
+int LPT::LPT_Post(void)
+{
     if(!initialized) return 1;
-    PMlibWrapper& PM = PMlibWrapper::GetInstance();
-    PM.start(PM.tm_Post);
-    delete ptrComm;
-    delete [] Mask;
 
-    PM.stop(PM.tm_Post);
+    PMlibWrapper& PM = PMlibWrapper::GetInstance();
+    PM.start("Post");
+    delete ptrComm;
+    delete[] Mask;
+
+    PM.stop("Post");
     PM.Finalize();
     LPT_LOG::GetInstance()->INFO("LPT_Post finished.");
     return 0;
-  }
+}
 
-  int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
-  {
-    static bool error_messaged_loged=false;
+int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
+{
+    static bool error_messaged_loged = false;
     if(!initialized)
     {
-      if(!error_messaged_loged)
-      {
-        std::cerr << "LPT_CalcParticleData is called before LPT_Initialize()"<<std::endl;
-        error_messaged_loged=true;
-      }
-      return 1;
+        if(!error_messaged_loged)
+        {
+            std::cerr<<"LPT_CalcParticleData is called before LPT_Initialize()"<<std::endl;
+            error_messaged_loged = true;
+        }
+        return 1;
     }
     PMlibWrapper& PM = PMlibWrapper::GetInstance();
-    PM.start(PM.tm_PrepareCalc);
-    CurrentTime = args.CurrentTime;
-    CurrentTimeStep = args.CurrentTimeStep;
-    LPT_LOG::GetInstance()->INFO("Current Time = ", args.CurrentTime);
+    PM.start("PrepareCalc");
+    const double  dimentional_time = args.CurrentTime*RefTime;
+    LPT_LOG::GetInstance()->INFO("Current Time = ", dimentional_time);
     LPT_LOG::GetInstance()->INFO("Current Time Step = ", args.CurrentTimeStep);
-    PM.stop(PM.tm_PrepareCalc);
+    PM.stop("PrepareCalc");
 
     //寿命を過ぎた開始点を破棄
-    ptrPPlib->DestroyExpiredStartPoints(args.CurrentTime);
+    ptrPPlib->DestroyExpiredStartPoints(dimentional_time);
 
     //新規粒子の放出
     //開始点がMovingPointsの場合は座標のアップデートも行う
-    ptrPPlib->EmitNewParticles(args.CurrentTime, args.CurrentTimeStep);
+    ptrPPlib->EmitNewParticles(dimentional_time, args.CurrentTimeStep);
 
     //寿命を過ぎた粒子を破棄
-    ptrPPlib->DestroyExpiredParticles(args.CurrentTime);
+    ptrPPlib->DestroyExpiredParticles(dimentional_time);
 
     LPT_LOG::GetInstance()->INFO("Number of particles = ", ptrPPlib->Particles.size());
 
     //粒子位置および周辺のデータブロックをRequestQueueに登録
     ptrPPlib->MakeRequestQueues(ptrDSlib);
-    
-    //このタイムステップ中に必要な転送回数(転送量の最大値/キャッシュサイズ)を計算
-    int GlobalNumComm = ptrDSlib->CalcNumComm(ptrComm);
 
-    PPlib::PP_Transport Transport;
+    //このタイムステップ中に必要な転送回数(転送量の最大値/キャッシュサイズ)を計算
+    int                                           GlobalNumComm = ptrDSlib->CalcNumComm(ptrComm);
+
+    PPlib::PP_Transport                           Transport;
+    std::vector<std::list<PPlib::ParticleData*>*> calced;
+    omp_lock_t                                    calced_particles_lock;
+    omp_init_lock(&calced_particles_lock);
+
+    std::vector<PPlib::ParticleData*>             moved;
+    omp_lock_t                                    moved_particles_lock;
+    omp_init_lock(&moved_particles_lock);
+
     //キャッシュサイズでブロッキングしたループ
     for(int j = 0; j < GlobalNumComm; j++)
     {
-      //キャッシュ領域を空けて、転送可能な量のデータブロックをリクエストする
-      ptrDSlib->DiscardCacheEntry(j, ptrComm);
+        //キャッシュ領域を空けて、転送可能な量のデータブロックをリクエストする
+        ptrDSlib->DiscardCacheEntry(j, ptrComm);
 
-      //Alltoallで必要なブロック数を通信
-      ptrComm->CommRequestsAlltoall();
+        //Alltoallで必要なブロック数を通信
+        ptrComm->CommRequestsAlltoall();
 
-      //P2P通信で必要なブロックIDを通信
-      ptrComm->CommRequest(ptrDSlib);
+        //P2P通信で必要なブロックIDを通信
+        ptrComm->CommRequest(ptrDSlib);
 
-      //データブロックの転送開始
-      const int vlen = 3;
-      std::list < DSlib::CommDataBlockManager * >SendBuff;
-      std::list < DSlib::CommDataBlockManager * >RecvBuff;
-      ptrComm->CommDataF2P(args.FluidVelocity, args.v00, Mask, vlen, &SendBuff, &RecvBuff);
+        //データブロックの転送開始
+        const int                               vlen = 3;
+        std::list<DSlib::CommDataBlockManager*> SendBuff;
+        std::list<DSlib::CommDataBlockManager*> RecvBuff;
+        ptrComm->CommDataF2P(args.FluidVelocity, Mask, vlen, &SendBuff, &RecvBuff);
 
-      PM.start(PM.tm_CalcParticle);
-      int polling_counter=NumPolling;
-      //polling & calc PP_Transport
+        PM.start("CalcParticle");
+        int polling_counter = NumPolling;
+        //polling & calc PP_Transport
       #pragma omp parallel private(Transport)
-      {
-        std::list<std::list<PPlib::ParticleData*>*> calced;
-        std::list<PPlib::ParticleData*> moved;
+        {
         #pragma omp single
-        while(!RecvBuff.empty())
-        {
-          polling_counter--;
-          for(std::list < DSlib::CommDataBlockManager * >::iterator it_RecvBuff = RecvBuff.begin(); it_RecvBuff != RecvBuff.end();)
-          {
-            //TODO
-            // MPI_Test/MPI_Waitの切り替えをiteration回数ではなく
-            // 送信完了の割合で指定できる方が良いかもしれない
-            bool is_arived=false;
-            if(polling_counter<1)
+            while(!RecvBuff.empty())
             {
-              // 最後のPolling loopでは未受信のデータ転送を1つづつ完了させてから計算
-              is_arived=(*it_RecvBuff)->Wait();
-            }else{
-              is_arived=(*it_RecvBuff)->Test();
-            }
-            if(is_arived)
-            {
-              long ArrivedBlockID = ptrDSlib->AddCachedBlocks((*it_RecvBuff), args.CurrentTime);
-              delete(*it_RecvBuff);
-              it_RecvBuff = RecvBuff.erase(it_RecvBuff);
-              PM.start(PM.tm_PP_Transport);
-              #pragma omp task firstprivate(ArrivedBlockID)
-              {
-                std::list<PPlib::ParticleData*>* work;
-                work=ptrPPlib->Particles.find(ArrivedBlockID);
-                if (work != NULL)
+                polling_counter--;
+                for(std::list<DSlib::CommDataBlockManager*>::iterator it_RecvBuff = RecvBuff.begin(); it_RecvBuff != RecvBuff.end();)
                 {
-                  for(std::list<PPlib::ParticleData*>::iterator it_Particle=work->begin();it_Particle != work->end(); )
-                  {
-                    int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.v00, args.CurrentTime, args.CurrentTimeStep);
-                    LPT_LOG::GetInstance()->LOG("return value from PP_Transport::Calc() = ", ierr);
-                    if(ierr == 0|| ierr == 3||ierr==4 || ierr ==5){
-                      ++it_Particle;
-                    }else if(ierr == 1) {
-                      LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
-                      delete *it_Particle;
-                      it_Particle=work->erase(it_Particle);
-                    }else if(ierr == 2){
-                      moved.push_back(*it_Particle);
-                      it_Particle=work->erase(it_Particle);
-                    }else {
-                      ++it_Particle;
-                      LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle)->GetAllID());
+                    //TODO
+                    // MPI_Test/MPI_Waitの切り替えをiteration回数ではなく
+                    // 送信完了の割合で指定できる方が良いかもしれない
+                    bool is_arived = false;
+                    if(polling_counter < 1)
+                    {
+                        // 最後のPolling loopでは未受信のデータ転送を1つづつ完了させてから計算
+                        is_arived = (*it_RecvBuff)->Wait();
+                    }else{
+                        is_arived = (*it_RecvBuff)->Test();
                     }
-                  }
-                  calced.push_back(work);  // !!error
+                    if(is_arived)
+                    {
+                        long ArrivedBlockID = ptrDSlib->AddCachedBlocks((*it_RecvBuff), args.CurrentTime);
+                        delete(*it_RecvBuff);
+                        it_RecvBuff = RecvBuff.erase(it_RecvBuff);
+                        PM.start("PP_Transport");
+              #pragma omp task firstprivate(ArrivedBlockID)
+                        {
+                            std::list<PPlib::ParticleData*>* work = ptrPPlib->Particles.find(ArrivedBlockID);
+                            if(work != NULL)
+                            {
+                                for(std::list<PPlib::ParticleData*>::iterator it_Particle = work->begin(); it_Particle != work->end();)
+                                {
+                                    int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.v00, args.CurrentTime, args.CurrentTimeStep, RefLength, RefVelocity);
+                                    LPT_LOG::GetInstance()->LOG("return value from PP_Transport::Calc() = ", ierr);
+                                    if(ierr == 0 || ierr == 3 || ierr == 4 || ierr == 5)
+                                    {
+                                        ++it_Particle;
+                                    }else if(ierr == 1){
+                                        LPT_LOG::GetInstance()->INFO("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
+                                        delete *it_Particle;
+                                        it_Particle = work->erase(it_Particle);
+                                    }else if(ierr == 2){
+                                        omp_set_lock(&moved_particles_lock);
+                                        moved.push_back(*it_Particle);
+                                        LPT_LOG::GetInstance()->LOG("moved.size() = ", moved.size());
+                                        omp_unset_lock(&moved_particles_lock);
+                                        it_Particle = work->erase(it_Particle);
+                                    }else{
+                                        ++it_Particle;
+                                        LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle)->GetAllID());
+                                    }
+                                }
+                                if(work->size() > 0)
+                                {
+                                    omp_set_lock(&calced_particles_lock);
+                                    calced.push_back(work);
+                                    LPT_LOG::GetInstance()->LOG("calced.size() = ", calced.size());
+                                    omp_unset_lock(&calced_particles_lock);
+                                }
+                            }
+                        } // omp end task
+                        PM.stop("PP_Transport");
+                    }else{
+                        ++it_RecvBuff;
+                    }
                 }
-              } // omp end task
-              PM.stop(PM.tm_PP_Transport);
-            } else {
-              ++it_RecvBuff;
-            }
-          }
-        }//omp end single
-#pragma omp single
-        {
-          PM.start(PM.tm_PP_Transport);
-        }
+            } //omp end single
+        } //omp end parallel
+        PM.start("PP_Transport");
         //計算済ブロックに含まれていた粒子をParticleContainerに戻す
-        for(std::list<std::list<PPlib::ParticleData*>*>::iterator it_list=calced.begin();it_list!=calced.end();++it_list)
+        //ParticleContainer::insertの中でロックしているので、
+        //ここの2つのループをOpenMP並列化しても性能向上は期待できない
+        for(std::vector<std::list<PPlib::ParticleData*>*>::iterator it_ParticleList = calced.begin(); it_ParticleList != calced.end(); ++it_ParticleList)
         {
-          ptrPPlib->Particles.insert(*it_list);
+            ptrPPlib->Particles.insert(*it_ParticleList);
         }
-        for(std::list<PPlib::ParticleData*>::iterator it_Particle=moved.begin();it_Particle!=moved.end();++it_Particle)
+        for(std::vector<PPlib::ParticleData*>::iterator it_Particle = moved.begin(); it_Particle != moved.end(); ++it_Particle)
         {
-          ptrPPlib->Particles.insert(*it_Particle);
+            ptrPPlib->Particles.insert(*it_Particle);
         }
         calced.clear();
         moved.clear();
-#pragma omp single
-        {
-          PM.stop(PM.tm_PP_Transport);
-        }
+        PM.stop("PP_Transport");
 
-      }//omp end parallel
-      //ここまでで計算できていなかった粒子を再計算
-      PM.start(PM.tm_PP_Transport);
-      long re_calced_particles=0;
-      for(PPlib::ParticleContainer::iterator it_Particle = ptrPPlib->Particles.begin();it_Particle!=ptrPPlib->Particles.end();)
-      {
-        int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.v00, args.CurrentTime, args.CurrentTimeStep);
-        if(ierr == 0||ierr==3 || ierr == 4){
-          re_calced_particles++;
-          ++it_Particle;
-        }else if(ierr == 1) {
-          LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
-          delete  *it_Particle;
-          it_Particle=ptrPPlib->Particles.erase(it_Particle);
-          re_calced_particles++;
-        }else if(ierr == 2){
-          LPT_LOG::GetInstance()->LOG("moved to another datablock: ID = ", (*it_Particle)->GetAllID());
-          ptrPPlib->Particles.insert(*it_Particle);
-          it_Particle=ptrPPlib->Particles.erase(it_Particle);
-          re_calced_particles++;
-        }else if(ierr == 5){
-          ++it_Particle;
-        }else {
-          LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle)->GetAllID());
-          ++it_Particle;
+        //ここまでで計算できていなかった粒子を再計算
+        PM.start("PP_Transport");
+        long re_calced_particles = 0;
+        for(PPlib::ParticleContainer::iterator it_Particle = ptrPPlib->Particles.begin(); it_Particle != ptrPPlib->Particles.end();)
+        {
+            int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.v00, args.CurrentTime, args.CurrentTimeStep, RefLength, RefVelocity);
+            if(ierr == 0 || ierr == 3 || ierr == 4)
+            {
+                re_calced_particles++;
+                ++it_Particle;
+            }else if(ierr == 1){
+                LPT_LOG::GetInstance()->LOG("Delete particle due to out of bounds: ID = ", (*it_Particle)->GetAllID());
+                delete  *it_Particle;
+                it_Particle = ptrPPlib->Particles.erase(it_Particle);
+                re_calced_particles++;
+            }else if(ierr == 2){
+                LPT_LOG::GetInstance()->LOG("moved to another datablock: ID = ", (*it_Particle)->GetAllID());
+                ptrPPlib->Particles.insert(*it_Particle);
+                it_Particle = ptrPPlib->Particles.erase(it_Particle);
+                re_calced_particles++;
+            }else if(ierr == 5){
+                ++it_Particle;
+            }else{
+                LPT_LOG::GetInstance()->ERROR("illegal return value from PP_Transport::Calc() : ParticleID = ", (*it_Particle)->GetAllID());
+                ++it_Particle;
+            }
         }
-      }
-      LPT_LOG::GetInstance()->LOG("Number of Particle (re-calculated) = ", re_calced_particles);
-      PM.stop(PM.tm_PP_Transport);
-      DeleteCommBuff(&SendBuff, &RecvBuff);
-      PM.stop(PM.tm_CalcParticle);
+        LPT_LOG::GetInstance()->LOG("Number of Particle (re-calculated) = ", re_calced_particles);
+        PM.stop("PP_Transport");
+        DeleteCommBuff(&SendBuff, &RecvBuff);
+        PM.stop("CalcParticle");
     } //転送回数のループ
-    //キャッシュデータを全て削除
+      //キャッシュデータを全て削除
     ptrDSlib->PurgeAllCacheLists();
     return 0;
-  }
+}
 
-
-  void LPT::DeleteCommBuff(std::list< DSlib::CommDataBlockManager* >* SendBuff, std::list< DSlib::CommDataBlockManager* >* RecvBuff)
-  {
+void LPT::DeleteCommBuff(std::list<DSlib::CommDataBlockManager*>* SendBuff, std::list<DSlib::CommDataBlockManager*>* RecvBuff)
+{
     PMlibWrapper& PM = PMlibWrapper::GetInstance();
-    PM.start(PM.tm_DelSendBuff);
-    for(std::list < DSlib::CommDataBlockManager* >::iterator it_SendBuff = SendBuff->begin(); it_SendBuff != SendBuff->end();) {
-      MPI_Status status0;
-      MPI_Status status1;
-      MPI_Wait(&((*it_SendBuff)->Request0), &status0);
-      MPI_Wait(&((*it_SendBuff)->Request1), &status1);
-      delete *it_SendBuff;
-      it_SendBuff = SendBuff->erase(it_SendBuff);
+    PM.start("DelSendBuff");
+    for(std::list<DSlib::CommDataBlockManager*>::iterator it_SendBuff = SendBuff->begin(); it_SendBuff != SendBuff->end();)
+    {
+        MPI_Status status0;
+        MPI_Status status1;
+        MPI_Wait(&((*it_SendBuff)->Request0), &status0);
+        MPI_Wait(&((*it_SendBuff)->Request1), &status1);
+        delete *it_SendBuff;
+        it_SendBuff = SendBuff->erase(it_SendBuff);
     }
-    for(std::list < DSlib::CommDataBlockManager* >::iterator it_RecvBuff = RecvBuff->begin(); it_RecvBuff != RecvBuff->end();) {
-      delete *it_RecvBuff;
-      it_RecvBuff = RecvBuff->erase(it_RecvBuff);
+    for(std::list<DSlib::CommDataBlockManager*>::iterator it_RecvBuff = RecvBuff->begin(); it_RecvBuff != RecvBuff->end();)
+    {
+        delete *it_RecvBuff;
+        it_RecvBuff = RecvBuff->erase(it_RecvBuff);
     }
-    PM.stop(PM.tm_DelSendBuff);
-  }
+    PM.stop("DelSendBuff");
+}
 } // namespace LPT

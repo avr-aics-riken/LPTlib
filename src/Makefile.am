@@ -11,7 +11,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 lib_LIBRARIES = libLPT.a
 
-libLPT_a_CXXFLAGS = @MPICH_CFLAGS@ @LPT_CFLAGS@ \
+libLPT_a_CXXFLAGS = @MPICH_CFLAGS@ @LPT_CFLAGS@ @PDM_CFLAGS@\
                    -I$(top_builddir)/src/LPT \
                    -I$(top_builddir)/src/DS \
                    -I$(top_builddir)/src/PP
@@ -22,18 +22,15 @@ libLPT_a_SOURCES = \
    DS/DataBlock.C \
    DS/DecompositionManager.C \
    LPT/LPT.C \
-   LPT/LPT_ParticleOutput.C \
-   LPT/LPT_ParticleInput.C \
-   PP/Circle.C \
+   PP/StartPointCircle.C \
    PP/StartPoint.C \
-   PP/SimpleStartPointFactory.C \
-   PP/Point.C \
+   PP/StartPointPoint.C \
    PP/PPlib.C \
-   PP/Line.C \
-   PP/MovingPoints.C \
+   PP/StartPointLine.C \
+   PP/StartPointMovingPoints.C \
    PP/PP_Transport.C \
-   PP/Cuboid.C \
-   PP/Rectangle.C \
+   PP/StartPointCuboid.C \
+   PP/StartPointRectangle.C \
    PP/Utility.C \
    PP/Interpolator.C \
    PP/PP_Integrator.C \
@@ -45,23 +42,20 @@ libLPT_a_SOURCES = \
    DS/DataBlock.h \
    DS/DecompositionManager.h \
    DS/CommDataBlock.h \
-   LPT/FileManager.h \
+   LPT/MPI_Manager.h \
    LPT/LPT_Args.h \
    LPT/LPT_LogOutput.h \
-   LPT/LPT_ParticleInput.h \
-   LPT/LPT_ParticleOutput.h \
    LPT/LPT.h \
    LPT/PMlibWrapper.h \
-   PP/Circle.h \
+   PP/StartPointCircle.h \
    PP/StartPoint.h \
-   PP/SimpleStartPointFactory.h \
-   PP/Point.h \
+   PP/StartPointPoint.h \
    PP/PPlib.h \
-   PP/Line.h \
-   PP/MovingPoints.h \
+   PP/StartPointLine.h \
+   PP/StartPointMovingPoints.h \
    PP/PP_Transport.h \
-   PP/Cuboid.h \
-   PP/Rectangle.h \
+   PP/StartPointCuboid.h \
+   PP/StartPointRectangle.h \
    PP/Utility.h \
    PP/Interpolator.h \
    PP/PP_Integrator.h \

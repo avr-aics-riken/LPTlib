@@ -12,66 +12,45 @@
 
 namespace LPT
 {
- //! LPT_Initialize()の引数を保持する構造体
-  struct LPT_InitializeArgs
-  {
-    //! 計算領域のx方向のサイズ 単位はセル数
-    int Nx;
+//! LPT_Initialize()の引数を保持する構造体
+struct LPT_InitializeArgs
+{
+    int argc;                     //!< main関数のargc
+    char** argv;                  //!< main関数のargv
 
-    //! 計算領域のy方向のサイズ 単位はセル数
-    int Ny;
+    int Nx;                       //!< 計算領域のx方向のサイズ 単位はセル数
+    int Ny;                       //!< 計算領域のy方向のサイズ 単位はセル数
+    int Nz;                       //!< 計算領域のz方向のサイズ 単位はセル数
+    int NPx;                      //!< x軸方向の分割数(サブドメイン数)
+    int NPy;                      //!< y軸方向の分割数(サブドメイン数)
+    int NPz;                      //!< z軸方向の分割数(サブドメイン数)
+    int NBx;                      //!< 1サブドメインあたりのx軸方向のデータブロック数
+    int NBy;                      //!< 1サブドメインあたりのx軸方向のデータブロック数
+    int NBz;                      //!< 1サブドメインあたりのx軸方向のデータブロック数
+    REAL_TYPE dx;                 //!< x方向のセル幅
+    REAL_TYPE dy;                 //!< y方向のセル幅
+    REAL_TYPE dz;                 //!< z方向のセル幅
+    REAL_TYPE OriginX;            //!< 原点のX座標
+    REAL_TYPE OriginY;            //!< 原点のY座標
+    REAL_TYPE OriginZ;            //!< 原点のZ座標
+    int GuideCellSize;            //!< ガイドセル(袖領域)のサイズ
+    int* d_bcv;                   //!< セルが流体か固体かを示すマスク配列(30bit目のみを使用)
+    REAL_TYPE RefLength;          //!< 代表長さ
+    REAL_TYPE RefVelocity;        //!< 代表速度
+    REAL_TYPE RefTime;            //!< 時刻スケール
 
-    //! 計算領域のz方向のサイズ 単位はセル数
-    int Nz;
+    MPI_Comm ParticleComm;        //!< 粒子計算で使うコミュニケータ
+    MPI_Comm FluidComm;           //!< 流体計算で使うコミュニケータ
 
-    //! x軸方向の分割数(サブドメイン数)
-    int NPx;
+    std::string OutputFileName;                  //!<PDMlibに渡すベースファイル名
+    std::string PMlibOutputFileName;             //!  PMlibの情報を出力するファイル名
+    std::string PMlibDetailedOutputFileName;     //! PMlibの詳細情報を出力するファイル名
 
-    //! y軸方向の分割数(サブドメイン数)
-    int NPy;
+    float CurrentTime;                //!< リスタート計算をする時の開始時刻
+    int CurrentTimeStep;              //!< リスタート計算をする時の開始タイムステップ (1以上の時はリスタート計算とみなす)
+    bool MigrateOnRestart;            //!< リスタートデータの読み込み時にマイグレーションするかどうかのフラグ
 
-    //! z軸方向の分割数(サブドメイン数)
-    int NPz;
-
-    //! 1サブドメインあたりのx軸方向のデータブロック数
-    int NBx;
-
-    //! 1サブドメインあたりのx軸方向のデータブロック数
-    int NBy;
-
-    //! 1サブドメインあたりのx軸方向のデータブロック数
-    int NBz;
-
-    //! x方向のセル幅
-    REAL_TYPE dx;
-
-    //! y方向のセル幅
-    REAL_TYPE dy;
-
-    //! z方向のセル幅
-    REAL_TYPE dz;
-
-    //!  原点のX座標
-    REAL_TYPE OriginX;
-
-    //!  原点のY座標
-    REAL_TYPE OriginY;
-
-    //!  原点のZ座標
-    REAL_TYPE OriginZ;
-
-    //! @brief ガイドセル(袖領域)のサイズ
-    //!
-    //! 全方向に同じサイズの袖領域を持つものとする
-    int GuideCellSize;
-
-    //! 流体計算で使うコミュニケータ
-    MPI_Comm FluidComm;
-
-    //! @brief 流体計算に参加するプロセス数
-    //!
-    //! NumFluidProc = NPx*NPy*NPz となっていること
-    int NumFluidProc;
+    int MigrationInterval;     //!< マイグレーションの判定を行なうタイムステップ間隔
 
     //! @brief データブロックのキャッシュに使う領域のサイズ(単位はMByte)
     //!
@@ -85,86 +64,27 @@ namespace LPT
     //! CacheSizeを越えた値が指定された場合はCacheSizeと同じ値に変更する
     int CommBufferSize;
 
-    //! @brief 粒子計算に参加するプロセス数の初期値
-    //!
-    //!  未指定の場合は、MPI_COMM_WORLD内のプロセス数とする
-    int NumParticleProcs;
-
-    //! @brief 粒子計算に参加するプロセス数の最大値
-    //!
-    //!  未指定の場合は、MPI_COMM_WORLD内のプロセス数とする
-    int MaxNumParticleProcs;
-
-    //! マイグレーションの判定を行なうタイムステップ間隔を指定する
-    int MigrationInterval;
-
-    //! @brief ファイル入出力メソッドで使われるファイル名のprefix
-    //!
-    //! この後にRank番号を付け加えたものが実際のファイル名となる
-      std::string OutputFileName;
-
-    //!  FFV-Cで使用しているビットマスクの配列
-    int *d_bcv;
-
-    //!  PMlibの情報を出力するファイル名
-      std::string PMlibOutputFileName;
-
-    //! PMlibの詳細情報を出力するファイル名
-      std::string PMlibDetailedOutputFileName;
-
-    //! 代入オペレータ
-    LPT_InitializeArgs & operator=(const LPT_InitializeArgs & org)
-    {
-      Nx = org.Nx;
-      Ny = org.Ny;
-      Nz = org.Nz;
-      NPx = org.NPx;
-      NPy = org.NPy;
-      NPz = org.NPz;
-      NBx = org.NBx;
-      NBy = org.NBy;
-      NBz = org.NBz;
-      dx = org.dx;
-      dy = org.dy;
-      dz = org.dz;
-      OriginX = org.OriginX;
-      OriginY = org.OriginY;
-      OriginZ = org.OriginZ;
-      CacheSize = org.CacheSize;
-      CommBufferSize = org.CommBufferSize;
-      NumParticleProcs = org.NumParticleProcs;
-      MaxNumParticleProcs = org.MaxNumParticleProcs;
-      MigrationInterval = org.MigrationInterval;
-      OutputFileName = org.OutputFileName;
-
-      PMlibOutputFileName = org.PMlibOutputFileName;
-      PMlibDetailedOutputFileName = org.PMlibDetailedOutputFileName;
-      return (*this);
-    }
-
-    //! 入出力演算子オーバーロード
-    friend std::ostream & operator <<(std::ostream & stream, LPT_InitializeArgs args);
-    friend std::istream & operator >>(std::istream & stream, LPT_InitializeArgs & args);
-
     //! Constructor
-      LPT_InitializeArgs()
-    {
-      FluidComm = MPI_COMM_WORLD;
-      MPI_Comm_size(FluidComm, &NumFluidProc);
-      CacheSize = 1024;
-      CommBufferSize = 512;
-      NumParticleProcs = NumFluidProc;
-      MaxNumParticleProcs = NumFluidProc;
-      MigrationInterval = 100;
-      OutputFileName = "ParticleData";
-      PMlibOutputFileName = "PMlibOutput.txt";
-      PMlibDetailedOutputFileName = "PMlibDetailedOutput.txt";
-    }
-  };
+    LPT_InitializeArgs() :
+        RefLength(1.0),
+        RefVelocity(1.0),
+        ParticleComm(MPI_COMM_WORLD),
+        FluidComm(MPI_COMM_WORLD),
+        OutputFileName("ParticleData"),
+        PMlibOutputFileName("PMlibOutput.txt"),
+        PMlibDetailedOutputFileName("PMlibDetailedOutput.txt"),
+        CurrentTime(0.0),
+        CurrentTimeStep(0),
+        MigrationInterval(-1),
+        MigrateOnRestart(false),
+        CacheSize(1024),
+        CommBufferSize(512)
+    {}
+};
 
-  //! @brief LPT_CalcParticleDataの引数を保持する構造体
-  struct LPT_CalcArgs
-  {
+//! @brief LPT_CalcParticleDataの引数を保持する構造体
+struct LPT_CalcArgs
+{
     //! 現在時刻
     double CurrentTime;
 
@@ -179,21 +99,10 @@ namespace LPT
     double divT;
 
     //! 流速データのポインタ
-    REAL_TYPE *FluidVelocity;
+    REAL_TYPE* FluidVelocity;
 
-    //! 参照速度へのポインタ
-    REAL_TYPE *v00;
-
-    //! 代入オペレータ
-    LPT_CalcArgs & operator=(const LPT_CalcArgs & org)
-    {
-      CurrentTime = org.CurrentTime;
-      deltaT = org.deltaT;
-      divT = org.divT;
-      FluidVelocity = org.FluidVelocity;
-      return (*this);
-    }
-  };
-
+    //!参照速度のポインタ
+    REAL_TYPE* v00;
+};
 } // namespace LPT
 #endif

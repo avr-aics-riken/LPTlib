@@ -8,10 +8,9 @@
  */
 
 #include "StartPoint.h"
-#include "Point.h"
-#include "Line.h"
-#include "Rectangle.h"
-#include "Cuboid.h"
-#include "Circle.h"
-#include "MovingPoints.h"
-
+#include "StartPointPoint.h"
+#include "StartPointLine.h"
+#include "StartPointRectangle.h"
+#include "StartPointCuboid.h"
+#include "StartPointCircle.h"
+#include "StartPointMovingPoints.h"

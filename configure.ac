@@ -11,14 +11,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.57])
-AC_INIT([LPTlib], [1.0.0], [keno@riken.jp], [LPTlib])
+AC_INIT([LPTlib], [1.1.0], [keno@riken.jp], [LPTlib])
 AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR([src/LPT/LPT.C])
 AC_CONFIG_HEADERS([config.h])
 
 
 # revision No.
-LPT_REVISION="20141009_0800"
+LPT_REVISION="20150303_0000"
 AC_SUBST(LPT_REVISION)
 
 
@@ -122,10 +122,10 @@ fi
 #
 AC_ARG_WITH(realtype, [AC_HELP_STRING([--with-realtype=(float|double)],[Specify REAL_TYPE])], , with_realtype=float)
 AC_SUBST(LPT_REALTYPE)
-if test "$with_realtype" = "float" ; then
-  LPT_REALTYPE="-DREAL_TYPE=float"
-else
+if test "$with_realtype" = "double" ; then
   LPT_REALTYPE="-DREAL_TYPE=double"
+else
+  LPT_REALTYPE="-DREAL_TYPE=float"
 fi
 
 
@@ -172,6 +172,63 @@ else
   exit 1
 fi
 
+#
+# PDMlib environment
+#
+AC_SUBST(PDM_DIR)
+AC_SUBST(PDM_CFLAGS)
+AC_ARG_WITH(pdm, [AC_HELP_STRING([--with-pdm=dir],[Specify PDMlib install directory])], , with_pdm=none)
+AC_SUBST(PDM_LDFLAGS)
+AC_SUBST(PDM_LIBS)
+if test "$with_pdm" != "none" ; then
+  PDM_DIR=$with_pdm;
+  PDM_CFLAGS="-I$PDM_DIR/include"
+  PDM_LDFLAGS=-L$PDM_DIR/lib
+  PDM_LIBS="$PDM_DIR/lib/libPDM.a -lz"
+else
+  echo "  Error: PDM library not specified."
+  echo "         set --with-pdm option"
+  exit 1
+fi
+
+#
+# fpzip environment
+#
+AC_SUBST(FPZIP_DIR)
+AC_SUBST(FPZIP_CFLAGS)
+AC_ARG_WITH(fpzip, [AC_HELP_STRING([--with-fpzip=dir],[Specify FPZIPlib install directory])], , with_fpzip=none)
+AC_SUBST(FPZIP_LDFLAGS)
+AC_SUBST(FPZIP_LIBS)
+if test "$with_fpzip" != "none" ; then
+  FPZIP_DIR=$with_fpzip;
+  FPZIP_CFLAGS="-I$FPZIP_DIR/include"
+  FPZIP_LDFLAGS=-L$FPZIP_DIR/lib
+  FPZIP_LIBS=$FPZIP_DIR/lib/libfpzip.a
+else
+  echo "  Error: FPZIP library not specified."
+  echo "         set --with-fpzip option"
+  exit 1
+fi
+
+#
+# zoltan environment
+#
+AC_SUBST(ZOLTAN_DIR)
+AC_SUBST(ZOLTAN_CFLAGS)
+AC_ARG_WITH(zoltan, [AC_HELP_STRING([--with-zoltan=dir],[Specify ZOLTANlib install directory])], , with_zoltan=none)
+AC_SUBST(ZOLTAN_LDFLAGS)
+AC_SUBST(ZOLTAN_LIBS)
+if test "$with_zoltan" != "none" ; then
+  ZOLTAN_DIR=$with_zoltan;
+  ZOLTAN_CFLAGS="-I$ZOLTAN_DIR/include"
+  ZOLTAN_LDFLAGS=-L$ZOLTAN_DIR/lib
+  ZOLTAN_LIBS=$ZOLTAN_DIR/lib/libzoltan.a
+else
+  echo "  Error: ZOLTAN library not specified."
+  echo "         set --with-zoltan option"
+  exit 1
+fi
+
 
 #
 # LPT special flags
@@ -204,7 +261,7 @@ AC_SUBST(LPT_FC_LD)
 # MAKE_SUB_DIRS
 #
 AC_SUBST(MAKE_SUB_DIRS)
-MAKE_SUB_DIRS="src FileConverter doc"
+MAKE_SUB_DIRS="src doc"
 
 
 
@@ -239,7 +296,6 @@ AC_CHECK_FUNCS([pow sqrt gettimeofday])
 
 AC_CONFIG_FILES([Makefile \
                  src/Makefile \
-                 FileConverter/Makefile \
                  lpt-config \
                  doc/Makefile \
                 ])

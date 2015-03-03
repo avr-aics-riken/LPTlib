@@ -4,12 +4,12 @@ GRTAGS
 GTAGS
 tags
 Makefile
-FileConverter
-doc/reference
 autom4te.cache/
 config.h
+config.h.in~
 config.log
 config.status
 lpt-config
-src/.deps/
+src/*/.deps/
+src/*/.dirstamp
 stamp-h1

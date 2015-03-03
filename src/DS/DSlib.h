@@ -25,54 +25,55 @@
 
 namespace DSlib
 {
-  //!  @brief データブロックの管理を行なうクラス
-  //!
-  //! 転送待ちブロック、転送中ブロックおよび転送済ブロックの3つに分けてデータブロックの状態を管理する。
-  //！
-  class DSlib
-  {
-    friend void Communicator::CommRequest(DSlib * ptrDSlib);
+//!  @brief データブロックの管理を行なうクラス
+//!
+//! 転送待ちブロック、転送中ブロックおよび転送済ブロックの3つに分けてデータブロックの状態を管理する。
+//！
+class DSlib
+{
+    friend void Communicator::CommRequest(DSlib* ptrDSlib);
 
-  private:
+private:
     //Singletonパターンを適用
-    DSlib() {};
-    DSlib(const DSlib & obj);
-    DSlib& operator=(const DSlib & obj);
+    DSlib(){}
+    DSlib(const DSlib& obj);
+    DSlib& operator=(const DSlib& obj);
     ~DSlib()
     {
-      int NumProcs;
-      MPI_Comm_size(MPI_COMM_WORLD, &NumProcs);
-      for(std::vector < std::vector < long >*>::iterator it = RequestQueues.begin(); it!=RequestQueues.end(); ++it)
-      {
-        delete *it;
-      }
+        int NumProcs;
+        MPI_Comm_size(MPI_COMM_WORLD, &NumProcs);
+        for(std::vector<std::vector<long>*>::iterator it = RequestQueues.begin(); it != RequestQueues.end(); ++it)
+        {
+            delete *it;
+        }
     }
 
-  public:
-    static DSlib *GetInstance()
+public:
+    static DSlib* GetInstance()
     {
-      static DSlib instance;
-      return &instance;
+        static DSlib instance;
+        return &instance;
     }
+
     //! @param CacheSize [in] データブロックのキャッシュエントリ数
     void Initialize(int argCacheSize, int argCommBufferSize)
     {
-      CacheSize=argCacheSize;
-      CommBufferSize=argCommBufferSize;
-      int NumProcs;
-      MPI_Comm_size(MPI_COMM_WORLD, &NumProcs);
-      for(int i = 0; i < NumProcs; i++)
-      {
-        std::vector < long >*tmp = new std::vector < long >;
-          RequestQueues.push_back(tmp);
-      }
-      omp_init_lock(&CachedBlocksLock);
+        CacheSize      = argCacheSize;
+        CommBufferSize = argCommBufferSize;
+        int NumProcs;
+        MPI_Comm_size(MPI_COMM_WORLD, &NumProcs);
+        for(int i = 0; i < NumProcs; i++)
+        {
+            std::vector<long>* tmp = new std::vector<long>;
+            RequestQueues.push_back(tmp);
+        }
+        omp_init_lock(&CachedBlocksLock);
     }
 
-  public:
-    int CalcNumComm(Communicator * ptrComm);
+public:
+    int CalcNumComm(Communicator* ptrComm);
 
-    void DiscardCacheEntry(const int & j,Communicator * ptrComm );
+    void DiscardCacheEntry(const int& j, Communicator* ptrComm);
     //! CacheSizeを越えるデータブロックが必要となった時に、1回にキャッシュから追い出すサイズを決める
     int CommBufferSize;
 
@@ -83,57 +84,45 @@ namespace DSlib
     //!  @retval  1 要求されたデータブロックはリクエスト済だが未転送
     //!  @retval  2 要求されたデータブロックは未リクエスト
     //!  @retval -1 要求されたデータブロックはリクエストキューに無い(=このステップで転送する予定が無い)
-    int Load(const long &BlockID, DataBlock ** DataBlock);
+    int Load(const long& BlockID, DataBlock** DataBlock);
 
     //!  指定されたエントリ数分のキャッシュデータをCachedBlocksから削除する
-    void PurgeCachedBlocks(const int &NumEntry);
+    void PurgeCachedBlocks(const int& NumEntry);
 
     //!  CachedBlocks, RequestedBlocks, RequestedQueuesを全て破棄
     void PurgeAllCacheLists(void);
 
-    //! CachedBlocksのエントリを登録する 
-    long AddCachedBlocks(CommDataBlockManager * RecvData, const double &Time);
+    //! CachedBlocksのエントリを登録する
+    long AddCachedBlocks(CommDataBlockManager* RecvData, const double& Time);
 
     //!  RequestQueuesにブロックIDを登録する
-    void AddRequestQueues(const int &SubDomainID, const long &BlockID);
+    void AddRequestQueues(const int& SubDomainID, const long& BlockID);
 
     //!  引数で指定されたRankに要求するブロックIDの数を取得する
-    int CountRequestQueues(const int &SubDomainID)
+    int CountRequestQueues(const int& SubDomainID)
     {
-      return this->RequestQueues.at(SubDomainID)->size();
+        return this->RequestQueues.at(SubDomainID)->size();
     }
 
     //!  RequestQueuesから重複したIDを取り除く
     void DedupulicateRequestQueues();
 
-    //! 引数で指定されたRankに要求するブロックIDをRequestQueuesからRequestedBlocksへ移動させる 
-    void MoveRequestQueues(const int &SubDomainID);
+    //! 引数で指定されたRankに要求するブロックIDをRequestQueuesからRequestedBlocksへ移動させる
+    void MoveRequestQueues(const int& SubDomainID);
 
     //!  RequestedBlocksから指定されたIDを削除する
-    void RemoveRequestedBlocks(const long &BlockID);
+    void RemoveRequestedBlocks(const long& BlockID);
 
-
-  private:
-    //! CachedBlocksの操作に関わるlock変数
-    omp_lock_t CachedBlocksLock;
-
-    //! データ転送を要求するブロックIDのリスト
-      std::vector < std::vector < long >*>RequestQueues;
-
-    //! データ転送を要求したブロックIDのリスト
-    //!
-    //! RequestQueueにあったブロックIDのうち、CommRequestsで転送要求を送る対象として数えられたものをこちらに移す
-      std::set < long >RequestedBlocks;
-
-    //! データブロックのキャッシュ
-      std::CACHE_CONTAINER < Cache * >CachedBlocks;
-
-    //! @brief CachedBlocksに登録できるブロック数を決めるパラメータ
-    //!  サイズ指定はMB単位なので、実際のエントリ数は
-    //!  CacheSize * 1024 * 1024 / sizeof(DataBlock)
-    int CacheSize;
-
-  };
-
+private:
+    omp_lock_t                      CachedBlocksLock; //!< CachedBlocksの操作に関わるlock変数
+    std::vector<std::vector<long>*> RequestQueues;  //!< データ転送を要求するブロックIDのリスト
+    std::set<long>                  RequestedBlocks; //!< データ転送を要求したブロックIDのリスト
+                                                     //!< RequestQueueにあったブロックIDのうち、
+                                                     //!< CommRequestsで転送要求を送る対象として数えられたものをこちらに移す
+    std::CACHE_CONTAINER<Cache*>    CachedBlocks;   //!< データブロックのキャッシュ
+    int                             CacheSize;      //!< CachedBlocksに登録できるブロック数を決めるパラメータ
+                                                    //!< サイズ指定はMB単位なので、実際のエントリ数は
+                                                    //!< CacheSize * 1024 * 1024 / sizeof(DataBlock)
+};
 } // namespace DSlib
 #endif

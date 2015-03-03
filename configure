@@ -3181,7 +3181,7 @@ fi
 # MAKE_SUB_DIRS
 #
 
-MAKE_SUB_DIRS="src FileConverter doc"
+MAKE_SUB_DIRS="src doc"
 
 
 
@@ -5618,7 +5618,7 @@ done
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile FileConverter/Makefile lpt-config doc/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile lpt-config doc/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -6354,7 +6354,6 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-    "FileConverter/Makefile") CONFIG_FILES="$CONFIG_FILES FileConverter/Makefile" ;;
     "lpt-config") CONFIG_FILES="$CONFIG_FILES lpt-config" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
 
