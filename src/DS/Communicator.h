@@ -33,11 +33,11 @@ class Communicator
 
 public:
     // Constructor
-    Communicator(const int& argMaxRequestSize, const int& argMaxDataBlockSize):
+    Communicator(const int& argMaxRequestSize, const int& argMaxDataBlockSize) :
         MaxRequestSize(argMaxRequestSize),
         MaxDataBlockSize(argMaxDataBlockSize)
     {
-        int  NumProcs=LPT::MPI_Manager::GetInstance()->get_nproc_p();
+        int NumProcs = LPT::MPI_Manager::GetInstance()->get_nproc_p();
         //TODO MPI_Type_structを使ってヘッダ+DataBlockという形式にする
         MPI_Type_contiguous(sizeof(DataBlock), MPI_BYTE, &MPI_TypeDataBlock);
         if(MPI_SUCCESS != MPI_Type_commit(&MPI_TypeDataBlock))
@@ -53,17 +53,16 @@ public:
 
         if(LPT::MPI_Manager::GetInstance()->is_fluid_proc())
         {
-            BlockIDsToSend    = new long[NumProcs*MaxRequestSize];
-            for(int i=0; i<NumProcs*MaxRequestSize;i++)
+            BlockIDsToSend = new long[NumProcs*MaxRequestSize];
+            for(int i = 0; i < NumProcs*MaxRequestSize; i++)
             {
-                BlockIDsToSend[i]=-1;
+                BlockIDsToSend[i] = -1;
             }
             MPI_Win_create(BlockIDsToSend, NumProcs*MaxRequestSize*sizeof(long), sizeof(long), MPI_INFO_NULL, MPI_COMM_WORLD, &window);
         }else{
             MPI_Win_create(BlockIDsToSend, 0, sizeof(long), MPI_INFO_NULL, MPI_COMM_WORLD, &window);
         }
         MPI_Win_fence(0, window);
-
     }
 
     //Destructor
@@ -71,7 +70,7 @@ public:
     {
         if(LPT::MPI_Manager::GetInstance()->is_fluid_proc())
         {
-            delete [] BlockIDsToSend;
+            delete[] BlockIDsToSend;
         }
         MPI_Win_free(&window);
     }
@@ -96,7 +95,7 @@ private:
     MPI_Datatype MPI_TypeDataBlock;   //!< DataBlockの送受信用データタイプ
     long*        BlockIDsToSend;      //!< 自Rankから各Rankへ転送するデータブロックのIDを保持する領域
     size_t       MaxRequestSize;      //!< 1プロセスから同時に受け付ける最大ブロックID数
-    int          MaxDataBlockSize;    //!< 最も大きいデータブロックに含まれるセル数(袖領域も含む)
+    int MaxDataBlockSize;             //!< 最も大きいデータブロックに含まれるセル数(袖領域も含む)
     MPI_Win      window;              //!< ブロックIDの転送領域用MPI_Win変数
 };
 } // namespace DSlib

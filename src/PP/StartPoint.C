@@ -33,6 +33,7 @@ std::string StartPoint::PrintTimeAndID(const double& RefTime) const
     oss<<"LatestEmitParticleID = "<<this->LatestEmitParticleID<<std::endl;
     return oss.str();
 }
+
 void StartPoint::ReadTimeAndID(std::istream& stream, const double& RefTime)
 {
     std::string work;
@@ -68,6 +69,7 @@ void StartPoint::ReadTimeAndID(std::istream& stream, const double& RefTime)
     std::getline(stream, work);
     this->LatestEmitParticleID = std::atoi(work.c_str());
 }
+
 void StartPoint::EmitNewParticle(std::list<ParticleData*>* ParticleList, const double& CurrentTime, const int& CurrentTimeStep)
 {
     bool DoEmit = false;
@@ -106,7 +108,7 @@ void StartPoint::EmitNewParticle(std::list<ParticleData*>* ParticleList, const d
             return;
         }
 
-        std::vector<REAL_TYPE>           Coords;
+        std::vector<REAL_TYPE> Coords;
         GetGridPointCoord(Coords);
 
         std::vector<REAL_TYPE>::iterator itCoords = Coords.begin();
@@ -118,7 +120,7 @@ void StartPoint::EmitNewParticle(std::list<ParticleData*>* ParticleList, const d
             (*it)->StartTime     = CurrentTime;
             (*it)->LifeTime      = ParticleLifeTime;
             //放出直後の時刻は不正値(-1.0)を入れておく
-            (*it)->CurrentTime = -1.0;
+            (*it)->CurrentTime   = -1.0;
             //放出されたタイミングでは粒子移動の計算前なのでCurrentTimeStep -1の値とする
             //PP_Transport内で計算されたタイミングで更新後の時刻、タイムステップが代入される
             (*it)->CurrentTimeStep = CurrentTimeStep-1;

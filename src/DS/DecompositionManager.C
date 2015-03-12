@@ -60,28 +60,28 @@ void DecompositionManager::DumpBlockBoundary()
 
 void DecompositionManager::Initialize(const REAL_TYPE& arg_Nx, const REAL_TYPE& arg_Ny, const REAL_TYPE& arg_Nz, const REAL_TYPE& arg_NPx, const REAL_TYPE& arg_NPy, const REAL_TYPE& arg_NPz, const REAL_TYPE& arg_NBx, const REAL_TYPE& arg_NBy, const REAL_TYPE& arg_NBz, const REAL_TYPE& arg_OriginX, const REAL_TYPE& arg_OriginY, const REAL_TYPE& arg_OriginZ, const REAL_TYPE& arg_dx, const REAL_TYPE& arg_dy, const REAL_TYPE& arg_dz, const int& arg_GuideCellSize)
 {
-    initialized = true;
-    Nx          = arg_Nx;
-    Ny          = arg_Ny;
-    Nz          = arg_Nz;
-    NPx         = arg_NPx;
-    NPy         = arg_NPy;
-    NPz         = arg_NPz;
-    NBx         = arg_NBx;
-    NBy         = arg_NBy;
-    NBz         = arg_NBz;
-    OriginX     = arg_OriginX;
-    OriginY     = arg_OriginY;
-    OriginZ     = arg_OriginZ;
-    dx          = arg_dx;
-    dy          = arg_dy;
-    dz          = arg_dz;
+    initialized   = true;
+    Nx            = arg_Nx;
+    Ny            = arg_Ny;
+    Nz            = arg_Nz;
+    NPx           = arg_NPx;
+    NPy           = arg_NPy;
+    NPz           = arg_NPz;
+    NBx           = arg_NBx;
+    NBy           = arg_NBy;
+    NBz           = arg_NBz;
+    OriginX       = arg_OriginX;
+    OriginY       = arg_OriginY;
+    OriginZ       = arg_OriginZ;
+    dx            = arg_dx;
+    dy            = arg_dy;
+    dz            = arg_dz;
 
     GuideCellSize = arg_GuideCellSize;
     std::vector<int> Parts;
 
     LPT::LPT_LOG::GetInstance()->LOG("calc SubDomainBoundary X");
-    SubDomainBoundaryX = new int[NPx+1];
+    SubDomainBoundaryX    = new int[NPx+1];
     Decomposer(Nx, NPx, &Parts);
     SubDomainBoundaryX[0] = 0;
     for(int i = 0; i < NPx; i++)
@@ -90,7 +90,7 @@ void DecompositionManager::Initialize(const REAL_TYPE& arg_Nx, const REAL_TYPE& 
     }
 
     LPT::LPT_LOG::GetInstance()->LOG("calc SubDomainBoundary Y");
-    SubDomainBoundaryY = new int[NPy+1];
+    SubDomainBoundaryY    = new int[NPy+1];
     Decomposer(Ny, NPy, &Parts);
     SubDomainBoundaryY[0] = 0;
     for(int i = 0; i < NPy; i++)
@@ -99,7 +99,7 @@ void DecompositionManager::Initialize(const REAL_TYPE& arg_Nx, const REAL_TYPE& 
     }
 
     LPT::LPT_LOG::GetInstance()->LOG("calc SubDomainBoundary Z");
-    SubDomainBoundaryZ = new int[NPz+1];
+    SubDomainBoundaryZ    = new int[NPz+1];
     Decomposer(Nz, NPz, &Parts);
     SubDomainBoundaryZ[0] = 0;
     for(int i = 0; i < NPz; i++)

@@ -25,10 +25,11 @@ Point* PointFactory(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, d
 //! @brief 1点で定義された開始点の情報を保持するクラス
 class Point: public StartPoint
 {
-    Point():StartPoint()
+    Point() : StartPoint()
     {
-        this->SumStartPoints=1;
+        this->SumStartPoints = 1;
     }
+
 public:
     //! テキスト出力を行う
     std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
@@ -55,15 +56,16 @@ private:
 static Point* PointFactory(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
     Point* tmpStartPoint = new Point;
-    if(Coord1==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL) return tmpStartPoint;
+    if(Coord1 == NULL && StartTime == NULL && ReleaseTime == NULL && TimeSpan == NULL && ParticleLifeTime == NULL)return tmpStartPoint;
+
     for(int i = 0; i < 3; i++)
     {
         tmpStartPoint->Coord1[i] = Coord1[i];
     }
-    tmpStartPoint->StartTime            = StartTime;
-    tmpStartPoint->ReleaseTime          = ReleaseTime;
-    tmpStartPoint->TimeSpan             = TimeSpan;
-    tmpStartPoint->ParticleLifeTime     = ParticleLifeTime;
+    tmpStartPoint->StartTime        = StartTime;
+    tmpStartPoint->ReleaseTime      = ReleaseTime;
+    tmpStartPoint->TimeSpan         = TimeSpan;
+    tmpStartPoint->ParticleLifeTime = ParticleLifeTime;
 
     return tmpStartPoint;
 }

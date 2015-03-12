@@ -26,7 +26,8 @@ Cuboid* CuboidFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoin
 //! @brief 直方体型で定義された開始点の情報を保持するクラス
 class Cuboid: public StartPoint
 {
-    Cuboid():StartPoint(){}
+    Cuboid() : StartPoint(){}
+
 public:
     //! テキスト出力を行う
     std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
@@ -64,18 +65,19 @@ private:
 static Cuboid* CuboidFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
     Cuboid* tmpStartPoint = new Cuboid;
-    if(Coord1==NULL&&Coord2==NULL&&NumStartPoints==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL) return tmpStartPoint;
+    if(Coord1 == NULL && Coord2 == NULL && NumStartPoints == NULL && StartTime == NULL && ReleaseTime == NULL && TimeSpan == NULL && ParticleLifeTime == NULL)return tmpStartPoint;
+
     for(int i = 0; i < 3; i++)
     {
         tmpStartPoint->Coord1[i]         = Coord1[i];
         tmpStartPoint->Coord2[i]         = Coord2[i];
         tmpStartPoint->NumStartPoints[i] = NumStartPoints[i];
     }
-    tmpStartPoint->SumStartPoints       = NumStartPoints[0]*NumStartPoints[1]*NumStartPoints[2];
-    tmpStartPoint->StartTime            = StartTime;
-    tmpStartPoint->ReleaseTime          = ReleaseTime;
-    tmpStartPoint->TimeSpan             = TimeSpan;
-    tmpStartPoint->ParticleLifeTime     = ParticleLifeTime;
+    tmpStartPoint->SumStartPoints   = NumStartPoints[0]*NumStartPoints[1]*NumStartPoints[2];
+    tmpStartPoint->StartTime        = StartTime;
+    tmpStartPoint->ReleaseTime      = ReleaseTime;
+    tmpStartPoint->TimeSpan         = TimeSpan;
+    tmpStartPoint->ParticleLifeTime = ParticleLifeTime;
 
     return tmpStartPoint;
 }

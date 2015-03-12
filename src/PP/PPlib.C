@@ -37,6 +37,7 @@ void PPlib::WriteStartPoints(const std::string& filename, const REAL_TYPE& RefLe
         startpoint<<(*it)->TextPrint(RefLength, RefTime);
     }
 }
+
 void PPlib::ReadStartPoints(const std::string& filename, const REAL_TYPE& RefLength, const double& RefTime)
 {
     std::ifstream ifs(filename.c_str());
@@ -46,43 +47,42 @@ void PPlib::ReadStartPoints(const std::string& filename, const REAL_TYPE& RefLen
         std::getline(ifs, startpoint);
         if(startpoint == "Point")
         {
-            Point*    tmp       = PointFactory(NULL, NULL, NULL, NULL, NULL);
-            tmp->ReadText(ifs, RefLength, RefTime );
+            Point* tmp = PointFactory(NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime);
             StartPoints.push_back(tmp);
         }else if(startpoint == "Line"){
-            Line*     tmp            = LineFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            tmp->ReadText(ifs, RefLength, RefTime );
+            Line* tmp = LineFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime);
             StartPoints.push_back(tmp);
         }else if(startpoint == "Rectangle"){
-            Rectangle* tmp               = RectangleFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            tmp->ReadText(ifs, RefLength, RefTime );
+            Rectangle* tmp = RectangleFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime);
             StartPoints.push_back(tmp);
         }else if(startpoint == "Cuboid"){
-            Cuboid*   tmp               = CuboidFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            tmp->ReadText(ifs, RefLength, RefTime );
+            Cuboid* tmp = CuboidFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime);
             StartPoints.push_back(tmp);
         }else if(startpoint == "Circle"){
-            Circle*   tmp             = CircleFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            tmp->ReadText(ifs, RefLength, RefTime );
+            Circle* tmp = CircleFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime);
             if(tmp->Initialize())
             {
                 StartPoints.push_back(tmp);
             }
         }else if(startpoint == "MovingPoints"){
-            MovingPoints* tmp       = MovingPointsFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            tmp->ReadText(ifs, RefLength, RefTime );
+            MovingPoints* tmp = MovingPointsFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime);
             StartPoints.push_back(tmp);
         }else{
             LPT::LPT_LOG::GetInstance()->WARN("unknown startpoint type : ", startpoint);
         }
         startpoint.erase();
     }
-
 }
 
 void PPlib::EmitNewParticles(const double& CurrentTime, const int& CurrentTimeStep)
 {
-    LPT::PMlibWrapper&       PM = LPT::PMlibWrapper::GetInstance();
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
     PM.start("EmitParticle");
     std::list<ParticleData*> tmpParticles;
     for(std::vector<StartPoint*>::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
@@ -104,10 +104,10 @@ void PPlib::EmitNewParticles(const double& CurrentTime, const int& CurrentTimeSt
 
 void PPlib::MakeRequestQueues(DSlib::DSlib* ptrDSlib)
 {
-    LPT::PMlibWrapper&           PM = LPT::PMlibWrapper::GetInstance();
+    LPT::PMlibWrapper& PM              = LPT::PMlibWrapper::GetInstance();
     PM.start("MakeRequestQ");
     DSlib::DecompositionManager* ptrDM = DSlib::DecompositionManager::GetInstance();
-    std::set<long>               tmpIDs;
+    std::set<long> tmpIDs;
 
     //ブロックIDの集合(重複無し)を作る
     for(ParticleContainer::iterator it = Particles.begin(); it != Particles.end(); ++it)
@@ -200,7 +200,7 @@ void PPlib::DistributeStartPoints(const int& NParticleProcs)
 
     //1プロセスあたりの平均開始点数を計算
     int AveNumStartPoints = TotalNumStartPoints/NParticleProcs;
-    if (AveNumStartPoints == 0) AveNumStartPoints=1;
+    if(AveNumStartPoints == 0)AveNumStartPoints = 1;
     LPT::LPT_LOG::GetInstance()->INFO("AveNumStartPoints = ", AveNumStartPoints);
 
     std::vector<StartPoint*> NewStartPoints;
@@ -225,7 +225,7 @@ void PPlib::DistributeStartPoints(const int& NParticleProcs)
     std::vector<StartPoint*>::iterator it1 = NewStartPoints.begin();
     std::vector<StartPoint*>::iterator it2 = NewStartPoints.begin();
 
-    int                                tmpSumStartPoints = 0;
+    int tmpSumStartPoints                  = 0;
 
     for(int i = 0; i < NewStartPoints.size(); i++)
     {
@@ -278,7 +278,7 @@ void PPlib::OutputStartPoints(const REAL_TYPE& RefLength)
     const int     TimeStep = 0;
     const double& Time     = 0.0;
     //開始点の総数をカウント
-    size_t        SumGridPoints = 0;
+    size_t SumGridPoints   = 0;
     for(std::vector<StartPoint*>::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
     {
         SumGridPoints += (*it)->GetSumStartPoints();

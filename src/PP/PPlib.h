@@ -51,9 +51,7 @@ public:
 
 public:
     std::vector<StartPoint*> StartPoints; //!< 担当する開始点データへのポインタのvector
-    ParticleContainer        Particles;   //!< 計算を担当する粒子データオブジェクトへのポインタを格納する。
-
-
+    ParticleContainer Particles;          //!< 計算を担当する粒子データオブジェクトへのポインタを格納する。
 
     //! @brief StartPointsに登録されている全ての開始点から粒子を放出させる
     //! 開始点がMovingPoints型だった場合は現在時刻に応じた位置へ移動させてから粒子を放出する

@@ -14,7 +14,7 @@
 namespace PPlib
 {
 std::map<int, std::list<ParticleData*>*> ParticleContainerIterator::map_dummy;
-std::list<ParticleData*>                 ParticleContainerIterator::list_dummy;
+std::list<ParticleData*> ParticleContainerIterator::list_dummy;
 
 ParticleContainerIterator::ParticleContainerIterator(ParticleContainer* arg_container)
 {

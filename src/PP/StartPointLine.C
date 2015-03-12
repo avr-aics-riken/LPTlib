@@ -54,11 +54,11 @@ void Line::ReadText(std::istream& stream, const REAL_TYPE& RefLength, const doub
 
 void Line::GetGridPointCoord(std::vector<REAL_TYPE>& Coords)
 {
-    std::vector<REAL_TYPE>           coord_x;
+    std::vector<REAL_TYPE> coord_x;
     utility::DivideLine1D(&coord_x, SumStartPoints, Coord1[0], Coord2[0]);
-    std::vector<REAL_TYPE>           coord_y;
+    std::vector<REAL_TYPE> coord_y;
     utility::DivideLine1D(&coord_y, SumStartPoints, Coord1[1], Coord2[1]);
-    std::vector<REAL_TYPE>           coord_z;
+    std::vector<REAL_TYPE> coord_z;
     utility::DivideLine1D(&coord_z, SumStartPoints, Coord1[2], Coord2[2]);
 
     std::vector<REAL_TYPE>::iterator it_x = coord_x.begin();
@@ -99,7 +99,7 @@ void Line::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumStart
 
     //分割前のオブジェクトの開始点座標を取得し、先頭から順にNumGridPoints個毎に新しいオブジェクトを作って
     //StartPointsにpush_backする
-    std::vector<REAL_TYPE>           Coords;
+    std::vector<REAL_TYPE> Coords;
     this->GetGridPointCoord(Coords);
     std::vector<REAL_TYPE>::iterator itCoords = Coords.begin();
     for(int i = 0; i < NumParts; i++)

@@ -17,13 +17,13 @@ namespace DSlib
 struct DataBlock
 {
 public:
-    long       BlockID;        //!< データブロックのID
-    int        SubDomainID;    //!< そのデータブロックが存在するサブドメインのID
-    REAL_TYPE  Origin[3];      //!< データブロックの原点座標
-    int        OriginCell[3];  //!< データブロックの原点位置を含むセルのindex
-    int        BlockSize[3];   //!<  このデータブロックのサイズ(単位はセル数)
-    double     Time;           //!<  このデータブロックが保持する流速場の情報が、どの時刻のものなのかを保持する
-    REAL_TYPE  Pitch[3];       //!<  セル幅
+    long BlockID;              //!< データブロックのID
+    int SubDomainID;           //!< そのデータブロックが存在するサブドメインのID
+    REAL_TYPE Origin[3];       //!< データブロックの原点座標
+    int OriginCell[3];         //!< データブロックの原点位置を含むセルのindex
+    int BlockSize[3];          //!<  このデータブロックのサイズ(単位はセル数)
+    double Time;               //!<  このデータブロックが保持する流速場の情報が、どの時刻のものなのかを保持する
+    REAL_TYPE Pitch[3];        //!<  セル幅
     //TODO ここまでを内部クラスにまとめる
     REAL_TYPE* Data;           //!<  流速データの配列へのポインタ
 
@@ -38,6 +38,7 @@ public:
         BlockSize[2]  = -1;
         //TODO OriginとpitchはNanで初期化したい
     }
+
     //! デストラクタ
     ~DataBlock()
     {
@@ -76,7 +77,6 @@ public:
         Time = arg.Time;
         return *this;
     }
-
 
     //!  挿入子オーバーロード
     friend std::ostream& operator<<(std::ostream& stream, DataBlock obj);

@@ -255,7 +255,7 @@ void Circle::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumSta
         ReminderCentralAngle = ((double)NumReminder/(double)SumStartPoints)*2*M_PI;
         Circle* NewCircle = CircleFactory(this->Coord1, this->SumStartPoints, this->Radius, this->NormalVector, this->StartTime, this->ReleaseTime, this->TimeSpan, this->ParticleLifeTime);
         NewCircle->theta_min = 2*M_PI-ReminderCentralAngle;
-        double  tick = (2*M_PI-ReminderCentralAngle)/NumParts/NumGridPoints;
+        double  tick      = (2*M_PI-ReminderCentralAngle)/NumParts/NumGridPoints;
 
         while(NumReminder > NewCircle->CalcSumStartPoints())
         {

@@ -58,7 +58,7 @@ public:
     {
         LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
         PM.start("MPI_Wait");
-        MPI_Status         status;
+        MPI_Status status;
         if(MPI_SUCCESS != MPI_Wait(&Request0, &status))
         {
             LPT::LPT_LOG::GetInstance()->ERROR("MPI_Wait 1 Failed");
@@ -75,9 +75,9 @@ public:
     {
         LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
         PM.start("MPI_Wait");
-        MPI_Status         status;
-        int                flag0 = 0;
-        int                flag1 = 0;
+        MPI_Status status;
+        int flag0 = 0;
+        int flag1 = 0;
         if(MPI_SUCCESS != MPI_Test(&Request0, &flag0, &status))
         {
             LPT::LPT_LOG::GetInstance()->ERROR("MPI_Test for Data Failed");
@@ -96,16 +96,16 @@ public:
     //! @brief データ送受信に使う領域へのポインタ
     //! ポインタの先の領域には、最大サイズのデータブロック(BlockID=0)の
     //! データが収まるサイズで領域を確保しておくこと
-    REAL_TYPE*           Buff;
+    REAL_TYPE* Buff;
 
     //!  DataBlockのヘッダ部分送信用構造体
     CommDataBlockHeader* Header;
 
     //!  データ送受信につかうMPI_Request
-    MPI_Request          Request0;
+    MPI_Request Request0;
 
     //!  データ送受信につかうMPI_Request(ヘッダ部用)
-    MPI_Request          Request1;
+    MPI_Request Request1;
 };
 } // namespace DSlib
 #endif

@@ -30,9 +30,9 @@ bool PP_Integrator::GetIntegrand(const DSlib::DataBlock& DataBlock, const REAL_T
 
 int PP_Integrator::RKG(const DSlib::DataBlock& DataBlock, const double t_step, REAL_TYPE x_i[3])
 {
-    const REAL_TYPE ck[4] = {(REAL_TYPE)2.0, (REAL_TYPE)1.0, (REAL_TYPE)1.0, (REAL_TYPE)2.0};
-    const REAL_TYPE cq[4] = {(REAL_TYPE)0.5, (REAL_TYPE)1.0-(REAL_TYPE)sqrt(0.5), (REAL_TYPE)1.0+(REAL_TYPE)sqrt(0.5), (REAL_TYPE)0.5};
-    const REAL_TYPE cx[4] = {(REAL_TYPE)0.5, (REAL_TYPE)1.0-(REAL_TYPE)sqrt(0.5), (REAL_TYPE)1.0+(REAL_TYPE)sqrt(0.5), (REAL_TYPE)0.5/3};
+    const REAL_TYPE ck[4]   = {(REAL_TYPE)2.0, (REAL_TYPE)1.0, (REAL_TYPE)1.0, (REAL_TYPE)2.0};
+    const REAL_TYPE cq[4]   = {(REAL_TYPE)0.5, (REAL_TYPE)1.0-(REAL_TYPE)sqrt(0.5), (REAL_TYPE)1.0+(REAL_TYPE)sqrt(0.5), (REAL_TYPE)0.5};
+    const REAL_TYPE cx[4]   = {(REAL_TYPE)0.5, (REAL_TYPE)1.0-(REAL_TYPE)sqrt(0.5), (REAL_TYPE)1.0+(REAL_TYPE)sqrt(0.5), (REAL_TYPE)0.5/3};
 
     REAL_TYPE       q[3]    = {0.0, 0.0, 0.0};
     REAL_TYPE       func[3] = {0.0, 0.0, 0.0};
@@ -48,13 +48,13 @@ int PP_Integrator::RKG(const DSlib::DataBlock& DataBlock, const double t_step, R
         GetIntegrand(DataBlock, x_i, func);
         for(int n = 0; n < 3; n++)
         {
-            k = t_step*func[n];
-            r = cx[l]*(k-ck[l]*q[n]);
+            k       = t_step*func[n];
+            r       = cx[l]*(k-ck[l]*q[n]);
 
             x_i[n] += r;
             q[n]   += 3.0*r-cq[l]*k;
         } // end of for(n)
-    } // end of for(l)
+    }     // end of for(l)
 
     return 0;
 }

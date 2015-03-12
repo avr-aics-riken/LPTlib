@@ -233,36 +233,36 @@ public:
     }
 
 private:
-    int*                   SubDomainBoundaryX; //!< x軸方向の領域分割の境目になる座標を保持する配列
+    int* SubDomainBoundaryX;                   //!< x軸方向の領域分割の境目になる座標を保持する配列
                                                //!< BoundaryX[i]からBoundaryX[i+1]までがi番目のサブドメイン
-    int*                   SubDomainBoundaryY; //!< SubDomainBoundaryXと同様でY方向の値を保持する配列
-    int*                   SubDomainBoundaryZ; //!< SubDomainBoundaryXと同様でZ方向の値を保持する配列
-    int*                   BlockBoundaryX;   //!< x軸方向のデータブロック分割の境目になるセルidを保持する
-                                             //!< BlockBoundaryX[i]からBlockBoundaryX[i+1]までがi番目のブロック
-                                             //!< ブロックIDはサブドメインをまたいだ通し番号となっていることに注意
-    int*                   BlockBoundaryY;   //!< BlockBoundaryXと同様
-    int*                   BlockBoundaryZ;   //!< BlockBoundaryXと同様
+    int* SubDomainBoundaryY;                   //!< SubDomainBoundaryXと同様でY方向の値を保持する配列
+    int* SubDomainBoundaryZ;                   //!< SubDomainBoundaryXと同様でZ方向の値を保持する配列
+    int* BlockBoundaryX;                       //!< x軸方向のデータブロック分割の境目になるセルidを保持する
+                                               //!< BlockBoundaryX[i]からBlockBoundaryX[i+1]までがi番目のブロック
+                                               //!< ブロックIDはサブドメインをまたいだ通し番号となっていることに注意
+    int* BlockBoundaryY;                       //!< BlockBoundaryXと同様
+    int* BlockBoundaryZ;                       //!< BlockBoundaryXと同様
     std::vector<REAL_TYPE> RealBlockBoundaryX; //!< x軸方向のデータブロック分割の境目になる座標を保持する
     std::vector<REAL_TYPE> RealBlockBoundaryY; //!< RealBlockBoundaryXと同様
     std::vector<REAL_TYPE> RealBlockBoundaryZ; //!< RealBlockBoundaryXと同様
-    int                    Nx;               //!< 計算領域のx方向のサイズ 単位はセル数
-    int                    Ny;               //!< 計算領域のy方向のサイズ 単位はセル数
-    int                    Nz;               //!< 計算領域のz方向のサイズ 単位はセル数
-    int                    NPx;              //!< x軸方向の分割数(サブドメイン数)
-    int                    NPy;              //!< y軸方向の分割数(サブドメイン数)
-    int                    NPz;              //!< z軸方向の分割数(サブドメイン数)
-    int                    NBx;              //!< 1サブドメインあたりのx軸方向のデータブロック数
-    int                    NBy;              //!< 1サブドメインあたりのx軸方向のデータブロック数
-    int                    NBz;              //!< 1サブドメインあたりのx軸方向のデータブロック数
-    REAL_TYPE              OriginX;          //!< 解析領域全体の原点のx座標
-    REAL_TYPE              OriginY;          //!< 解析領域全体の原点のy座標
-    REAL_TYPE              OriginZ;          //!< 解析領域全体の原点のz座標
-    REAL_TYPE              dx;               //!< x方向のセル幅
-    REAL_TYPE              dy;               //!< y方向のセル幅
-    REAL_TYPE              dz;               //!< z方向のセル幅
-    int                    LargestBlockSize; //!< BlockID=0(全ブロック中最も大きいブロック)が持つセル数
-    int                    GuideCellSize;    //!< 流体から転送してくる袖領域のサイズx,y,z全方向で+-の両方にGuideCell数分の袖領域があることを示す
-    bool                   initialized;      //!< Initialize()が呼ばれたかどうかのフラグ
+    int Nx;                                    //!< 計算領域のx方向のサイズ 単位はセル数
+    int Ny;                                    //!< 計算領域のy方向のサイズ 単位はセル数
+    int Nz;                                    //!< 計算領域のz方向のサイズ 単位はセル数
+    int NPx;                                   //!< x軸方向の分割数(サブドメイン数)
+    int NPy;                                   //!< y軸方向の分割数(サブドメイン数)
+    int NPz;                                   //!< z軸方向の分割数(サブドメイン数)
+    int NBx;                                   //!< 1サブドメインあたりのx軸方向のデータブロック数
+    int NBy;                                   //!< 1サブドメインあたりのx軸方向のデータブロック数
+    int NBz;                                   //!< 1サブドメインあたりのx軸方向のデータブロック数
+    REAL_TYPE OriginX;                         //!< 解析領域全体の原点のx座標
+    REAL_TYPE OriginY;                         //!< 解析領域全体の原点のy座標
+    REAL_TYPE OriginZ;                         //!< 解析領域全体の原点のz座標
+    REAL_TYPE dx;                              //!< x方向のセル幅
+    REAL_TYPE dy;                              //!< y方向のセル幅
+    REAL_TYPE dz;                              //!< z方向のセル幅
+    int       LargestBlockSize;                //!< BlockID=0(全ブロック中最も大きいブロック)が持つセル数
+    int       GuideCellSize;                   //!< 流体から転送してくる袖領域のサイズx,y,z全方向で+-の両方にGuideCell数分の袖領域があることを示す
+    bool      initialized;                     //!< Initialize()が呼ばれたかどうかのフラグ
 
     //! LengthをNumBlocksで分割し個々の領域のサイズをPartsに先頭から順に格納して返す
     void Decomposer(const int Length, const int NumBlocks, std::vector<int>* Parts);

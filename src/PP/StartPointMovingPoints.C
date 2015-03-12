@@ -17,7 +17,7 @@ std::string MovingPoints::TextPrint(const REAL_TYPE& RefLength, const double& Re
 {
     std::ostringstream oss;
     oss<<"MovingPoints"<<std::endl;
-    size_t             NumCoordinateSets = this->Coords.size()/3;
+    size_t NumCoordinateSets = this->Coords.size()/3;
     oss<<"Number of Coords    = "<<NumCoordinateSets<<std::endl;
     oss<<"Coords              = "<<std::endl;
     for(int i = 0; i < NumCoordinateSets; i++)
@@ -69,7 +69,7 @@ void MovingPoints::ReadText(std::istream& stream, const REAL_TYPE& RefLength, co
 
 void MovingPoints::UpdateStartPoint(double CurrentTime)
 {
-    if(CurrentTime < *(Time.begin())) return;
+    if(CurrentTime < *(Time.begin()))return;
 
     //TimeからCurrentTimeに相当するindexを取得
     size_t index = distance(Time.begin(), lower_bound(Time.begin(), Time.end(), CurrentTime))-1;

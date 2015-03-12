@@ -17,7 +17,6 @@
 #include "PMlibWrapper.h"
 #include "LPT_LogOutput.h"
 
-
 namespace DSlib
 {
 int Isend(double* buf, int count, int dest, int tag, MPI_Comm comm, MPI_Request* request)
@@ -44,38 +43,39 @@ bool Communicator::CommRequest2(DSlib* ptrDSlib, std::list<CommDataBlockManager*
 {
     LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
     PM.start("P2PRequest");
-    bool need_to_rerun=false;
-    int Myrank=LPT::MPI_Manager::GetInstance()->get_myrank_p();
-    int RecvBuffMemSize = 0;
+    bool need_to_rerun    = false;
+    int  Myrank           = LPT::MPI_Manager::GetInstance()->get_myrank_p();
+    int  RecvBuffMemSize  = 0;
     if(LPT::MPI_Manager::GetInstance()->is_particle_proc())
     {
         for(int rank_f = 0; rank_f < LPT::MPI_Manager::GetInstance()->get_nproc_f(); rank_f++)
         {
-            std::vector<long>& queue=*(ptrDSlib->RequestQueues.at(rank_f));
-            int num_request = queue.size();
+            std::vector<long>& queue = *(ptrDSlib->RequestQueues.at(rank_f));
+            int num_request          = queue.size();
             if(num_request > MaxRequestSize)
             {
                 //既定サイズを越えていたら戻り値をtrueに変える
-                need_to_rerun=true;
-                num_request = MaxRequestSize;
+                need_to_rerun = true;
+                num_request   = MaxRequestSize;
             }
-            if( num_request >0)
+            if(num_request > 0)
             {
-                MPI_Put(&*(queue.begin()), num_request, MPI_LONG, rank_f, MaxRequestSize*Myrank, num_request, MPI_LONG, window);
+                int dst = LPT::MPI_Manager::GetInstance()->get_rank_f2w(rank_f);
+                MPI_Put(&*(queue.begin()), num_request, MPI_LONG, dst, MaxRequestSize*Myrank, num_request, MPI_LONG, window);
 
                 int tag = 0;
-                for(int i=0; i<num_request; ++i)
+                for(int i = 0; i < num_request; ++i)
                 {
                     CommDataBlockManager* tmp = new CommDataBlockManager(MaxDataBlockSize);
                     RecvBuffMemSize += MaxDataBlockSize;
 
-                    int  ierr1 = Irecv(tmp->Buff, MaxDataBlockSize, rank_f, tag++, MPI_COMM_WORLD, &(tmp->Request0));
-                    if(ierr1 != MPI_SUCCESS) LPT::LPT_LOG::GetInstance()->ERROR("return value from Irecv = ", ierr1);
+                    int ierr1 = Irecv(tmp->Buff, MaxDataBlockSize, dst, tag++, MPI_COMM_WORLD, &(tmp->Request0));
+                    if(ierr1 != MPI_SUCCESS)LPT::LPT_LOG::GetInstance()->ERROR("return value from Irecv = ", ierr1);
 
-                    int  ierr2 = MPI_Irecv(tmp->Header, 1, MPI_DataBlockHeader, rank_f, tag++, MPI_COMM_WORLD, &(tmp->Request1));
-                    if(ierr2 != MPI_SUCCESS) LPT::LPT_LOG::GetInstance()->ERROR("return value from MPI_Irecv = ", ierr2);
+                    int ierr2 = MPI_Irecv(tmp->Header, 1, MPI_DataBlockHeader, dst, tag++, MPI_COMM_WORLD, &(tmp->Request1));
+                    if(ierr2 != MPI_SUCCESS)LPT::LPT_LOG::GetInstance()->ERROR("return value from MPI_Irecv = ", ierr2);
 
-                    if(ierr1 == MPI_SUCCESS && ierr2 == MPI_SUCCESS) RecvBuff->push_back(tmp);
+                    if(ierr1 == MPI_SUCCESS && ierr2 == MPI_SUCCESS)RecvBuff->push_back(tmp);
 
                     //リクエストを送信したブロックIDをDSlib::RequestedBlocksに登録
                     ptrDSlib->AddRequestedBlocks(queue.at(i));
@@ -99,36 +99,40 @@ void Communicator::SendDataBlock(REAL_TYPE* Data, int* Mask, const int& vlen, st
 {
     LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
     PM.start("CommDataF2P");
+
     int SendBuffMemSize = 0;
 
     //CommRequest2()で行なったデータブロックIDの通信を完了させる
     MPI_Win_fence(0, window);
-
-    for(int dst = 0; dst < LPT::MPI_Manager::GetInstance()->get_nproc_p(); dst++)
+    if(LPT::MPI_Manager::GetInstance()->is_fluid_proc())
     {
-        int tag  = 0;
-        long* BlockIDList=BlockIDsToSend+dst*MaxRequestSize;
-
-        //IDリストの先頭から-1が入っているところまでを順に読み取って、流速データのパッキング
-        //MPI_Isendの送信、IDリストの初期化を行う
-        for(int i = 0; i < MaxRequestSize; i++)
+        for(int rank_p = 0; rank_p < LPT::MPI_Manager::GetInstance()->get_nproc_p(); rank_p++)
         {
-            long BlockID=BlockIDList[i];
-            if(BlockID == -1) break;
-            BlockIDList[i]=-1;
+            int tag                   = 0;
+            long*         BlockIDList = BlockIDsToSend+rank_p*MaxRequestSize;
+            int dst                   = LPT::MPI_Manager::GetInstance()->get_rank_p2w(rank_p);
 
-            CommDataBlockManager* tmp = new CommDataBlockManager(MaxDataBlockSize);
-            int                   SendSize;
-            CommPacking(BlockID, Data, Mask, vlen, tmp->Buff, tmp->Header, &SendSize);
-            SendBuffMemSize += MaxDataBlockSize;
+            //IDリストの先頭から-1が入っているところまでを順に読み取って、流速データのパッキング
+            //MPI_Isendの送信、IDリストの初期化を行う
+            for(int i = 0; i < MaxRequestSize; i++)
+            {
+                long BlockID = BlockIDList[i];
+                if(BlockID == -1)break;
+                BlockIDList[i] = -1;
 
-            int ierr1 = Isend(tmp->Buff, SendSize, dst, tag++, MPI_COMM_WORLD, &(tmp->Request0));
-            if(ierr1 != MPI_SUCCESS) LPT::LPT_LOG::GetInstance()->ERROR("return value from Isend = ", ierr1);
+                CommDataBlockManager* tmp = new CommDataBlockManager(MaxDataBlockSize);
+                int SendSize;
+                CommPacking(BlockID, Data, Mask, vlen, tmp->Buff, tmp->Header, &SendSize);
+                SendBuffMemSize += MaxDataBlockSize;
 
-            int ierr2 = MPI_Isend(tmp->Header, 1, MPI_DataBlockHeader, dst, tag++, MPI_COMM_WORLD, &(tmp->Request1));
-            if(ierr2 != MPI_SUCCESS) LPT::LPT_LOG::GetInstance()->ERROR("return value from MPI_Isend = ", ierr2);
+                int ierr1 = Isend(tmp->Buff, SendSize, dst, tag++, MPI_COMM_WORLD, &(tmp->Request0));
+                if(ierr1 != MPI_SUCCESS)LPT::LPT_LOG::GetInstance()->ERROR("return value from Isend = ", ierr1);
 
-            if(ierr1 == MPI_SUCCESS && ierr2 == MPI_SUCCESS) SendBuff->push_back(tmp);
+                int ierr2 = MPI_Isend(tmp->Header, 1, MPI_DataBlockHeader, dst, tag++, MPI_COMM_WORLD, &(tmp->Request1));
+                if(ierr2 != MPI_SUCCESS)LPT::LPT_LOG::GetInstance()->ERROR("return value from MPI_Isend = ", ierr2);
+
+                if(ierr1 == MPI_SUCCESS && ierr2 == MPI_SUCCESS)SendBuff->push_back(tmp);
+            }
         }
     }
 
@@ -140,8 +144,8 @@ void Communicator::SendDataBlock(REAL_TYPE* Data, int* Mask, const int& vlen, st
 void Communicator::CommPacking(const long& BlockID, REAL_TYPE* Data, int* Mask, const int& vlen, REAL_TYPE* SendBuff, CommDataBlockHeader* Header, int* SendSize)
 {
     DecompositionManager* ptrDM = DecompositionManager::GetInstance();
-    int                   halo  = ptrDM->GetGuideCellSize();
-    int MyRank=LPT::MPI_Manager::GetInstance()->get_myrank_f();
+    int halo                    = ptrDM->GetGuideCellSize();
+    int MyRank                  = LPT::MPI_Manager::GetInstance()->get_myrank_f();
     if(!LPT::MPI_Manager::GetInstance()->is_fluid_proc())
     {
         //そもそもcomm_fluidに属していなければ呼ばれないはず
@@ -163,13 +167,11 @@ void Communicator::CommPacking(const long& BlockID, REAL_TYPE* Data, int* Mask, 
     Header->OriginCell[1] = ptrDM->GetBlockOriginCellY(BlockID);
     Header->OriginCell[2] = ptrDM->GetBlockOriginCellZ(BlockID);
 
-
     int BlockLocalOffset = ptrDM->GetBlockLocalOffset(BlockID, MyRank);
-    int                   SubDomainSize[3];
+    int SubDomainSize[3];
     SubDomainSize[0] = ptrDM->GetSubDomainSizeX(MyRank)+2*halo;
     SubDomainSize[1] = ptrDM->GetSubDomainSizeY(MyRank)+2*halo;
     SubDomainSize[2] = ptrDM->GetSubDomainSizeZ(MyRank)+2*halo;
-
 
     int indexS = 0;
     // 袖領域も含めて転送する

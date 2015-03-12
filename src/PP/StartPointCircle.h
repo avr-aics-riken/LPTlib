@@ -26,7 +26,8 @@ Circle* CircleFactory(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE Radius,
 //! Istart, theta_minは領域に含み、Iend, theta_maxは含まれない
 class Circle: public StartPoint
 {
-    Circle():StartPoint(),N(1),a(1),Istart(1),Iend(1),theta_min(0),theta_max(2*M_PI) {}
+    Circle() : StartPoint(), N(1), a(1), Istart(1), Iend(1), theta_min(0), theta_max(2*M_PI){}
+
 public:
     //! テキスト出力を行う
     std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
@@ -87,7 +88,7 @@ private:
 static Circle* CircleFactory(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE Radius, REAL_TYPE NormalVector[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
     Circle* tmpStartPoint = new Circle;
-    if(Coord1==NULL&&SumStartPoints==NULL && Radius==NULL&&NormalVector==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL) return tmpStartPoint;
+    if(Coord1 == NULL && SumStartPoints == NULL && Radius == NULL && NormalVector == NULL && StartTime == NULL && ReleaseTime == NULL && TimeSpan == NULL && ParticleLifeTime == NULL)return tmpStartPoint;
 
     for(int i = 0; i < 3; i++)
     {

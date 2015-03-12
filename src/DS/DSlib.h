@@ -23,12 +23,10 @@
 #include "CommDataBlock.h"
 #include "Communicator.h"
 
-
-
 namespace DSlib
 {
-    //forward declaration
-    class CommDataBlockManager;
+//forward declaration
+class CommDataBlockManager;
 //!  @brief データブロックの管理を行なうクラス
 //!
 //! 転送待ちブロック、転送中ブロックおよび転送済ブロックの3つに分けてデータブロックの状態を管理する。
@@ -60,7 +58,7 @@ public:
     //! @param CacheSize [in] データブロックのキャッシュエントリ数
     void Initialize(const int& argCacheSize)
     {
-        CacheSize      = argCacheSize;
+        CacheSize = argCacheSize;
         for(int i = 0; i < LPT::MPI_Manager::GetInstance()->get_nproc_f(); i++)
         {
             std::vector<long>* tmp = new std::vector<long>;
@@ -107,10 +105,10 @@ public:
     //このルーチンはLPT_CalcParticleData()のSingleスレッド区間からしか呼ばれないので、非スレッドセーフな処理だがロックしていない
     void DeleteRequestedBlocks(const long BlockID)
     {
-        int num_removed=RequestedBlocks.erase(BlockID);
+        int num_removed = RequestedBlocks.erase(BlockID);
         if(num_removed != 1)
         {
-            LPT::LPT_LOG::GetInstance()->ERROR("remove key from RequestedBlocks failed: ",BlockID);
+            LPT::LPT_LOG::GetInstance()->ERROR("remove key from RequestedBlocks failed: ", BlockID);
         }
     }
 
@@ -134,11 +132,11 @@ public:
     */
 
 private:
-    omp_lock_t                      CachedBlocksLock; //!< CachedBlocksの操作に関わるlock変数
-    std::vector<std::vector<long>*> RequestQueues;    //!< データ転送を要求するブロックIDのリスト
-    std::set<long>                  RequestedBlocks;  //!< データ転送を要求したブロックIDのリスト
-    std::CACHE_CONTAINER<Cache*>    CachedBlocks;     //!< データブロックのキャッシュ
-    int                             CacheSize;        //!< CachedBlocksに登録できるブロック数
+    omp_lock_t     CachedBlocksLock;                  //!< CachedBlocksの操作に関わるlock変数
+    std::vector<std::vector<long>*>RequestQueues;     //!< データ転送を要求するブロックIDのリスト
+    std::set<long> RequestedBlocks;                   //!< データ転送を要求したブロックIDのリスト
+    std::CACHE_CONTAINER<Cache*> CachedBlocks;        //!< データブロックのキャッシュ
+    int CacheSize;                                    //!< CachedBlocksに登録できるブロック数
 };
 } // namespace DSlib
 #endif

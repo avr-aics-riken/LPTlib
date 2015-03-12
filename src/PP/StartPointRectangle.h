@@ -26,7 +26,8 @@ Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumSta
 //領域は座標軸に直交した平面内で定義され、各辺はどれかひとつの座標軸に並行でなければならない
 class Rectangle: public StartPoint
 {
-    Rectangle():StartPoint(){}
+    Rectangle() : StartPoint(){}
+
 public:
     //! テキスト出力を行う
     std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
@@ -61,6 +62,7 @@ public:
             NumStartPoints[i] = this->NumStartPoints[i];
         }
     }
+
 private:
     REAL_TYPE Coord1[3];         //!< 開始点が存在する矩形領域のひとつの頂点の座標
     REAL_TYPE Coord2[3];         //!< Coord1と対角線上にある頂点の座標
@@ -71,13 +73,13 @@ private:
     //! @param NumPoints1 [out] Coord1とCoord3の間の格子点数
     //! @param Coord4     [out] 格子点座標
     //! @param NumPoints2 [out] Coord1とCoord4の間の格子点数
-    void              MakeCoord3_4(REAL_TYPE Coord3[3], int* NumPoints1, REAL_TYPE Coord4[3], int* NumPoints2);
+    void MakeCoord3_4(REAL_TYPE Coord3[3], int* NumPoints1, REAL_TYPE Coord4[3], int* NumPoints2);
 
     friend Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime);
 };
 static Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
-    if(Coord1==NULL&&Coord2==NULL&&NumStartPoints==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL)
+    if(Coord1 == NULL && Coord2 == NULL && NumStartPoints == NULL && StartTime == NULL && ReleaseTime == NULL && TimeSpan == NULL && ParticleLifeTime == NULL)
     {
         Rectangle* tmpStartPoint = new Rectangle;
         return tmpStartPoint;
@@ -101,11 +103,11 @@ static Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int
         tmpStartPoint->Coord2[i]         = Coord2[i];
         tmpStartPoint->NumStartPoints[i] = NumStartPoints[i];
     }
-    tmpStartPoint->SumStartPoints       = NumStartPoints[0]*NumStartPoints[1]*NumStartPoints[2];
-    tmpStartPoint->StartTime            = StartTime;
-    tmpStartPoint->ReleaseTime          = ReleaseTime;
-    tmpStartPoint->TimeSpan             = TimeSpan;
-    tmpStartPoint->ParticleLifeTime     = ParticleLifeTime;
+    tmpStartPoint->SumStartPoints   = NumStartPoints[0]*NumStartPoints[1]*NumStartPoints[2];
+    tmpStartPoint->StartTime        = StartTime;
+    tmpStartPoint->ReleaseTime      = ReleaseTime;
+    tmpStartPoint->TimeSpan         = TimeSpan;
+    tmpStartPoint->ParticleLifeTime = ParticleLifeTime;
     return tmpStartPoint;
 }
 } // namespace PPlib

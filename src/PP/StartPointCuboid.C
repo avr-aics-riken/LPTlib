@@ -67,7 +67,7 @@ void Cuboid::ShrinkX(std::vector<StartPoint*>* StartPoints, int* N, const int& N
     if(*N%NB != 0)
     {
         //x方向にN%NBだけ縮める
-        int RemN                = *N%NB; 
+        int RemN = *N%NB;
         *N                     -= RemN;
         this->NumStartPoints[0] = *N;
         this->Coord2[0]         = coord_x[*N];
@@ -84,7 +84,7 @@ void Cuboid::ShrinkY(std::vector<StartPoint*>* StartPoints, int* M, const int& M
     if(*M%MB != 0)
     {
         //y方向に*M%MBだけ縮める
-        int RemM                =*M%MB;
+        int RemM = *M%MB;
         *M                     -= RemM;
         this->NumStartPoints[1] = *M;
         this->Coord2[1]         = coord_y[*M];
@@ -101,7 +101,7 @@ void Cuboid::ShrinkZ(std::vector<StartPoint*>* StartPoints, int* K, const int& K
     if(*K%KB != 0)
     {
         //z方向にK%KBだけ縮める
-        int RemK                =*K%KB;
+        int RemK = *K%KB;
         *K                     -= RemK;
         this->NumStartPoints[2] = *K;
         this->Coord2[1]         = coord_z[*K];
@@ -135,13 +135,13 @@ void Cuboid::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumSta
     int MB = -1;
     int KB = -1;
     utility::DetermineBlockSize(&NB, &MB, &KB, MaxNumStartPoints, N, M, K);
-    LPT::LPT_LOG::GetInstance()->INFO("MaxNumStartPoints=",MaxNumStartPoints);
-    LPT::LPT_LOG::GetInstance()->INFO("N=",N);
-    LPT::LPT_LOG::GetInstance()->INFO("M=",M);
-    LPT::LPT_LOG::GetInstance()->INFO("K=",K);
-    LPT::LPT_LOG::GetInstance()->INFO("NB=",NB);
-    LPT::LPT_LOG::GetInstance()->INFO("MB=",MB);
-    LPT::LPT_LOG::GetInstance()->INFO("KB=",KB);
+    LPT::LPT_LOG::GetInstance()->INFO("MaxNumStartPoints=", MaxNumStartPoints);
+    LPT::LPT_LOG::GetInstance()->INFO("N=", N);
+    LPT::LPT_LOG::GetInstance()->INFO("M=", M);
+    LPT::LPT_LOG::GetInstance()->INFO("K=", K);
+    LPT::LPT_LOG::GetInstance()->INFO("NB=", NB);
+    LPT::LPT_LOG::GetInstance()->INFO("MB=", MB);
+    LPT::LPT_LOG::GetInstance()->INFO("KB=", KB);
 
     //元の領域の格子点座標を各軸毎に取得
     std::vector<REAL_TYPE> coord_x;
@@ -153,12 +153,12 @@ void Cuboid::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumSta
 
     //座標をCoord1の方が小さくなるように書き換え
     //京でfront(), back()が使えなかったのでbegin, rbeginをdereferenceして使っている
-    Coord1[0]=*coord_x.begin();
-    Coord1[1]=*coord_y.begin();
-    Coord1[2]=*coord_z.begin();
-    Coord2[0]=*coord_x.rbegin();
-    Coord2[1]=*coord_y.rbegin();
-    Coord2[2]=*coord_z.rbegin();
+    Coord1[0] = *coord_x.begin();
+    Coord1[1] = *coord_y.begin();
+    Coord1[2] = *coord_z.begin();
+    Coord2[0] = *coord_x.rbegin();
+    Coord2[1] = *coord_y.rbegin();
+    Coord2[2] = *coord_z.rbegin();
 
     //各方向をNB, MB, KBの倍数になるように縮小する
     ShrinkX(StartPoints, &N, NB, coord_x);

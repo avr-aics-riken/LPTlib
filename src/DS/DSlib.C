@@ -21,8 +21,8 @@ void DSlib::DiscardCacheEntry2(const long& num_entry)
 {
     LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
     PM.start("PrepareComm");
-    int room=CacheSize-CachedBlocks.size();
-    if (room<=num_entry) 
+    int room              = CacheSize-CachedBlocks.size();
+    if(room <= num_entry)
     {
         PurgeCachedBlocks(num_entry-room);
     }
@@ -39,14 +39,14 @@ long DSlib::AddCachedBlocks(CommDataBlockManager* RecvData, const double& Time)
 {
     LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
     PM.start("AddCache");
-    int                ArrivedBlockID = -1;
+    int ArrivedBlockID    = -1;
     // 次のif文内のCachedBlocks.size()はlockせずに実行しているので、
     // 他のスレッドがpush_backする前のsizeを取得する可能性がある
     // したがって、ワーストケースではキャッシュサイズを(スレッド数-1)*sizeof(DataBlock)
     // 越えてしまう可能性があるが、性能を優先させるためにこの実装にしている
     if(CachedBlocks.size() < CacheSize)
     {
-        ArrivedBlockID = RecvData->Header->BlockID;
+        ArrivedBlockID   = RecvData->Header->BlockID;
         DataBlock* tmp = new DataBlock;
         tmp->BlockID     = ArrivedBlockID;
         tmp->SubDomainID = RecvData->Header->SubDomainID;
@@ -91,7 +91,7 @@ void DSlib::PurgeCachedBlocks(const int& NumEntry)
         omp_unset_lock(&CachedBlocksLock);
         LPT::LPT_LOG::GetInstance()->LOG("All CachedBlocks is purged");
     }else{
-        int                                    DeleteCount = 0;
+        int DeleteCount = 0;
 
         std::CACHE_CONTAINER<Cache*>::iterator FirstEntry;
         for(std::CACHE_CONTAINER<Cache*>::reverse_iterator rit = CachedBlocks.rbegin(); rit != CachedBlocks.rend();)
@@ -143,7 +143,7 @@ int DSlib::Load(const long& BlockID, DataBlock** DataBlock)
         }
     }
     omp_unset_lock(&CachedBlocksLock);
-    if(found) return 0;
+    if(found)return 0;
 
     //RequestedBlocksの中を探索
     if(RequestedBlocks.end() != RequestedBlocks.find(BlockID))

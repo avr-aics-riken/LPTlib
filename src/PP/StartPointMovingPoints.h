@@ -26,9 +26,9 @@ MovingPoints* MovingPointsFactory(const int& NumPoints, REAL_TYPE* Coords, doubl
 //! Time[i]の時点の開始点座標がCoords[i]に保持される
 class MovingPoints: public StartPoint
 {
-    MovingPoints():StartPoint()
+    MovingPoints() : StartPoint()
     {
-        this->SumStartPoints=1;
+        this->SumStartPoints = 1;
     }
 
 public:
@@ -58,7 +58,7 @@ private:
     void Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumStartPoints);
     void GetGridPointCoord(std::vector<REAL_TYPE>& Coords);
 
-    REAL_TYPE              Coord1[3]; //!< 現在時刻の開始点座標
+    REAL_TYPE Coord1[3];              //!< 現在時刻の開始点座標
     std::vector<REAL_TYPE> Coords;    //!< 時系列で指定した開始点座標群
     std::vector<double>    Time;      //!< Coordsで指定した時刻
 
@@ -67,18 +67,19 @@ private:
 static MovingPoints* MovingPointsFactory(const int& NumPoints, REAL_TYPE* Coords, double* Time, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
     MovingPoints* tmpStartPoint = new MovingPoints;
-    if(Coords==NULL&&Time==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL) return tmpStartPoint;
+    if(Coords == NULL && Time == NULL && StartTime == NULL && ReleaseTime == NULL && TimeSpan == NULL && ParticleLifeTime == NULL)return tmpStartPoint;
+
     for(int i = 0; i < NumPoints; i++)
     {
         tmpStartPoint->AddCoords(Time[i], &(Coords[3*i]));
     }
-    tmpStartPoint->StartTime            = StartTime;
-    tmpStartPoint->ReleaseTime          = ReleaseTime;
-    tmpStartPoint->TimeSpan             = TimeSpan;
-    tmpStartPoint->ParticleLifeTime     = ParticleLifeTime;
-    tmpStartPoint->Coord1[0]            = Coords[0];
-    tmpStartPoint->Coord1[1]            = Coords[1];
-    tmpStartPoint->Coord1[2]            = Coords[2];
+    tmpStartPoint->StartTime        = StartTime;
+    tmpStartPoint->ReleaseTime      = ReleaseTime;
+    tmpStartPoint->TimeSpan         = TimeSpan;
+    tmpStartPoint->ParticleLifeTime = ParticleLifeTime;
+    tmpStartPoint->Coord1[0]        = Coords[0];
+    tmpStartPoint->Coord1[1]        = Coords[1];
+    tmpStartPoint->Coord1[2]        = Coords[2];
     return tmpStartPoint;
 }
 } // namespace PPlib

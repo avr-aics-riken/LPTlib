@@ -45,11 +45,11 @@ int PP_Transport::Calc(ParticleData* Particle, const double& deltaT, const int& 
 
     DSlib::DecompositionManager* ptrDM    = DSlib::DecompositionManager::GetInstance();
     DSlib::DSlib*                ptrDSlib = DSlib::DSlib::GetInstance();
-    REAL_TYPE                    x_i[3];
-    REAL_TYPE                    x_new[3] = {Particle->x, Particle->y, Particle->z};
-    REAL_TYPE                    v[3];
+    REAL_TYPE x_i[3];
+    REAL_TYPE x_new[3]                    = {Particle->x, Particle->y, Particle->z};
+    REAL_TYPE v[3];
 
-    if(LoadedDataBlock != NULL) LPT::LPT_LOG::GetInstance()->LOG("Old BlockID = ", LoadedDataBlock->BlockID);
+    if(LoadedDataBlock != NULL)LPT::LPT_LOG::GetInstance()->LOG("Old BlockID = ", LoadedDataBlock->BlockID);
 
     // deltaTの再分割
     double dt   = deltaT;
@@ -93,7 +93,7 @@ int PP_Transport::Calc(ParticleData* Particle, const double& deltaT, const int& 
 
         // ルンゲ=クッタ積分
         int rkg = PP_Integrator::RKG(*LoadedDataBlock, dt, x_i);
-        if(rkg != 0) LPT::LPT_LOG::GetInstance()->WARN("return value from PP_Integrator::RKG = ", rkg);
+        if(rkg != 0)LPT::LPT_LOG::GetInstance()->WARN("return value from PP_Integrator::RKG = ", rkg);
 
         // 粒子座標の逆変換
 #ifdef __INTEL_COMPILER
@@ -102,8 +102,8 @@ int PP_Transport::Calc(ParticleData* Particle, const double& deltaT, const int& 
         Interpolator::ConvItoX(x_i, x_new, LoadedDataBlock->Origin, LoadedDataBlock->Pitch);
 
         LPT::LPT_LOG::GetInstance()->LOG("Coord after calc = ", x_new, 3);
-        if(ptrDM->CheckBounds(x_new) != 0) return 1;
-    } // end of for(t)
+        if(ptrDM->CheckBounds(x_new) != 0)return 1;
+    }   // end of for(t)
 
     //粒子オブジェクトの座標、時刻、タイムステップを更新
     UpdateParticle(Particle, CurrentTime, CurrentTimeStep, x_new);

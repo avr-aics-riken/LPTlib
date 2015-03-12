@@ -65,8 +65,8 @@ public:
     }
 
 private:
-    bool initialized;   //!< LPT_Initialize()が正常に終了したかどうかを表すフラグ
-    int  NumPolling;    //!< データブロックの到着をポーリングする回数
+    bool  initialized;  //!< LPT_Initialize()が正常に終了したかどうかを表すフラグ
+    int   NumPolling;   //!< データブロックの到着をポーリングする回数
     float PollingRatio; //!< データブロックの到着をポーリングする割合
                         //!< 要求したデータブロック数*PollingRatio < 到着したデータブロック数
                         //!< となったらMPI_Testを止めてMPI_Waitに切り替える
@@ -76,22 +76,22 @@ private:
 
     int CacheSize;                                //!< データブロックのキャッシュに使う領域の最大サイズ。単位はMByte
 
-    int*                         Mask;            //!< セルが固体(=0)か流体(=1)かを示すマスク配列
-    double                       CurrentTime;     //!< 現在時刻
-    unsigned int                 CurrentTimeStep; //!< 現在のタイムステップ
+    int*   Mask;                                  //!< セルが固体(=0)か流体(=1)かを示すマスク配列
+    double CurrentTime;                           //!< 現在時刻
+    unsigned int CurrentTimeStep;                 //!< 現在のタイムステップ
 
-    DSlib::DSlib*                ptrDSlib;        //!< DSlibのオブジェクトへのポインタ
+    DSlib::DSlib* ptrDSlib;                       //!< DSlibのオブジェクトへのポインタ
     DSlib::DecompositionManager* ptrDM;           //!< DecompositionManagerのオブジェクトへのポインタ
     PPlib::PPlib*                ptrPPlib;        //!< PPlibのオブジェクトへのポインタ
     DSlib::Communicator*         ptrComm;         //!< Communicatorのオブジェクトへのポインタ
 
-    REAL_TYPE                    RefLength;       //!< 代表長さ
-    REAL_TYPE                    RefVelocity;     //!< 代表速度
-    bool                         OutputDimensional;  //!<ファイル出力を有次元で行うかどうかのフラグ
+    REAL_TYPE RefLength;                          //!< 代表長さ
+    REAL_TYPE RefVelocity;                        //!< 代表速度
+    bool      OutputDimensional;                  //!<ファイル出力を有次元で行うかどうかのフラグ
 
-    MPI_Win                      window_for_rerun_flag;    //!< データブロックの再送フラグを通信するためのwindows
-    bool                         work_for_rerun_flag;      //!< データブロックの再送フラグを通信するためのワーク領域(粒子プロセスのrank0のみが使用)
-    int                          root_rank_for_rerun_flag; //!< データブロックの再送フラグのBcastを行うroot rank
+    MPI_Win   window_for_rerun_flag;                       //!< データブロックの再送フラグを通信するためのwindows
+    bool      work_for_rerun_flag;                         //!< データブロックの再送フラグを通信するためのワーク領域(粒子プロセスのrank0のみが使用)
+    int       root_rank_for_rerun_flag;                    //!< データブロックの再送フラグのBcastを行うroot rank
 
 public:
     //!  @brief 粒子計算に必要なパラメータを受け取り、DSlib, PPlib等のインスタンスを生成する

@@ -43,7 +43,7 @@ public:
 
 private:
     std::map<int, std::list<ParticleData*>*>::iterator map_iterator;
-    std::list<ParticleData*>::iterator                 list_iterator;
+    std::list<ParticleData*>::iterator list_iterator;
     ParticleContainer*                                 container;
     static std::map<int, std::list<ParticleData*>*>    map_dummy;
     static std::list<ParticleData*>                    list_dummy;

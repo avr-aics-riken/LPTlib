@@ -77,7 +77,7 @@ void utility::Factorize(const int& argN, std::vector<std::pair<int, int> >* Fact
         return;
     }
 
-    int N=argN;
+    int N = argN;
 
     //2で何回割れるか？
     int pow2 = 0;
@@ -86,7 +86,7 @@ void utility::Factorize(const int& argN, std::vector<std::pair<int, int> >* Fact
         N /= 2;
         pow2++;
     }
-    if(pow2>0)
+    if(pow2 > 0)
     {
         Factor->push_back(std::pair<int, int>(2, pow2));
     }
@@ -105,7 +105,7 @@ void utility::Factorize(const int& argN, std::vector<std::pair<int, int> >* Fact
             N /= i;
             pow++;
         }
-        if(pow>0)
+        if(pow > 0)
         {
             Factor->push_back(std::pair<int, int>(i, pow));
         }
@@ -146,25 +146,24 @@ void utility::DetermineBlockSize(int* arg_NB, int* arg_MB, int* arg_KB, const in
 
     std::vector<std::pair<int, int> > Factor;
     Factorize(MaxPoints, &Factor);
-    NB=1;
-    MB=1;
-    KB=1;
-    for(std::vector<std::pair<int, int> >::iterator it=Factor.begin(); it!=Factor.end(); ++it)
+    NB = 1;
+    MB = 1;
+    KB = 1;
+    for(std::vector<std::pair<int, int> >::iterator it = Factor.begin(); it != Factor.end(); ++it)
     {
-        NB*=pow(it->first, (it->second)/3);
-        MB*=pow(it->first, (it->second)/3);
-        KB*=pow(it->first, (it->second)/3);
-        if((it->second)%3!=0)
+        NB *= pow(it->first, (it->second)/3);
+        MB *= pow(it->first, (it->second)/3);
+        KB *= pow(it->first, (it->second)/3);
+        if((it->second)%3 != 0)
         {
-            if(NB<=MB&&NB<=KB)
+            if(NB <= MB && NB <= KB)
             {
-                NB*=pow(it->first, (it->second)%3);
-            }else if( MB<=KB){
-                MB*=pow(it->first, (it->second)%3);
+                NB *= pow(it->first, (it->second)%3);
+            }else if(MB <= KB){
+                MB *= pow(it->first, (it->second)%3);
             }else{
-                KB*=pow(it->first, (it->second)%3);
+                KB *= pow(it->first, (it->second)%3);
             }
-
         }
     }
 
@@ -173,14 +172,17 @@ void utility::DetermineBlockSize(int* arg_NB, int* arg_MB, int* arg_KB, const in
     LPT::LPT_LOG::GetInstance()->LOG("initial KB = ", KB);
 
     // NB,MB,KBがそれぞれN,M,Kを越えてたらN,M,Kに置き換える
-    if(NB>N) NB=N;
-    if(MB>M) MB=M;
-    if(KB>K) KB=K;
+    if(NB > N)NB = N;
+    if(MB > M)MB = M;
+    if(KB > K)KB = K;
 
     //もしNB, MB, KBを大きくしても条件を満たせるなら大きくする
-    while((NB+1)*MB*KB<=MaxPoints && NB+1<=N) ++NB;
-    while(NB*(MB+1)*KB<=MaxPoints && MB+1<=M) ++MB;
-    while(NB*MB*(KB+1)<=MaxPoints && KB+1<=K) ++KB;
+    while((NB+1)*MB*KB <= MaxPoints && NB+1 <= N)
+        ++NB;
+    while(NB*(MB+1)*KB <= MaxPoints && MB+1 <= M)
+        ++MB;
+    while(NB*MB*(KB+1) <= MaxPoints && KB+1 <= K)
+        ++KB;
 
     LPT::LPT_LOG::GetInstance()->LOG("NB = ", NB);
     LPT::LPT_LOG::GetInstance()->LOG("MB = ", MB);

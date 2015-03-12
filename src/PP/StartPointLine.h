@@ -25,7 +25,8 @@ Line* LineFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, 
 //! @brief 線分型で定義された開始点の情報を保持するクラス
 class Line: public StartPoint
 {
-    Line():StartPoint(){}
+    Line() : StartPoint(){}
+
 public:
     //! テキスト出力を行う
     std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
@@ -45,15 +46,16 @@ public:
     void GetGridPointCoord(std::vector<REAL_TYPE>& Coords);
 
 private:
-    REAL_TYPE Coord1[3]; //!< 開始点が存在する線分の端点の座標
-    REAL_TYPE Coord2[3]; //!< Coord1とは異なる端点の座標
+    REAL_TYPE    Coord1[3]; //!< 開始点が存在する線分の端点の座標
+    REAL_TYPE    Coord2[3]; //!< Coord1とは異なる端点の座標
 
     friend Line* LineFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime);
 };
 static Line* LineFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int SumStartPoints, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
     Line* tmpStartPoint = new Line;
-    if(Coord1==NULL&&Coord2==NULL&&SumStartPoints==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL) return tmpStartPoint;
+    if(Coord1 == NULL && Coord2 == NULL && SumStartPoints == NULL && StartTime == NULL && ReleaseTime == NULL && TimeSpan == NULL && ParticleLifeTime == NULL)return tmpStartPoint;
+
     for(int i = 0; i < 3; i++)
     {
         tmpStartPoint->Coord1[i] = Coord1[i];

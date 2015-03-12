@@ -37,12 +37,12 @@ class StartPoint
 
 public:
     //! Constructor
-    StartPoint():
+    StartPoint() :
         LatestEmitParticleID(0),
         LatestEmitTime(-0.1)
     {
-        this->ID[0]                = -1;
-        this->ID[1]                = -2;
+        this->ID[0] = -1;
+        this->ID[1] = -2;
     }
 
     //! Destructor

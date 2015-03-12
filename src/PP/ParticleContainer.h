@@ -99,7 +99,7 @@ public:
     //! 指定されたBlockIDの粒子データオブジェクトが登録されている範囲を返す
     std::pair<iterator, iterator>equal_range(const int& BlockID)
     {
-        std::pair<iterator, iterator>                      rt = make_pair(ParticleContainerIterator(this), ParticleContainerIterator(this));
+        std::pair<iterator, iterator> rt = make_pair(ParticleContainerIterator(this), ParticleContainerIterator(this));
 
         omp_set_lock(&ParticleContainerLock);
         std::map<int, std::list<ParticleData*>*>::iterator it = id_table.find(BlockID);
@@ -123,7 +123,7 @@ public:
     //ここで渡したlistはテーブルから削除される
     std::list<ParticleData*>* find(const int& BlockID)
     {
-        std::list<ParticleData*>*                          rt = NULL;
+        std::list<ParticleData*>* rt                          = NULL;
         omp_set_lock(&ParticleContainerLock);
         std::map<int, std::list<ParticleData*>*>::iterator it = id_table.find(BlockID);
         if(it != id_table.end())
@@ -157,10 +157,10 @@ private:
     std::map<int, std::list<ParticleData*>*> id_table;
 
     //GetRange()で該当するブロックIDが未登録だった時に返す値に使うダミーのlist
-    std::list<ParticleData*>                 dummy_list;
+    std::list<ParticleData*> dummy_list;
 
     // ParticleContainerの操作に関わるロック変数
-    omp_lock_t                               ParticleContainerLock;
+    omp_lock_t ParticleContainerLock;
 
     friend ParticleContainerIterator;
 };

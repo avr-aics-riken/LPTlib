@@ -68,35 +68,35 @@ void Rectangle::MakeCoord3_4(REAL_TYPE Coord3[3], int* NumPoints1, REAL_TYPE Coo
 {
     if(Coord1[0] == Coord2[0])
     {
-        Coord3[0] = Coord1[0];
-        Coord3[1] = Coord2[1];
-        Coord3[2] = Coord1[2];
+        Coord3[0]   = Coord1[0];
+        Coord3[1]   = Coord2[1];
+        Coord3[2]   = Coord1[2];
 
-        Coord4[0] = Coord1[0];
-        Coord4[1] = Coord1[1];
-        Coord4[2] = Coord2[2];
+        Coord4[0]   = Coord1[0];
+        Coord4[1]   = Coord1[1];
+        Coord4[2]   = Coord2[2];
 
         *NumPoints1 = NumStartPoints[1];
         *NumPoints2 = NumStartPoints[2];
     }else if(Coord1[1] == Coord2[1]){
-        Coord3[0] = Coord1[0];
-        Coord3[1] = Coord1[1];
-        Coord3[2] = Coord2[2];
+        Coord3[0]   = Coord1[0];
+        Coord3[1]   = Coord1[1];
+        Coord3[2]   = Coord2[2];
 
-        Coord4[0] = Coord2[0];
-        Coord4[1] = Coord1[1];
-        Coord4[2] = Coord1[2];
+        Coord4[0]   = Coord2[0];
+        Coord4[1]   = Coord1[1];
+        Coord4[2]   = Coord1[2];
 
         *NumPoints1 = NumStartPoints[2];
         *NumPoints2 = NumStartPoints[0];
     }else if(Coord1[2] == Coord2[2]){
-        Coord3[0] = Coord2[0];
-        Coord3[1] = Coord1[1];
-        Coord3[2] = Coord1[2];
+        Coord3[0]   = Coord2[0];
+        Coord3[1]   = Coord1[1];
+        Coord3[2]   = Coord1[2];
 
-        Coord4[0] = Coord1[0];
-        Coord4[1] = Coord2[1];
-        Coord4[2] = Coord1[2];
+        Coord4[0]   = Coord1[0];
+        Coord4[1]   = Coord2[1];
+        Coord4[2]   = Coord1[2];
 
         *NumPoints1 = NumStartPoints[0];
         *NumPoints2 = NumStartPoints[1];
@@ -149,8 +149,8 @@ void Rectangle::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNum
     }
 
     //残りの2頂点の座標と各辺上の点数を決める
-    int       N; //Coord1とCoord3の間の開始点数
-    int       M; //Coord1とCoord4の間の開始点数
+    int N;       //Coord1とCoord3の間の開始点数
+    int M;       //Coord1とCoord4の間の開始点数
     REAL_TYPE Coord3[3];
     REAL_TYPE Coord4[3];
     MakeCoord3_4(Coord3, &N, Coord4, &M);
@@ -230,31 +230,31 @@ void Rectangle::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNum
     //N方向の余り領域を分割してStartPointsに格納
     if(N%NB != 0)
     {
-        Rectangle*             ReminderN = RectangleFactory(this->Coord1, this->Coord2, this->NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
+        Rectangle* ReminderN = RectangleFactory(this->Coord1, this->Coord2, this->NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
 
         std::vector<REAL_TYPE> tmpCoords;
         if(Coord1[0] == Coord2[0])
         {
             DividePoints(&tmpCoords, N, Coord1, Coord3);
 
-            NumStartPoints[1] = (N/NB)*NB;
-            Coord2[1]         = tmpCoords[3*((N/NB)*NB-1)+1];
+            NumStartPoints[1]              = (N/NB)*NB;
+            Coord2[1]                      = tmpCoords[3*((N/NB)*NB-1)+1];
 
             (ReminderN->NumStartPoints)[1] = N%NB;
             (ReminderN->Coord1)[1]         = tmpCoords[3*((N/NB)*NB)];
         }else if(Coord1[1] == Coord2[1]){
             DividePoints(&tmpCoords, N, Coord1, Coord3);
 
-            NumStartPoints[2] = (N/NB)*NB;
-            Coord2[2]         = tmpCoords[3*((N/NB)*NB-1)+2];
+            NumStartPoints[2]              = (N/NB)*NB;
+            Coord2[2]                      = tmpCoords[3*((N/NB)*NB-1)+2];
 
             (ReminderN->NumStartPoints)[2] = N%NB;
             (ReminderN->Coord1)[2]         = tmpCoords[3*((N/NB)*NB)];
         }else if(Coord1[2] == Coord2[2]){
             DividePoints(&tmpCoords, N, Coord1, Coord3);
 
-            NumStartPoints[0] = (N/NB)*NB;
-            Coord2[0]         = tmpCoords[3*((N/NB)*NB-1)];
+            NumStartPoints[0]              = (N/NB)*NB;
+            Coord2[0]                      = tmpCoords[3*((N/NB)*NB-1)];
 
             (ReminderN->NumStartPoints)[0] = N%NB;
             (ReminderN->Coord1)[0]         = tmpCoords[3*((N/NB)*NB)];
@@ -268,7 +268,7 @@ void Rectangle::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNum
     //M方向の余り領域を分割してStartPointsに格納
     if(M%MB != 0)
     {
-        Rectangle*             ReminderM = RectangleFactory(this->Coord1, this->Coord2, this->NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
+        Rectangle* ReminderM = RectangleFactory(this->Coord1, this->Coord2, this->NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
 
         std::vector<REAL_TYPE> tmpCoords;
         DividePoints(&tmpCoords, M, Coord1, Coord4);
@@ -298,11 +298,11 @@ void Rectangle::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNum
 
     //N方向をNBpointsづつのRectangleに分割
     std::vector<Rectangle*> tmpStartPoint;
-    int                     NumDivide = N/NB;
+    int NumDivide = N/NB;
 
     for(int i = 0; i < NumDivide; i++)
     {
-        Rectangle*             tmpRectangle = RectangleFactory(this->Coord1, this->Coord2, this->NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
+        Rectangle* tmpRectangle = RectangleFactory(this->Coord1, this->Coord2, this->NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
 
         std::vector<REAL_TYPE> tmpCoords;
         MakeCoord3_4(Coord3, &N, Coord4, &M);
@@ -345,7 +345,7 @@ void Rectangle::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNum
         M = orgM;
         for(int i = 0; i < orgM/MB; i++)
         {
-            Rectangle*             tmpRectangle = RectangleFactory((*it)->Coord1, (*it)->Coord2, (*it)->NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
+            Rectangle* tmpRectangle = RectangleFactory((*it)->Coord1, (*it)->Coord2, (*it)->NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
 
             std::vector<REAL_TYPE> tmpCoords;
             (*it)->MakeCoord3_4(Coord3, &N, Coord4, &M);
