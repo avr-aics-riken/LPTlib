@@ -13,91 +13,58 @@
 
 namespace PPlib
 {
-std::string MovingPoints::TextPrint(void) const
+std::string MovingPoints::TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const
 {
     std::ostringstream oss;
-    oss<<typeid(*this).name()<<std::endl;
+    oss<<"MovingPoints"<<std::endl;
     size_t             NumCoordinateSets = this->Coords.size()/3;
-    oss<<"Number of Coords = "<<NumCoordinateSets<<std::endl;
-    oss<<"Coords        = "<<std::endl;
+    oss<<"Number of Coords    = "<<NumCoordinateSets<<std::endl;
+    oss<<"Coords              = "<<std::endl;
     for(int i = 0; i < NumCoordinateSets; i++)
     {
-        oss<<this->Coords[3*i]<<","<<this->Coords[3*i+1]<<","<<this->Coords[3*i+2]<<std::endl;
+        oss<<this->Coords[3*i]*RefLength<<","<<this->Coords[3*i+1]*RefLength<<","<<this->Coords[3*i+2]*RefLength<<std::endl;
     }
 
-    oss<<"Number of Times = "<<(this->Time).size()<<std::endl;
-    oss<<"Times         = "<<std::endl;
+    oss<<"Number of Times      = "<<(this->Time).size()<<std::endl;
+    oss<<"Times                = "<<std::endl;
     for(int i = 0; i < (this->Time).size(); i++)
     {
-        oss<<this->Time[i]<<std::endl;
+        oss<<this->Time[i]*RefTime<<std::endl;
     }
 
-    oss<<"StartTime       = "<<this->StartTime<<std::endl;
-    oss<<"ReleaseTime     = "<<this->ReleaseTime<<std::endl;
-    oss<<"TimeSpan        = "<<this->TimeSpan<<std::endl;
-    oss<<"LatestEmitTime  = "<<this->LatestEmitTime<<std::endl;
-    oss<<"ID              = "<<this->ID[0]<<","<<this->ID[1]<<std::endl;
-    oss<<"LatestEmitParticleID = "<<this->LatestEmitParticleID<<std::endl;
+    oss<<this->PrintTimeAndID(RefTime);
     return oss.str();
 }
 
-void MovingPoints::ReadText(std::istream& stream)
+void MovingPoints::ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime)
 {
     std::string work;
     //Coords
     std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
+    std::getline(stream, work);
     long NumData = std::atol(work.c_str());
-    std::getline(stream, work, '=');
+    std::getline(stream, work);
     for(long i = 0; i < NumData; i++)
     {
         std::getline(stream, work, ',');
-        this->Coords.push_back(std::atof(work.c_str()));
+        this->Coords.push_back(std::atof(work.c_str())/RefLength);
         std::getline(stream, work, ',');
-        this->Coords.push_back(std::atof(work.c_str()));
-        std::getline(stream, work, ',');
-        this->Coords.push_back(std::atof(work.c_str()));
+        this->Coords.push_back(std::atof(work.c_str())/RefLength);
+        std::getline(stream, work);
+        this->Coords.push_back(std::atof(work.c_str())/RefLength);
     }
 
     //Times
     std::getline(stream, work, '=');
     std::getline(stream, work);
     NumData = std::atol(work.c_str());
-    std::getline(stream, work, '=');
+    std::getline(stream, work);
     for(long i = 0; i < NumData; i++)
     {
         std::getline(stream, work);
-        this->Time.push_back(std::atof(work.c_str()));
+        this->Time.push_back(std::atof(work.c_str())/RefTime);
     }
-
-    //StartTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->StartTime = std::atof(work.c_str());
-    //ReleaseTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->ReleaseTime = std::atof(work.c_str());
-    //TimeSpan
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->TimeSpan = std::atof(work.c_str());
-    //LatestEmitTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->LatestEmitTime = std::atof(work.c_str());
-
-    //ID
-    std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
-    this->ID[0] = std::atoi(work.c_str());
-    std::getline(stream, work);
-    this->ID[1] = std::atoi(work.c_str());
-
-    //LatestEmitParticleID
-    std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
-    this->LatestEmitParticleID = std::atoi(work.c_str());
+    this->ReadTimeAndID(stream, RefTime);
 }
 
 void MovingPoints::UpdateStartPoint(double CurrentTime)

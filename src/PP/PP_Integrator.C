@@ -16,20 +16,19 @@
 
 namespace PPlib
 {
-bool PP_Integrator::GetIntegrand(const DSlib::DataBlock& DataBlock, const REAL_TYPE x_i[3], REAL_TYPE func[3], const REAL_TYPE&  RefLength, const REAL_TYPE&  RefVelocity, REAL_TYPE v00[4])
+bool PP_Integrator::GetIntegrand(const DSlib::DataBlock& DataBlock, const REAL_TYPE x_i[3], REAL_TYPE func[3])
 {
     REAL_TYPE v[3];
     Interpolator::InterpolateData(DataBlock, x_i, v);
 
-    // v00[0]はフラグなので注意!
-    func[0] = (v[0]-v00[1])/DataBlock.Pitch[0]*RefLength*RefVelocity;
-    func[1] = (v[1]-v00[2])/DataBlock.Pitch[1]*RefLength*RefVelocity;
-    func[2] = (v[2]-v00[3])/DataBlock.Pitch[2]*RefLength*RefVelocity;
+    func[0] = v[0]/DataBlock.Pitch[0];
+    func[1] = v[1]/DataBlock.Pitch[1];
+    func[2] = v[2]/DataBlock.Pitch[2];
 
     return true;
 }
 
-int PP_Integrator::RKG(const DSlib::DataBlock& DataBlock, const double t_step, REAL_TYPE x_i[3], const REAL_TYPE&  RefLength, const REAL_TYPE&  RefVelocity, REAL_TYPE v00[4])
+int PP_Integrator::RKG(const DSlib::DataBlock& DataBlock, const double t_step, REAL_TYPE x_i[3])
 {
     const REAL_TYPE ck[4] = {(REAL_TYPE)2.0, (REAL_TYPE)1.0, (REAL_TYPE)1.0, (REAL_TYPE)2.0};
     const REAL_TYPE cq[4] = {(REAL_TYPE)0.5, (REAL_TYPE)1.0-(REAL_TYPE)sqrt(0.5), (REAL_TYPE)1.0+(REAL_TYPE)sqrt(0.5), (REAL_TYPE)0.5};
@@ -46,7 +45,7 @@ int PP_Integrator::RKG(const DSlib::DataBlock& DataBlock, const double t_step, R
 #ifdef __INTEL_COMPILER
 #pragma forceinline recursive
 #endif
-        GetIntegrand(DataBlock, x_i, func, RefLength, RefVelocity, v00);
+        GetIntegrand(DataBlock, x_i, func);
         for(int n = 0; n < 3; n++)
         {
             k = t_step*func[n];

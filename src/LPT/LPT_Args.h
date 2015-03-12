@@ -35,16 +35,16 @@ struct LPT_InitializeArgs
     REAL_TYPE OriginZ;            //!< 原点のZ座標
     int GuideCellSize;            //!< ガイドセル(袖領域)のサイズ
     int* d_bcv;                   //!< セルが流体か固体かを示すマスク配列(30bit目のみを使用)
+
     REAL_TYPE RefLength;          //!< 代表長さ
     REAL_TYPE RefVelocity;        //!< 代表速度
-    REAL_TYPE RefTime;            //!< 時刻スケール
 
     MPI_Comm ParticleComm;        //!< 粒子計算で使うコミュニケータ
     MPI_Comm FluidComm;           //!< 流体計算で使うコミュニケータ
 
-    std::string OutputFileName;                  //!<PDMlibに渡すベースファイル名
-    std::string PMlibOutputFileName;             //!  PMlibの情報を出力するファイル名
-    std::string PMlibDetailedOutputFileName;     //! PMlibの詳細情報を出力するファイル名
+    std::string OutputFileName;                  //!< PDMlibに渡すベースファイル名
+    std::string PMlibOutputFileName;             //!< PMlibの情報を出力するファイル名
+    std::string PMlibDetailedOutputFileName;     //!< PMlibの詳細情報を出力するファイル名
 
     float CurrentTime;                //!< リスタート計算をする時の開始時刻
     int CurrentTimeStep;              //!< リスタート計算をする時の開始タイムステップ (1以上の時はリスタート計算とみなす)
@@ -52,17 +52,13 @@ struct LPT_InitializeArgs
 
     int MigrationInterval;     //!< マイグレーションの判定を行なうタイムステップ間隔
 
-    //! @brief データブロックのキャッシュに使う領域のサイズ(単位はMByte)
-    //!
-    //! 実際はsizeof(DataBlock)でまるめられる
-    int CacheSize;
+    int CacheSize;         //!< データブロックのキャッシュに使う領域のサイズ(単位はMByte)
+    int MaxRequestSize;    //!< 1プロセスあたりの最大同時データブロック要求数
 
-    //! @brief キャッシュから1度に追い出すサイズ(単位はMByte)
-    //!
-    //! 実際はsizeof(DataBlock)でまるめられる
-    //! CommBufferSize <= CacheSize でなければならない
-    //! CacheSizeを越えた値が指定された場合はCacheSizeと同じ値に変更する
-    int CommBufferSize;
+    int NumInitialParticleProcs; //!< 粒子計算に使う初期プロセス数
+
+    bool OutputDimensional;      //!< ファイル出力を有次元に換算してから行うかどうかのフラグ
+
 
     //! Constructor
     LPT_InitializeArgs() :
@@ -78,31 +74,20 @@ struct LPT_InitializeArgs
         MigrationInterval(-1),
         MigrateOnRestart(false),
         CacheSize(1024),
-        CommBufferSize(512)
+        MaxRequestSize(2700),
+        NumInitialParticleProcs(-1),
+        OutputDimensional(true)
     {}
 };
 
 //! @brief LPT_CalcParticleDataの引数を保持する構造体
 struct LPT_CalcArgs
 {
-    //! 現在時刻
-    double CurrentTime;
-
-    //! 現在のタイムステップ
-    int CurrentTimeStep;
-
-    //! 時間積分幅 無次元
-    double deltaT;
-
-    //! @brief 粒子移動の積分に使う刻み幅の再分割数
-    //! PP_Transport()内では、deltaT/divT を積分幅として扱う
-    double divT;
-
-    //! 流速データのポインタ
-    REAL_TYPE* FluidVelocity;
-
-    //!参照速度のポインタ
-    REAL_TYPE* v00;
+    double CurrentTime; //!< 現在時刻
+    int CurrentTimeStep; //!< 現在のタイムステップ
+    double deltaT; //!< 時間積分幅 無次元
+    double divT; //!< 粒子移動の積分に使う刻み幅の再分割数
+    REAL_TYPE* FluidVelocity; //!< 流速データのポインタ
 };
 } // namespace LPT
 #endif

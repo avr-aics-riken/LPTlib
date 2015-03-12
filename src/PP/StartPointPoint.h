@@ -25,12 +25,16 @@ Point* PointFactory(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, d
 //! @brief 1点で定義された開始点の情報を保持するクラス
 class Point: public StartPoint
 {
+    Point():StartPoint()
+    {
+        this->SumStartPoints=1;
+    }
 public:
     //! テキスト出力を行う
-    std::string TextPrint(void) const;
+    std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
 
     //! TextPrintの出力を読み込む
-    void ReadText(std::istream& stream);
+    void ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime);
 
     //! @brief 開始点オブジェクトをMaxNumStartPointsで指定した開始点数以下のオブジェクトに分割する。
     //! 余りが生じた場合は1つ余計にオブジェクトを生成し、そのオブジェクトに余り領域を入れて返す
@@ -53,7 +57,7 @@ private:
 static Point* PointFactory(REAL_TYPE Coord1[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
     Point* tmpStartPoint = new Point;
-    tmpStartPoint->SumStartPoints = 1;
+    if(Coord1==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL) return tmpStartPoint;
     for(int i = 0; i < 3; i++)
     {
         tmpStartPoint->Coord1[i] = Coord1[i];
@@ -62,10 +66,6 @@ static Point* PointFactory(REAL_TYPE Coord1[3], double StartTime, double Release
     tmpStartPoint->ReleaseTime          = ReleaseTime;
     tmpStartPoint->TimeSpan             = TimeSpan;
     tmpStartPoint->ParticleLifeTime     = ParticleLifeTime;
-    tmpStartPoint->LatestEmitParticleID = 0;
-    tmpStartPoint->LatestEmitTime       = -0.1;
-    tmpStartPoint->ID[0]                = -1;
-    tmpStartPoint->ID[1]                = -2;
 
     return tmpStartPoint;
 }

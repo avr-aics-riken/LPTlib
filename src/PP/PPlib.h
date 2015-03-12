@@ -92,7 +92,10 @@ public:
     void OutputStartPoints(const REAL_TYPE& RefLength);
 
     //! ファイルから開始点情報を読み込む
-    void ReadStartPoints(const std::string& filename);
+    void ReadStartPoints(const std::string& filename, const REAL_TYPE& RefLength, const double& RefTime);
+
+    //! ファイルに開始点情報を出力する
+    void WriteStartPoints(const std::string& filename, const REAL_TYPE& RefLength, const double& RefTime);
 };
 } // namespace PPlib
 #endif

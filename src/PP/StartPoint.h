@@ -37,16 +37,22 @@ class StartPoint
 
 public:
     //! Constructor
-    StartPoint(){}
+    StartPoint():
+        LatestEmitParticleID(0),
+        LatestEmitTime(-0.1)
+    {
+        this->ID[0]                = -1;
+        this->ID[1]                = -2;
+    }
 
     //! Destructor
     virtual ~StartPoint(){}
 
     //! 開始点情報をテキストファイルとして返す
-    virtual std::string TextPrint(void) const = 0;
+    virtual std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const = 0;
 
     //! 入力ストリームからTextPrintで返された形式の開始点情報を読み込む
-    virtual void ReadText(std::istream& stream) = 0;
+    virtual void ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime) = 0;
 
     //! @brief 開始点を移動させる
     //! 基底クラスでは何もしない。
@@ -85,7 +91,7 @@ public:
         return oss.str();
     }
 
-    virtual int GetSumStartPoints(void){return this->SumStartPoints;}
+    int GetSumStartPoints(void){return this->SumStartPoints;}
 
     int GetID1(void){return this->ID[0];}
 
@@ -129,6 +135,17 @@ protected:
     //! @param Coord1    [in]  端点の座標その1
     //! @param Coord2    [in]  端点の座標その2
     void DividePoints(std::vector<REAL_TYPE>* Coords, const int& NumPoints, const REAL_TYPE Coord1[3], const REAL_TYPE Coord2[3]);
+
+    //! @brief 時刻、ID関連のデータメンバを文字列に整形して返す
+    //
+    //以下のメンバの値を出力する
+    //StartTime, ReleaseTime, TimeSpan, LatestEmitTime, LatestEmitParticleID, ID
+    std::string PrintTimeAndID(const double& RefTime) const;
+
+    //! @brief 時刻、ID関連のデータメンバに指定されたinput streamから値を読み込む
+    //
+    //値を読みとるメンバはPrintTimeAndIDと同じ
+    void ReadTimeAndID(std::istream& stream, const double& RefTime);
 
     int SumStartPoints;              //!< 1つの設定で定義される開始点の数
                                      //!< インスタンス生成時に設定され、変更はしない

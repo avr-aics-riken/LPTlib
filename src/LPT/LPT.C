@@ -23,7 +23,6 @@
 #include "StartPointAll.h"
 #include "DecompositionManager.h"
 #include "ParticleData.h"
-#include "Cache.h"
 #include "CommDataBlock.h"
 #include "LPT_LogOutput.h"
 #include "PP_Transport.h"
@@ -72,13 +71,19 @@ bool LPT::LPT_SetStartPointMovingPoints(const int& NumPoints, REAL_TYPE* Coords,
     return true;
 }
 
-int LPT::LPT_OutputParticleData(const int& TimeStep, const double& Time)
+int LPT::LPT_OutputParticleData(const int& TimeStep, const double& Time, REAL_TYPE v00[4])
 {
     if(!initialized) return 1;
 
     PMlibWrapper& PM = PMlibWrapper::GetInstance();
     PM.start("FileOutput");
     size_t        NumParticles = ptrPPlib->Particles.size();
+    //粒子を持っていなければ、ファイル出力せずに終了
+    if (NumParticles <=0)
+    {
+        PM.stop("FileOutput");
+        return 0;
+    }
     //粒子座標の出力
     REAL_TYPE*    rwork = NULL;
     try
@@ -91,33 +96,65 @@ int LPT::LPT_OutputParticleData(const int& TimeStep, const double& Time)
         return 1;
     }
     size_t index = 0;
-    for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+    if(OutputDimensional)
     {
-        rwork[index++] = (*it)->x*RefLength;
-        rwork[index++] = (*it)->y*RefLength;
-        rwork[index++] = (*it)->z*RefLength;
+        for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+        {
+            rwork[index++] = (*it)->x*RefLength;
+            rwork[index++] = (*it)->y*RefLength;
+            rwork[index++] = (*it)->z*RefLength;
+        }
+    }else{
+        for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+        {
+            rwork[index++] = (*it)->x;
+            rwork[index++] = (*it)->y;
+            rwork[index++] = (*it)->z;
+        }
     }
     PDMlib::PDMlib::GetInstance().Write("Coordinate", NumParticles, rwork, (REAL_TYPE*)NULL, 3, TimeStep, Time);
 
     //粒子速度の出力
     PPlib::ParticleData* front      = *(ptrPPlib->Particles.begin());
-    REAL_TYPE            u          = std::sqrt((front->Vx*front->Vx)+(front->Vy*front->Vy)+(front->Vz*front->Vz));
-    REAL_TYPE            vMinMax[8] = {u, u, front->Vx, front->Vx, front->Vy, front->Vy, front->Vz, front->Vz};
+    float Vx;
+    float Vy;
+    float Vz;
+    //v00[0]はフラグなので注意
+    Vx = front->Vx - v00[1];
+    Vy = front->Vy - v00[2];
+    Vz = front->Vz - v00[3];
+    REAL_TYPE            u          = std::sqrt(Vx*Vx+Vy*Vy+Vz*Vz);
+    REAL_TYPE            vMinMax[8] = {u, u, Vx, Vx, Vy, Vy, Vz, Vz};
     index = 0;
     for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
     {
-        rwork[index++] = (*it)->Vx;
-        rwork[index++] = (*it)->Vy;
-        rwork[index++] = (*it)->Vz;
-        double u = std::sqrt(((*it)->Vx)*((*it)->Vx)+((*it)->Vy)*((*it)->Vy)+((*it)->Vz)*((*it)->Vz));
-        if(vMinMax[0] < u) vMinMax[0] = u;
-        if(vMinMax[1] > u) vMinMax[1] = u;
-        if(vMinMax[2] < (*it)->Vx) vMinMax[2] = (*it)->Vx;
-        if(vMinMax[3] > (*it)->Vx) vMinMax[3] = (*it)->Vx;
-        if(vMinMax[4] < (*it)->Vy) vMinMax[4] = (*it)->Vy;
-        if(vMinMax[5] > (*it)->Vy) vMinMax[5] = (*it)->Vy;
-        if(vMinMax[6] < (*it)->Vz) vMinMax[6] = (*it)->Vz;
-        if(vMinMax[7] > (*it)->Vz) vMinMax[7] = (*it)->Vz;
+        //v00[0]はフラグなので注意
+        Vx = (*it)->Vx - v00[1];
+        Vy = (*it)->Vy - v00[2];
+        Vz = (*it)->Vz - v00[3];
+        rwork[index++] = Vx;
+        rwork[index++] = Vy;
+        rwork[index++] = Vz;
+        u = std::sqrt(Vx*Vx+Vy*Vy+Vz*Vz);
+        if(vMinMax[0] < u ) vMinMax[0] = u;
+        if(vMinMax[1] > u ) vMinMax[1] = u;
+        if(vMinMax[2] < Vx) vMinMax[2] = Vx;
+        if(vMinMax[3] > Vx) vMinMax[3] = Vx;
+        if(vMinMax[4] < Vy) vMinMax[4] = Vy;
+        if(vMinMax[5] > Vy) vMinMax[5] = Vy;
+        if(vMinMax[6] < Vz) vMinMax[6] = Vz;
+        if(vMinMax[7] > Vz) vMinMax[7] = Vz;
+    }
+    if(OutputDimensional)
+    {
+        for(size_t i=0; i<index;i++)
+        {
+            rwork[i]*=RefVelocity;
+        }
+        for(int i=0;i<8;i++)
+        {
+            vMinMax[i]*=RefVelocity;
+        }
     }
     PDMlib::PDMlib::GetInstance().Write("Velocity", NumParticles, rwork, vMinMax, 3, TimeStep, Time);
     delete[] rwork;
@@ -135,21 +172,38 @@ int LPT::LPT_OutputParticleData(const int& TimeStep, const double& Time)
     PDMlib::PDMlib::GetInstance().Write("ID", NumParticles, iwork, (int*)NULL, 3, TimeStep, Time);
     delete[] iwork;
 
+    const double RefTime  = RefLength/RefVelocity;
     //粒子が放出された時刻
     // rworkの領域が確保できていれば、こっちのnewは失敗しないはず
     double* dwork = new double[ptrPPlib->Particles.size()];
     index = 0;
-    for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+    if(OutputDimensional)
     {
-        dwork[index++] = (*it)->StartTime;
+        for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+        {
+            dwork[index++] = (*it)->StartTime*RefTime;
+        }
+    }else{
+        for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+        {
+            dwork[index++] = (*it)->StartTime;
+        }
     }
     PDMlib::PDMlib::GetInstance().Write("StartTime", NumParticles, dwork, (double*)NULL, 1, TimeStep, Time);
 
     //粒子の寿命
     index = 0;
-    for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+    if(OutputDimensional)
     {
-        dwork[index++] = (*it)->LifeTime;
+        for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+        {
+            dwork[index++] = (*it)->LifeTime*RefTime;
+        }
+    }else{
+        for(PPlib::ParticleContainer::iterator it = ptrPPlib->Particles.begin(); it != ptrPPlib->Particles.end(); ++it)
+        {
+            dwork[index++] = (*it)->LifeTime;
+        }
     }
     PDMlib::PDMlib::GetInstance().Write("LifeTime", NumParticles, dwork, (double*)NULL, 1, TimeStep, Time);
     delete[] dwork;
@@ -160,11 +214,24 @@ int LPT::LPT_OutputParticleData(const int& TimeStep, const double& Time)
 
 int LPT::LPT_Initialize(LPT_InitializeArgs args)
 {
+    /* 
+     * LPTlibが保持する各クラスは以下の順に初期化する必要がある
+     *  (1) MPI_Manager
+     *  (2) PMlibWrapper, LPT_LOG
+     *  (3) DecompositionManager, DSlib, PPlib
+     *  (4) Communicator
+     */
     if(initialized)
     {
         std::cerr<<"LPT_Initialize() is called more than 1 time"<<std::endl;
         return 1;
     }
+
+    //LPTクラスの引数を取り出す
+    RefLength   = args.RefLength;
+    RefVelocity = args.RefVelocity;
+    OutputDimensional = args.OutputDimensional;
+    const double RefTime  = RefLength/RefVelocity;
 
     //MPI Manager クラスの初期化
     MPI_Manager::GetInstance()->Init(args.ParticleComm, args.FluidComm);
@@ -177,17 +244,11 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
 
     //ログ出力クラスの初期化
     LPT_LOG::GetInstance()->Init(args.OutputFileName);
-
     LPT_LOG::GetInstance()->INFO("LPT_Initialize called");
-    //LPT_LOG::GetInstance()->INFO("Init args = ", args);
-
-    RefLength   = args.RefLength;
-    RefVelocity = args.RefVelocity;
-    RefTime     = args.RefTime;
 
     //DSlibクラスの初期化
     ptrDSlib = DSlib::DSlib::GetInstance();
-    ptrDSlib->Initialize(args.CacheSize, args.CommBufferSize);
+    ptrDSlib->Initialize(args.CacheSize, args.CacheSize/2);
     LPT_LOG::GetInstance()->LOG("DSlib instantiated");
 
     //DecompositionManagerクラスの初期化
@@ -212,7 +273,7 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
     {
         for(int i = 0; i < N; ++i)
         {
-            Mask[i] = ((((args.d_bcv)[i]>>30)&0x1) ? 1 : 0);
+            Mask[i] = ((args.d_bcv)[i] >> 30) & 0x1;
         }
     }else{
         for(int i = 0; i < N; ++i)
@@ -230,10 +291,11 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
         ptrPPlib->StartPoints = StartPoints;
         if(myrank == 0)
         {
-            std::ofstream startpoint("LPTlibStartPoints.txt");
-            for(std::vector<PPlib::StartPoint*>::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
+            if(OutputDimensional)
             {
-                startpoint<<(*it)->TextPrint();
+                ptrPPlib->WriteStartPoints("LPTlibStartPoints.txt", RefLength, RefTime);
+            }else{
+                ptrPPlib->WriteStartPoints("LPTlibStartPoints.txt", 1.0, 1.0);
             }
         }
         // clear and minimize LPT.StartPoints
@@ -260,14 +322,14 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
         PDMlib::PDMlib::GetInstance().AddContainer(StartTime);
         PDMlib::PDMlib::GetInstance().AddContainer(LifeTime);
         /*
-         * BlockID, CurrentTime, CurrentTimeStepは再計算可能なので出力しない
-        PDMlib::ContainerInfo BlockID         = {"BlockID",         "BlockID",                            "zip",   PDMlib::INT64,  "temp", 1};
-        PDMlib::ContainerInfo CurrentTime     = {"CurrentTime",     "CurrentTime",                        "fpzip",  PDMlib::DOUBLE, "temp", 1};
-        PDMlib::ContainerInfo CurrentTimeStep = {"CurrentTimeStep", "CurrentTimeStep",                    "zip",   PDMlib::INT32,  "temp", 1};
-        PDMlib::PDMlib::GetInstance().AddContainer(BlockID);
-        PDMlib::PDMlib::GetInstance().AddContainer(CurrentTime);
-        PDMlib::PDMlib::GetInstance().AddContainer(CurrentTimeStep);
-        */
+         * BlockID, CurrentTime, CurrentTimeStepはリスタート時は不要なのでファイルには出力しない
+         * PDMlib::ContainerInfo BlockID         = {"BlockID",         "BlockID",                            "zip",   PDMlib::INT64,  "temp", 1};
+         * PDMlib::ContainerInfo CurrentTime     = {"CurrentTime",     "CurrentTime",                        "fpzip",  PDMlib::DOUBLE, "temp", 1};
+         * PDMlib::ContainerInfo CurrentTimeStep = {"CurrentTimeStep", "CurrentTimeStep",                    "zip",   PDMlib::INT32,  "temp", 1};
+         * PDMlib::PDMlib::GetInstance().AddContainer(BlockID);
+         * PDMlib::PDMlib::GetInstance().AddContainer(CurrentTime);
+         * PDMlib::PDMlib::GetInstance().AddContainer(CurrentTimeStep);
+         */
         double bbox[6] = {args.OriginX, args.OriginY, args.OriginZ, args.OriginX+args.Nx*args.dx, args.OriginY+args.Ny*args.dy, args.OriginZ+args.Nz*args.dz};
         for(int i = 0; i < 6; i++)
         {
@@ -278,7 +340,12 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
     }else{
         //restart実行
         LPT_LOG::GetInstance()->INFO("Read start points and Particle Data from file");
-        ptrPPlib->ReadStartPoints("LPTlibStartPoints.txt");
+        if(OutputDimensional)
+        {
+            ptrPPlib->ReadStartPoints("LPTlibStartPoints.txt", RefLength, RefTime);
+        }else{
+            ptrPPlib->ReadStartPoints("LPTlibStartPoints.txt", 1.0, 1.0);
+        }
 
         //PDMlibを使ってリスタートデータを読み込む
         PDMlib::PDMlib::GetInstance().Init(args.argc, args.argv, args.OutputFileName+".dfi", args.OutputFileName+".dfi");
@@ -302,6 +369,19 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
 
         // データを読み込む
         size_t NumParticles = PDMlib::PDMlib::GetInstance().ReadAll(&args.CurrentTimeStep, args.MigrateOnRestart, "Coordinate");
+        if(OutputDimensional)
+        {
+            for(size_t i = 0; i < 3*NumParticles; i++)
+            {
+                coord[i]/=RefLength;
+                v[i]/=RefVelocity;
+            }
+            for(size_t i = 0; i < NumParticles; i++)
+            {
+                start[i]/=RefTime;
+                life[i]/=RefTime;
+            }
+        }
 
         //粒子オブジェクトを作成して値を代入
         for(size_t i = 0; i < NumParticles; i++)
@@ -310,9 +390,9 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
             tmp->StartPointID1   = ID[3*i+0];
             tmp->StartPointID2   = ID[3*i+1];
             tmp->ParticleID      = ID[3*i+2];
-            tmp->x               = coord[3*i+0]/RefLength;
-            tmp->y               = coord[3*i+1]/RefLength;
-            tmp->z               = coord[3*i+2]/RefLength;
+            tmp->x               = coord[3*i+0];
+            tmp->y               = coord[3*i+1];
+            tmp->z               = coord[3*i+2];
             tmp->Vx              = v[3*i+0];
             tmp->Vy              = v[3*i+1];
             tmp->Vz              = v[3*i+2];
@@ -335,12 +415,28 @@ int LPT::LPT_Initialize(LPT_InitializeArgs args)
     if(!restart) ptrPPlib->OutputStartPoints(RefLength);
     LPT_LOG::GetInstance()->LOG("Distribute StartPoints done");
 
+    //開始点情報の出力
+    LPT_LOG::GetInstance()->INFO("StartPoint for this Rank");
+    if(OutputDimensional)
+    {
+        for(std::vector<PPlib::StartPoint*>::iterator it = ptrPPlib->StartPoints.begin(); it != ptrPPlib->StartPoints.end(); ++it)
+        {
+            LPT_LOG::GetInstance()->INFO("", (*it)->TextPrint(RefLength, RefTime));
+        }
+    }else{
+        for(std::vector<PPlib::StartPoint*>::iterator it = ptrPPlib->StartPoints.begin(); it != ptrPPlib->StartPoints.end(); ++it)
+        {
+            LPT_LOG::GetInstance()->INFO("", (*it)->TextPrint(1.0, 1.0));
+        }
+    }
+
     if(ptrDSlib == NULL || ptrDM == NULL || ptrPPlib == NULL || ptrComm == NULL)
     {
         LPT_LOG::GetInstance()->ERROR("instantiation failed!!");
         return -1;
     }
     initialized = true;
+    LPT_LOG::GetInstance()->FLUSH();
     PM.stop("Initialize");
     return 0;
 }
@@ -362,32 +458,32 @@ int LPT::LPT_Post(void)
 
 int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
 {
-    static bool error_messaged_loged = false;
+    static bool error_message_loged = false;
     if(!initialized)
     {
-        if(!error_messaged_loged)
+        if(!error_message_loged)
         {
             std::cerr<<"LPT_CalcParticleData is called before LPT_Initialize()"<<std::endl;
-            error_messaged_loged = true;
+            error_message_loged = true;
         }
         return 1;
     }
     PMlibWrapper& PM = PMlibWrapper::GetInstance();
     PM.start("PrepareCalc");
-    const double  dimentional_time = args.CurrentTime*RefTime;
-    LPT_LOG::GetInstance()->INFO("Current Time = ", dimentional_time);
+    const double RefTime  = RefLength/RefVelocity;
+    LPT_LOG::GetInstance()->INFO("Current Time = ", args.CurrentTime*RefTime);
     LPT_LOG::GetInstance()->INFO("Current Time Step = ", args.CurrentTimeStep);
     PM.stop("PrepareCalc");
 
     //寿命を過ぎた開始点を破棄
-    ptrPPlib->DestroyExpiredStartPoints(dimentional_time);
+    ptrPPlib->DestroyExpiredStartPoints(args.CurrentTime);
 
     //新規粒子の放出
     //開始点がMovingPointsの場合は座標のアップデートも行う
-    ptrPPlib->EmitNewParticles(dimentional_time, args.CurrentTimeStep);
+    ptrPPlib->EmitNewParticles(args.CurrentTime, args.CurrentTimeStep);
 
     //寿命を過ぎた粒子を破棄
-    ptrPPlib->DestroyExpiredParticles(dimentional_time);
+    ptrPPlib->DestroyExpiredParticles(args.CurrentTime);
 
     LPT_LOG::GetInstance()->INFO("Number of particles = ", ptrPPlib->Particles.size());
 
@@ -459,7 +555,7 @@ int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
                             {
                                 for(std::list<PPlib::ParticleData*>::iterator it_Particle = work->begin(); it_Particle != work->end();)
                                 {
-                                    int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.v00, args.CurrentTime, args.CurrentTimeStep, RefLength, RefVelocity);
+                                    int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.CurrentTime, args.CurrentTimeStep);
                                     LPT_LOG::GetInstance()->LOG("return value from PP_Transport::Calc() = ", ierr);
                                     if(ierr == 0 || ierr == 3 || ierr == 4 || ierr == 5)
                                     {
@@ -516,7 +612,7 @@ int LPT::LPT_CalcParticleData(LPT_CalcArgs args)
         long re_calced_particles = 0;
         for(PPlib::ParticleContainer::iterator it_Particle = ptrPPlib->Particles.begin(); it_Particle != ptrPPlib->Particles.end();)
         {
-            int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.v00, args.CurrentTime, args.CurrentTimeStep, RefLength, RefVelocity);
+            int ierr = Transport.Calc(*it_Particle, args.deltaT, args.divT, args.CurrentTime, args.CurrentTimeStep);
             if(ierr == 0 || ierr == 3 || ierr == 4)
             {
                 re_calced_particles++;

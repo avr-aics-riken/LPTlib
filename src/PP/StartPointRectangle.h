@@ -24,12 +24,13 @@ Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumSta
 //! @brief 矩形領域型で定義された開始点の情報を保持するクラス
 class Rectangle: public StartPoint
 {
+    Rectangle():StartPoint(){}
 public:
     //! テキスト出力を行う
-    std::string TextPrint(void) const;
+    std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
 
     //! TextPrintの出力を読み込む
-    void ReadText(std::istream& stream);
+    void ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime);
 
     //! @brief 開始点オブジェクトをMaxNumStartPointsで指定した開始点数以下のオブジェクトに分割する
     //! NxM行列をNB, MBで2次元のブロック分割(余りあり)するようなイメージで
@@ -58,12 +59,6 @@ public:
             NumStartPoints[i] = this->NumStartPoints[i];
         }
     }
-
-    int GetSumStartPoints(void)
-    {
-        return (this->NumStartPoints)[0]*(this->NumStartPoints)[1]*(this->NumStartPoints)[2];
-    }
-
 private:
     //! @brief 開始点が存在する矩形領域の頂点の座標
     //! Coord2とは異なる座標かつ、両方の点が xy, yz, zx いずれかの平面上に存在しなければならない
@@ -87,6 +82,12 @@ private:
 };
 static Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int NumStartPoints[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
+    if(Coord1==NULL&&Coord2==NULL&&NumStartPoints==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL)
+    {
+        Rectangle* tmpStartPoint = new Rectangle;
+        return tmpStartPoint;
+    }
+
     if(Coord1[0] == Coord2[0])
     {
         if(NumStartPoints[0] != 1) return NULL;
@@ -110,11 +111,6 @@ static Rectangle* RectangleFactory(REAL_TYPE Coord1[3], REAL_TYPE Coord2[3], int
     tmpStartPoint->ReleaseTime          = ReleaseTime;
     tmpStartPoint->TimeSpan             = TimeSpan;
     tmpStartPoint->ParticleLifeTime     = ParticleLifeTime;
-    tmpStartPoint->LatestEmitParticleID = 0;
-    tmpStartPoint->LatestEmitTime       = -0.1;
-    tmpStartPoint->ID[0]                = -1;
-    tmpStartPoint->ID[1]                = -2;
-
     return tmpStartPoint;
 }
 } // namespace PPlib

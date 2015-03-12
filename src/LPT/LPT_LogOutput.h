@@ -15,6 +15,7 @@
 #include <string>
 #include "MPI_Manager.h"
 
+
 namespace LPT
 {
 //! @brief メッセージ出力を行なうクラス
@@ -46,6 +47,11 @@ public:
         filename += oss.str();
         filename += ".log";
         logfile.open(filename.c_str());
+    }
+
+    void FLUSH(void)
+    {
+        logfile.flush();
     }
 
     void LOG(std::string message)

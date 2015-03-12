@@ -26,12 +26,17 @@ MovingPoints* MovingPointsFactory(const int& NumPoints, REAL_TYPE* Coords, doubl
 //! Time[i]の時点の開始点座標がCoords[i]に保持される
 class MovingPoints: public StartPoint
 {
+    MovingPoints():StartPoint()
+    {
+        this->SumStartPoints=1;
+    }
+
 public:
     //! テキスト出力を行う
-    std::string TextPrint(void) const;
+    std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
 
     //! TextPrintの出力を読み込む
-    void ReadText(std::istream& stream);
+    void ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime);
 
     //! 現在のタイムステップにおける開始点座標をCoordsから読み出して、Coord1にコピーする
     void UpdateStartPoint(double CurrentTime);
@@ -68,7 +73,7 @@ private:
 static MovingPoints* MovingPointsFactory(const int& NumPoints, REAL_TYPE* Coords, double* Time, double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
     MovingPoints* tmpStartPoint = new MovingPoints;
-    tmpStartPoint->SumStartPoints = 1;
+    if(Coords==NULL&&Time==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL) return tmpStartPoint;
     for(int i = 0; i < NumPoints; i++)
     {
         tmpStartPoint->AddCoords(Time[i], &(Coords[3*i]));
@@ -80,11 +85,6 @@ static MovingPoints* MovingPointsFactory(const int& NumPoints, REAL_TYPE* Coords
     tmpStartPoint->Coord1[0]            = Coords[0];
     tmpStartPoint->Coord1[1]            = Coords[1];
     tmpStartPoint->Coord1[2]            = Coords[2];
-    tmpStartPoint->LatestEmitParticleID = 0;
-    tmpStartPoint->LatestEmitTime       = -0.1;
-    tmpStartPoint->ID[0]                = -1;
-    tmpStartPoint->ID[1]                = -2;
-
     return tmpStartPoint;
 }
 } // namespace PPlib

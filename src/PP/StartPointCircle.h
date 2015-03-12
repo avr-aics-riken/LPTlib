@@ -26,12 +26,13 @@ Circle* CircleFactory(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE Radius,
 //! Istart, theta_minは領域に含み、Iend, theta_maxは含まれない
 class Circle: public StartPoint
 {
+    Circle():StartPoint(),N(1),a(1),Istart(1),Iend(1),theta_min(0),theta_max(2*M_PI) {}
 public:
     //! テキスト出力を行う
-    std::string TextPrint(void) const;
+    std::string TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const;
 
     //! TextPrintの出力を読み込む
-    void ReadText(std::istream& stream);
+    void ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime);
 
     //! 指定された開始点数からN, aの値を計算する
     bool Initialize(void);
@@ -86,6 +87,8 @@ private:
 static Circle* CircleFactory(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE Radius, REAL_TYPE NormalVector[3], double StartTime, double ReleaseTime, double TimeSpan, double ParticleLifeTime)
 {
     Circle* tmpStartPoint = new Circle;
+    if(Coord1==NULL&&SumStartPoints==NULL && Radius==NULL&&NormalVector==NULL&&StartTime==NULL&&ReleaseTime==NULL&&TimeSpan==NULL&&ParticleLifeTime==NULL) return tmpStartPoint;
+
     for(int i = 0; i < 3; i++)
     {
         tmpStartPoint->Coord1[i] = Coord1[i];
@@ -100,17 +103,6 @@ static Circle* CircleFactory(REAL_TYPE Coord1[3], int SumStartPoints, REAL_TYPE 
     tmpStartPoint->ReleaseTime      = ReleaseTime;
     tmpStartPoint->TimeSpan         = TimeSpan;
     tmpStartPoint->ParticleLifeTime = ParticleLifeTime;
-
-    tmpStartPoint->N                    = 1;
-    tmpStartPoint->a                    = 1;
-    tmpStartPoint->Istart               = 1;
-    tmpStartPoint->Iend                 = 1;
-    tmpStartPoint->theta_min            = 0;
-    tmpStartPoint->theta_max            = 2*M_PI;
-    tmpStartPoint->LatestEmitParticleID = 0;
-    tmpStartPoint->LatestEmitTime       = -0.1;
-    tmpStartPoint->ID[0]                = -1;
-    tmpStartPoint->ID[1]                = -2;
 
     if(!tmpStartPoint->Initialize())
     {

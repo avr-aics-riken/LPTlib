@@ -22,6 +22,52 @@
 
 namespace PPlib
 {
+std::string StartPoint::PrintTimeAndID(const double& RefTime) const
+{
+    std::ostringstream oss;
+    oss<<"StartTime            = "<<this->StartTime*RefTime<<std::endl;
+    oss<<"ReleaseTime          = "<<this->ReleaseTime*RefTime<<std::endl;
+    oss<<"TimeSpan             = "<<this->TimeSpan*RefTime<<std::endl;
+    oss<<"LatestEmitTime       = "<<this->LatestEmitTime*RefTime<<std::endl;
+    oss<<"ID                   = "<<this->ID[0]<<","<<this->ID[1]<<std::endl;
+    oss<<"LatestEmitParticleID = "<<this->LatestEmitParticleID<<std::endl;
+    return oss.str();
+}
+void StartPoint::ReadTimeAndID(std::istream& stream, const double& RefTime)
+{
+    std::string work;
+    //StartTime
+    std::getline(stream, work, '=');
+    std::getline(stream, work);
+    this->StartTime = std::atof(work.c_str())/RefTime;
+
+    //ReleaseTime
+    std::getline(stream, work, '=');
+    std::getline(stream, work);
+    this->ReleaseTime = std::atof(work.c_str())/RefTime;
+
+    //TimeSpan
+    std::getline(stream, work, '=');
+    std::getline(stream, work);
+    this->TimeSpan = std::atof(work.c_str())/RefTime;
+
+    //LatestEmitTime
+    std::getline(stream, work, '=');
+    std::getline(stream, work);
+    this->LatestEmitTime = std::atof(work.c_str())/RefTime;
+
+    //ID
+    std::getline(stream, work, '=');
+    std::getline(stream, work, ',');
+    this->ID[0] = std::atoi(work.c_str());
+    std::getline(stream, work);
+    this->ID[1] = std::atoi(work.c_str());
+
+    //LatestEmitParticleID
+    std::getline(stream, work, '=');
+    std::getline(stream, work);
+    this->LatestEmitParticleID = std::atoi(work.c_str());
+}
 void StartPoint::EmitNewParticle(std::list<ParticleData*>* ParticleList, const double& CurrentTime, const int& CurrentTimeStep)
 {
     bool DoEmit = false;

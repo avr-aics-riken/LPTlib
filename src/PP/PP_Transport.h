@@ -52,7 +52,7 @@ public:
     //! 返り値が2の時は呼び出し元でコンテナからの削除&再挿入を行う
     //! 返り値が3の時は通信完了後に再計算を行う
     //! 返り値が4の時は計算終了とみなすので、呼出し元での処理は0と同じ
-    int Calc(ParticleData* Particle, const double& deltaT, const int& divT, REAL_TYPE* v00, const double& CurrentTime, const int& CurrentTimeStep, const REAL_TYPE& RefLength, const REAL_TYPE& RefVelocity);
+    int Calc(ParticleData* Particle, const double& deltaT, const int& divT, const double& CurrentTime, const int& CurrentTimeStep);
 
 private:
     //! @brief 粒子データの時刻、タイムステップ、座標を更新する

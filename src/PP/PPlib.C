@@ -29,64 +29,51 @@
 
 namespace PPlib
 {
-void PPlib::ReadStartPoints(const std::string& filename)
+void PPlib::WriteStartPoints(const std::string& filename, const REAL_TYPE& RefLength, const double& RefTime)
+{
+    std::ofstream startpoint(filename.c_str());
+    for(std::vector<StartPoint*>::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
+    {
+        startpoint<<(*it)->TextPrint(RefLength, RefTime);
+    }
+}
+void PPlib::ReadStartPoints(const std::string& filename, const REAL_TYPE& RefLength, const double& RefTime)
 {
     std::ifstream ifs(filename.c_str());
     std::string   startpoint;
-    double        StartTime        = 0;
-    double        ReleaseTime      = 0;
-    double        TimeSpan         = 0;
-    double        ParticleLifeTime = 0;
     while(ifs)
     {
         std::getline(ifs, startpoint);
-        if(startpoint == typeid(Point).name())
+        if(startpoint == "Point")
         {
-            REAL_TYPE Coord1[3] = {1, 1, -1};
-            Point*    tmp       = PointFactory(Coord1, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
-            tmp->ReadText(ifs);
+            Point*    tmp       = PointFactory(NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime );
             StartPoints.push_back(tmp);
-        }else if(startpoint == typeid(Line).name()){
-            REAL_TYPE Coord1[3]      = {1, 1, -1};
-            REAL_TYPE Coord2[3]      = {1, 1, 1};
-            int       SumStartPoints = 2;
-            Line*     tmp            = LineFactory(Coord1, Coord2, SumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
-            tmp->ReadText(ifs);
+        }else if(startpoint == "Line"){
+            Line*     tmp            = LineFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime );
             StartPoints.push_back(tmp);
-        }else if(startpoint == typeid(Rectangle).name()){
-            REAL_TYPE  Coord1[3]         = {1, -1, -1};
-            REAL_TYPE  Coord2[3]         = {1, 1, 1};
-            int        NumStartPoints[3] = {1, 2, 2};
-            Rectangle* tmp               = RectangleFactory(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
-            tmp->ReadText(ifs);
+        }else if(startpoint == "Rectangle"){
+            Rectangle* tmp               = RectangleFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime );
             StartPoints.push_back(tmp);
-        }else if(startpoint == typeid(Cuboid).name()){
-            REAL_TYPE Coord1[3]         = {-1, -1, -1};
-            REAL_TYPE Coord2[3]         = {1, 1, 1};
-            int       NumStartPoints[3] = {2, 2, 2};
-            Cuboid*   tmp               = CuboidFactory(Coord1, Coord2, NumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
-            tmp->ReadText(ifs);
+        }else if(startpoint == "Cuboid"){
+            Cuboid*   tmp               = CuboidFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime );
             StartPoints.push_back(tmp);
-        }else if(startpoint == typeid(Circle).name()){
-            REAL_TYPE Coord1[3]       = {0, 0, 0};
-            int       SumStartPoints  = 2;
-            REAL_TYPE Radius          = 1.0;
-            REAL_TYPE NormalVector[3] = {1.0, 1.0, 1.0};
-            Circle*   tmp             = CircleFactory(Coord1, SumStartPoints, Radius, NormalVector, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
-            tmp->ReadText(ifs);
+        }else if(startpoint == "Circle"){
+            Circle*   tmp             = CircleFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime );
             if(tmp->Initialize())
             {
                 StartPoints.push_back(tmp);
             }
-        }else if(startpoint == typeid(MovingPoints).name()){
-            int           NumPoints = 1;
-            REAL_TYPE     Coords[3] = {0, 0, 0};
-            double        Time[1]   = {0.0};
-            MovingPoints* tmp       = MovingPointsFactory(NumPoints, Coords, Time, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime);
-            tmp->ReadText(ifs);
+        }else if(startpoint == "MovingPoints"){
+            MovingPoints* tmp       = MovingPointsFactory(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            tmp->ReadText(ifs, RefLength, RefTime );
             StartPoints.push_back(tmp);
         }else{
-            LPT::LPT_LOG::GetInstance()->WARN("unknown startpoint type");
+            LPT::LPT_LOG::GetInstance()->WARN("unknown startpoint type : ", startpoint);
         }
     }
 }
@@ -206,17 +193,11 @@ void PPlib::DistributeStartPoints(const int& NParticleProcs)
     {
         TotalNumStartPoints += (*it)->GetSumStartPoints();
     }
+    LPT::LPT_LOG::GetInstance()->INFO("TotalNumStartPoints = ", TotalNumStartPoints);
 
     //1プロセスあたりの平均開始点数を計算
-    int AveNumStartPoints;
-
-    if(TotalNumStartPoints < NParticleProcs)
-    {
-        AveNumStartPoints = 1;
-    }else{
-        AveNumStartPoints = TotalNumStartPoints/NParticleProcs;
-    }
-
+    int AveNumStartPoints = TotalNumStartPoints/NParticleProcs;
+    if (AveNumStartPoints == 0) AveNumStartPoints=1;
     LPT::LPT_LOG::GetInstance()->INFO("AveNumStartPoints = ", AveNumStartPoints);
 
     std::vector<StartPoint*> NewStartPoints;
@@ -287,13 +268,6 @@ void PPlib::DistributeStartPoints(const int& NParticleProcs)
         (*it)->SetID(id);
         ++(id[1]);
     }
-
-    //開始点情報の出力
-    LPT::LPT_LOG::GetInstance()->INFO("StartPoint for this Rank");
-    for(std::vector<StartPoint*>::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
-    {
-        LPT::LPT_LOG::GetInstance()->INFO("", (*it)->TextPrint());
-    }
 }
 
 void PPlib::OutputStartPoints(const REAL_TYPE& RefLength)
@@ -305,6 +279,10 @@ void PPlib::OutputStartPoints(const REAL_TYPE& RefLength)
     for(std::vector<StartPoint*>::iterator it = StartPoints.begin(); it != StartPoints.end(); ++it)
     {
         SumGridPoints += (*it)->GetSumStartPoints();
+    }
+    if(SumGridPoints <= 0)
+    {
+        return;
     }
 
     //REAL_TYPE型のデータメンバを出力

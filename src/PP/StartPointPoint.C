@@ -13,66 +13,29 @@
 
 namespace PPlib
 {
-std::string Point::TextPrint(void) const
+std::string Point::TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const
 {
     std::ostringstream oss;
-    oss<<typeid(*this).name()<<std::endl;
-    oss<<"Coord1          = "<<this->Coord1[0]<<","<<this->Coord1[1]<<","<<this->Coord1[2]<<std::endl;
-    oss<<"SumStartPoints  = "<<this->SumStartPoints<<std::endl;
-    oss<<"StartTime       = "<<this->StartTime<<std::endl;
-    oss<<"ReleaseTime     = "<<this->ReleaseTime<<std::endl;
-    oss<<"TimeSpan        = "<<this->TimeSpan<<std::endl;
-    oss<<"LatestEmitTime  = "<<this->LatestEmitTime<<std::endl;
-    oss<<"ID              = "<<this->ID[0]<<","<<this->ID[1]<<std::endl;
-    oss<<"LatestEmitParticleID = "<<this->LatestEmitParticleID<<std::endl;
+    oss<<"Point"<<std::endl;
+    oss<<"Coord1          = "<<this->Coord1[0]*RefLength<<","<<this->Coord1[1]*RefLength<<","<<this->Coord1[2]*RefLength<<std::endl;
+
+    oss<<this->PrintTimeAndID(RefTime);
     return oss.str();
 }
 
-void Point::ReadText(std::istream& stream)
+void Point::ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime)
 {
     std::string work;
     //Coord1
     std::getline(stream, work, '=');
     std::getline(stream, work, ',');
-    this->Coord1[0] = std::atof(work.c_str());
+    this->Coord1[0] = std::atof(work.c_str())/RefLength;
     std::getline(stream, work, ',');
-    this->Coord1[1] = std::atof(work.c_str());
+    this->Coord1[1] = std::atof(work.c_str())/RefLength;
     std::getline(stream, work);
-    this->Coord1[2] = std::atof(work.c_str());
+    this->Coord1[2] = std::atof(work.c_str())/RefLength;
 
-    //SumStartPoints
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->SumStartPoints = std::atoi(work.c_str());
-
-    //StartTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->StartTime = std::atof(work.c_str());
-    //ReleaseTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->ReleaseTime = std::atof(work.c_str());
-    //TimeSpan
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->TimeSpan = std::atof(work.c_str());
-    //LatestEmitTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->LatestEmitTime = std::atof(work.c_str());
-
-    //ID
-    std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
-    this->ID[0] = std::atoi(work.c_str());
-    std::getline(stream, work);
-    this->ID[1] = std::atoi(work.c_str());
-
-    //LatestEmitParticleID
-    std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
-    this->LatestEmitParticleID = std::atoi(work.c_str());
+    this->ReadTimeAndID(stream, RefTime);
 }
 
 void Point::GetGridPointCoord(std::vector<REAL_TYPE>& Coords)

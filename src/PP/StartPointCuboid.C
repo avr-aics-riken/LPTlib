@@ -13,42 +13,37 @@
 
 namespace PPlib
 {
-std::string Cuboid::TextPrint(void) const
+std::string Cuboid::TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const
 {
     std::ostringstream oss;
-    oss<<typeid(*this).name()<<std::endl;
-    oss<<"Coord1          = "<<this->Coord1[0]<<","<<this->Coord1[1]<<","<<this->Coord1[2]<<std::endl;
-    oss<<"Coord2          = "<<this->Coord2[0]<<","<<this->Coord2[1]<<","<<this->Coord2[2]<<std::endl;
-    oss<<"SumStartPoints  = "<<this->SumStartPoints<<std::endl;
-    oss<<"NumStartPoints  = "<<this->NumStartPoints[0]<<","<<this->NumStartPoints[1]<<","<<this->NumStartPoints[2]<<std::endl;
-    oss<<"StartTime       = "<<this->StartTime<<std::endl;
-    oss<<"ReleaseTime     = "<<this->ReleaseTime<<std::endl;
-    oss<<"TimeSpan        = "<<this->TimeSpan<<std::endl;
-    oss<<"LatestEmitTime  = "<<this->LatestEmitTime<<std::endl;
-    oss<<"ID              = "<<this->ID[0]<<","<<this->ID[1]<<std::endl;
-    oss<<"LatestEmitParticleID = "<<this->LatestEmitParticleID<<std::endl;
+    oss<<"Cuboid"<<std::endl;
+    oss<<"Coord1               = "<<this->Coord1[0]*RefLength<<","<<this->Coord1[1]*RefLength<<","<<this->Coord1[2]*RefLength<<std::endl;
+    oss<<"Coord2               = "<<this->Coord2[0]*RefLength<<","<<this->Coord2[1]*RefLength<<","<<this->Coord2[2]*RefLength<<std::endl;
+    oss<<"SumStartPoints       = "<<this->SumStartPoints<<std::endl;
+    oss<<"NumStartPoints       = "<<this->NumStartPoints[0]<<","<<this->NumStartPoints[1]<<","<<this->NumStartPoints[2]<<std::endl;
+    oss<<this->PrintTimeAndID(RefTime);
     return oss.str();
 }
 
-void Cuboid::ReadText(std::istream& stream)
+void Cuboid::ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime)
 {
     std::string work;
     //Coord1
     std::getline(stream, work, '=');
     std::getline(stream, work, ',');
-    this->Coord1[0] = std::atof(work.c_str());
+    this->Coord1[0] = std::atof(work.c_str())/RefLength;
     std::getline(stream, work, ',');
-    this->Coord1[1] = std::atof(work.c_str());
+    this->Coord1[1] = std::atof(work.c_str())/RefLength;
     std::getline(stream, work);
-    this->Coord1[2] = std::atof(work.c_str());
+    this->Coord1[2] = std::atof(work.c_str())/RefLength;
     //Coord2
     std::getline(stream, work, '=');
     std::getline(stream, work, ',');
-    this->Coord2[0] = std::atof(work.c_str());
+    this->Coord2[0] = std::atof(work.c_str())/RefLength;
     std::getline(stream, work, ',');
-    this->Coord2[1] = std::atof(work.c_str());
+    this->Coord2[1] = std::atof(work.c_str())/RefLength;
     std::getline(stream, work);
-    this->Coord2[2] = std::atof(work.c_str());
+    this->Coord2[2] = std::atof(work.c_str())/RefLength;
 
     //SumStartPoints
     std::getline(stream, work, '=');
@@ -64,34 +59,7 @@ void Cuboid::ReadText(std::istream& stream)
     std::getline(stream, work);
     this->NumStartPoints[2] = std::atof(work.c_str());
 
-    //StartTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->StartTime = std::atof(work.c_str());
-    //ReleaseTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->ReleaseTime = std::atof(work.c_str());
-    //TimeSpan
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->TimeSpan = std::atof(work.c_str());
-    //LatestEmitTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->LatestEmitTime = std::atof(work.c_str());
-
-    //ID
-    std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
-    this->ID[0] = std::atoi(work.c_str());
-    std::getline(stream, work);
-    this->ID[1] = std::atoi(work.c_str());
-
-    //LatestEmitParticleID
-    std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
-    this->LatestEmitParticleID = std::atoi(work.c_str());
+    this->ReadTimeAndID(stream, RefTime);
 }
 
 void Cuboid::ShrinkX(std::vector<StartPoint*>* StartPoints, int* N, const int& NB, const std::vector<REAL_TYPE>& coord_x)
@@ -99,13 +67,14 @@ void Cuboid::ShrinkX(std::vector<StartPoint*>* StartPoints, int* N, const int& N
     if(*N%NB != 0)
     {
         //x方向にN%NBだけ縮める
-        *N                     -= *N%NB;
+        int RemN                = *N%NB; 
+        *N                     -= RemN;
         this->NumStartPoints[0] = *N;
         this->Coord2[0]         = coord_x[*N];
 
         //x方向の余り領域をCuboidのオブジェクトとして生成し、StartPointsに格納
         REAL_TYPE NReminderCoord1[3]         = {coord_x[*N+1], this->Coord1[1], this->Coord1[2]};
-        int       NReminderNumStartPoints[3] = {*N%NB, NumStartPoints[1], NumStartPoints[2]};
+        int       NReminderNumStartPoints[3] = {RemN, NumStartPoints[1], NumStartPoints[2]};
         StartPoints->push_back(CuboidFactory(NReminderCoord1, this->Coord2, NReminderNumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     }
 }
@@ -115,13 +84,14 @@ void Cuboid::ShrinkY(std::vector<StartPoint*>* StartPoints, int* M, const int& M
     if(*M%MB != 0)
     {
         //y方向に*M%MBだけ縮める
-        *M                     -= *M%MB;
+        int RemM                =*M%MB;
+        *M                     -= RemM;
         this->NumStartPoints[1] = *M;
         this->Coord2[1]         = coord_y[*M];
 
         //y方向の余り領域をCuboidのオブジェクトとして生成し、StartPointsに格納
         REAL_TYPE MReminderCoord1[3]         = {this->Coord1[0], coord_y[*M+1], this->Coord1[2]};
-        int       MReminderNumStartPoints[3] = {NumStartPoints[0], *M%MB, NumStartPoints[2]};
+        int       MReminderNumStartPoints[3] = {NumStartPoints[0], RemM, NumStartPoints[2]};
         StartPoints->push_back(CuboidFactory(MReminderCoord1, this->Coord2, MReminderNumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     }
 }
@@ -131,12 +101,13 @@ void Cuboid::ShrinkZ(std::vector<StartPoint*>* StartPoints, int* K, const int& K
     if(*K%KB != 0)
     {
         //z方向にK%KBだけ縮める
-        *K                     -= *K%KB;
+        int RemK                =*K%KB;
+        *K                     -= RemK;
         this->NumStartPoints[2] = *K;
         this->Coord2[1]         = coord_z[*K];
         //z方向の余り領域をCuboidのオブジェクトとして生成し、StartPointsに格納
         REAL_TYPE KReminderCoord1[3]         = {this->Coord1[0], this->Coord1[1], coord_z[*K]};
-        int       KReminderNumStartPoints[3] = {NumStartPoints[0], NumStartPoints[1], *K%KB};
+        int       KReminderNumStartPoints[3] = {NumStartPoints[0], NumStartPoints[1], RemK};
         StartPoints->push_back(CuboidFactory(KReminderCoord1, this->Coord2, KReminderNumStartPoints, StartTime, ReleaseTime, TimeSpan, ParticleLifeTime));
     }
 }
@@ -164,6 +135,13 @@ void Cuboid::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumSta
     int MB = -1;
     int KB = -1;
     utility::DetermineBlockSize(&NB, &MB, &KB, MaxNumStartPoints, N, M, K);
+    LPT::LPT_LOG::GetInstance()->INFO("MaxNumStartPoints=",MaxNumStartPoints);
+    LPT::LPT_LOG::GetInstance()->INFO("N=",N);
+    LPT::LPT_LOG::GetInstance()->INFO("M=",M);
+    LPT::LPT_LOG::GetInstance()->INFO("K=",K);
+    LPT::LPT_LOG::GetInstance()->INFO("NB=",NB);
+    LPT::LPT_LOG::GetInstance()->INFO("MB=",MB);
+    LPT::LPT_LOG::GetInstance()->INFO("KB=",KB);
 
     //元の領域の格子点座標を各軸毎に取得
     std::vector<REAL_TYPE> coord_x;
@@ -173,6 +151,16 @@ void Cuboid::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumSta
     std::vector<REAL_TYPE> coord_z;
     utility::DivideLine1D(&coord_z, NumStartPoints[2], Coord1[2], Coord2[2]);
 
+    //座標をCoord1の方が小さくなるように書き換え
+    //京でfront(), back()が使えなかったのでbegin, rbeginをdereferenceして使っている
+    Coord1[0]=*coord_x.begin();
+    Coord1[1]=*coord_y.begin();
+    Coord1[2]=*coord_z.begin();
+    Coord2[0]=*coord_x.rbegin();
+    Coord2[1]=*coord_y.rbegin();
+    Coord2[2]=*coord_z.rbegin();
+
+    //各方向をNB, MB, KBの倍数になるように縮小する
     ShrinkX(StartPoints, &N, NB, coord_x);
     ShrinkY(StartPoints, &M, MB, coord_y);
     ShrinkZ(StartPoints, &K, KB, coord_z);
