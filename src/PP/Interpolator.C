@@ -20,11 +20,11 @@ namespace PPlib
 {
 bool Interpolator::InterpolateData(const DSlib::DataBlock& DataBlock, const REAL_TYPE x_I[3], REAL_TYPE dval[3])
 {
-    if(!DataBlock.Data) return false;
+    if(!DataBlock.Data)return false;
 
-    int       i = int(x_I[0]);
-    int       j = int(x_I[1]);
-    int       k = int(x_I[2]);
+    int i        = int(x_I[0]);
+    int j        = int(x_I[1]);
+    int k        = int(x_I[2]);
 
     REAL_TYPE ip = x_I[0]-(REAL_TYPE)i;
     REAL_TYPE jp = x_I[1]-(REAL_TYPE)j;

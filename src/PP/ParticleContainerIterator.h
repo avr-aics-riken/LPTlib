@@ -20,7 +20,7 @@ class ParticleContainer;
 class ParticleData;
 //! ParticleContanier classのiterator
 //
-//ParticleContainer::id_tableが持っているlistのイテレータを操作して返しているだけ
+//ParticleContainer::id_tableが持っているlistのイテレータを操作して返すだけ
 //本当はbidirectionalで作ることができるが、++で走査する以外の使い方をしないので
 //手抜きのためにforward_iteratorとして実装している
 class ParticleContainerIterator: public std::iterator<std::forward_iterator_tag, ParticleData*>
@@ -43,7 +43,7 @@ public:
 
 private:
     std::map<int, std::list<ParticleData*>*>::iterator map_iterator;
-    std::list<ParticleData*>::iterator                 list_iterator;
+    std::list<ParticleData*>::iterator list_iterator;
     ParticleContainer*                                 container;
     static std::map<int, std::list<ParticleData*>*>    map_dummy;
     static std::list<ParticleData*>                    list_dummy;

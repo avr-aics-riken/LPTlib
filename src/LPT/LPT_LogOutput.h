@@ -38,14 +38,19 @@ public:
 
     void Init(const std::string& BaseFileName)
     {
-        int                myrank = MPI_Manager::GetInstance()->get_myrank();
+        int myrank = MPI_Manager::GetInstance()->get_myrank_w();
         std::ostringstream oss;
         oss<<myrank;
-        std::string        filename(BaseFileName);
+        std::string filename(BaseFileName);
         filename += "_";
         filename += oss.str();
         filename += ".log";
         logfile.open(filename.c_str());
+    }
+
+    void FLUSH(void)
+    {
+        logfile.flush();
     }
 
     void LOG(std::string message)
@@ -135,6 +140,13 @@ public:
         logfile<<"LPT ERROR : "<<message<<value<<std::endl;
         logfile.flush();
     }
+
+    void TRACE(const std::string& file, const int& line)
+    {
+        logfile<<"LPT TRACE : "<<file<<"("<<line<<")"<<std::endl;
+        logfile.flush();
+    }
 };
+#define LPT_LOG_TRACE() LPT_LOG::GetInstance()->TRACE(__FILE__, __LINE__)
 } // namespace LPT
 #endif

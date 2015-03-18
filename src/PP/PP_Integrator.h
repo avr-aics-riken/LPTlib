@@ -28,16 +28,14 @@ class PP_Integrator
     //! @param DataBlock   [in]   計算対象の粒子が存在するデータブロック
     //! @param x_i         [in]   粒子座標
     //! @param func        [out]  ルンゲ=クッタ積分用の係数を計算した結果を格納する
-    //! @param RefLength   [in]   代表長さ
-    //! @param RefVelocity [in]   代表速度
-    static bool GetIntegrand(const DSlib::DataBlock&DataBlock, const REAL_TYPE x_i[3], REAL_TYPE func[3], const REAL_TYPE &RefLength, const REAL_TYPE &RefVelocity, REAL_TYPE v00[4]);
+    static bool GetIntegrand(const DSlib::DataBlock&DataBlock, const REAL_TYPE x_i[3], REAL_TYPE func[3]);
 
 public:
     //! @brief 4次ルンゲ=クッタ法による速度場の積分を行なう
     //! @param DataBlock  [in]   計算対象の粒子が存在するデータブロック
     //! @param t_step  [in]    ルンゲ=クッタ積分の時間刻み
     //! @param x_i     [inout] 粒子座標
-    static int RKG(const DSlib::DataBlock&DataBlock, const double t_step, REAL_TYPE x_i[3], const REAL_TYPE &RefLength, const REAL_TYPE &RefVelocity, REAL_TYPE v00[4]);
+    static int RKG(const DSlib::DataBlock&DataBlock, const double t_step, REAL_TYPE x_i[3]);
 };
 } // namespace PPlib
 #endif

@@ -38,7 +38,7 @@ public:
     ~PP_Transport()
     {
         LoadedDataBlock = NULL;
-        if(num_called > 0 && counter > 0) LPT::LPT_LOG::GetInstance()->LOG("% could not be calurated velocity = ", (double)counter/(double)num_called*100);
+        if(num_called > 0 && counter > 0)LPT::LPT_LOG::GetInstance()->LOG("% could not be calurated velocity = ", (double)counter/(double)num_called*100);
     }
 
     //! @brief 引数で与えられた粒子データの流速場に沿った移動を計算する
@@ -52,7 +52,7 @@ public:
     //! 返り値が2の時は呼び出し元でコンテナからの削除&再挿入を行う
     //! 返り値が3の時は通信完了後に再計算を行う
     //! 返り値が4の時は計算終了とみなすので、呼出し元での処理は0と同じ
-    int Calc(ParticleData* Particle, const double& deltaT, const int& divT, REAL_TYPE* v00, const double& CurrentTime, const int& CurrentTimeStep, const REAL_TYPE& RefLength, const REAL_TYPE& RefVelocity);
+    int Calc(ParticleData* Particle, const double& deltaT, const int& divT, const double& CurrentTime, const int& CurrentTimeStep);
 
 private:
     //! @brief 粒子データの時刻、タイムステップ、座標を更新する

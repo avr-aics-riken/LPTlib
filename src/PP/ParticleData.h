@@ -27,9 +27,9 @@ namespace PPlib
 class ParticleData
 {
 public:
-    int       StartPointID1;    //!< この粒子を放出した開始点のRank番号
-    int       StartPointID2;    //!< この粒子を放出した開始点のID番号（同一プロセス内でのみ一意）
-    int       ParticleID;       //!< 開始点から放出された順番を示す番号 (同一開始点内で一意)
+    int StartPointID1;          //!< この粒子を放出した開始点のRank番号
+    int StartPointID2;          //!< この粒子を放出した開始点のID番号（同一プロセス内でのみ一意）
+    int ParticleID;             //!< 開始点から放出された順番を示す番号 (同一開始点内で一意)
     REAL_TYPE x;                //!< 粒子のx座標
     REAL_TYPE y;                //!< 粒子のy座標
     REAL_TYPE z;                //!< 粒子のz座標
@@ -59,8 +59,7 @@ public:
         return this->ParticleID;
     }
 
-    //! @brief 全プロセスを通して一意な粒子IDを返す
-    //! 数値ではなく文字列として返すことに注意
+    //! @brief 全プロセスを通して一意な粒子IDを文字列として返す
     std::string GetAllID(void)
     {
         std::ostringstream oss;

@@ -17,12 +17,12 @@
 #include <mpi.h>
 
 #include "CommDataBlock.h"
+#include "DataBlock.h"
 
 namespace DSlib
 {
 //forward declaration
 struct Cache;
-class DecompositionManager;
 class DSlib;
 
 //! 粒子-流体間の通信を行なうクラス
@@ -33,13 +33,17 @@ class Communicator
 
 public:
     // Constructor
-    Communicator() : Comm(MPI_COMM_WORLD)
+    Communicator(const int& argMaxRequestSize, const int& argMaxDataBlockSize) :
+        MaxRequestSize(argMaxRequestSize),
+        MaxDataBlockSize(argMaxDataBlockSize)
     {
-        MPI_Comm_size(Comm, &NumProcs);
-        MPI_Comm_rank(Comm, &MyRank);
-
-        SendRequestCounts = new int[NumProcs];
-        RecvRequestCounts = new int[NumProcs];
+        int NumProcs = LPT::MPI_Manager::GetInstance()->get_nproc_p();
+        //TODO MPI_Type_structを使ってヘッダ+DataBlockという形式にする
+        MPI_Type_contiguous(sizeof(DataBlock), MPI_BYTE, &MPI_TypeDataBlock);
+        if(MPI_SUCCESS != MPI_Type_commit(&MPI_TypeDataBlock))
+        {
+            throw "MPI_Type_commit failed !";
+        }
 
         MPI_Type_contiguous(sizeof(CommDataBlockHeader), MPI_BYTE, &MPI_DataBlockHeader);
         if(MPI_SUCCESS != MPI_Type_commit(&MPI_DataBlockHeader))
@@ -47,69 +51,32 @@ public:
             throw "MPI_Type_commit failed !";
         }
 
-        for(int i = 0; i < NumProcs; i++)
+        if(LPT::MPI_Manager::GetInstance()->is_fluid_proc())
         {
-            std::vector<long>* tmp = new std::vector<long>;
-            RequestedBlockIDs.push_back(tmp);
-            SendRequestCounts[i] = 0;
-            RecvRequestCounts[i] = 0;
+            BlockIDsToSend = new long[NumProcs*MaxRequestSize];
+            for(int i = 0; i < NumProcs*MaxRequestSize; i++)
+            {
+                BlockIDsToSend[i] = -1;
+            }
+            MPI_Win_create(BlockIDsToSend, NumProcs*MaxRequestSize*sizeof(long), sizeof(long), MPI_INFO_NULL, MPI_COMM_WORLD, &window);
+        }else{
+            MPI_Win_create(BlockIDsToSend, 0, sizeof(long), MPI_INFO_NULL, MPI_COMM_WORLD, &window);
         }
+        MPI_Win_fence(0, window);
     }
 
     //Destructor
     ~Communicator()
     {
-        delete[]SendRequestCounts;
-        delete[]RecvRequestCounts;
-        for(std::vector<std::vector<long>*>::iterator it = RequestedBlockIDs.begin(); it != RequestedBlockIDs.end(); ++it)
+        if(LPT::MPI_Manager::GetInstance()->is_fluid_proc())
         {
-            delete *it;
+            delete[] BlockIDsToSend;
         }
+        MPI_Win_free(&window);
     }
 
-    /**
-     * 各RankがSendRequestCountsに保持する自Rankから他Rankへのデータ転送数のリストを
-     * Alltoall転送によって他Rankから自Rankへのデータ転送数リストに変換し、RecvConutsに格納する
-     *
-     * ex.
-     * -----
-     * Rank0
-     *   SendRequestCounts={0,5,6,2}
-     * Rank1
-     *   SendRequestCounts={3,0,8,1}
-     * Rank2
-     *   SendRequestCounts={4,2,0,5}
-     * Rank3
-     *   SendRequestCounts={7,9,6,0}
-     * -----
-     *       ↓Alltoall
-     * -----
-     * Rank0
-     *   RecvRequestCounts={0,3,4,7}
-     * Rank1
-     *   RecvRequestCounts={5,0,2,9}
-     * Rank2
-     *   RecvRequestCounts={6,8,0,6}
-     * Rank3
-     *   RecvRequestCounts={2,1,5,0}
-     * -----
-     */
-    void CommRequestsAlltoall();
-
-    //! P2P転送でのリクエストを行ない、メンバ変数RequestedBlockIDsに自Rankから送るブロックIDのリストを保持する
-    void CommRequest(DSlib* ptrDSlib
-                     );
-
-    //!  粒子計算プロセスから流体計算プロセスへ、P2Pのデータ転送を行なう
-    void CommDataP2F();
-
-    //! @brief 流体計算プロセスから粒子計算プロセスへ、P2Pのデータ転送を行なう
-    //! @param Data [in] 送信するデータを格納した領域へのポインタ
-    //! @param vlen [in] Dataのベクトル長(1=スカラーデータ, 3=ベクトルデータ)
-    void CommDataF2P(REAL_TYPE* Data, int* Mask, const int& vlen, std::list<CommDataBlockManager*>* SendBuff, std::list<CommDataBlockManager*>* RecvBuff);
-
-    //! 引数で指定されたRankのRequestQueuesの数をDSlibから取得し、SendRequestCountsに格納する
-    void MakeSendRequestCounts(const int& SubDomainID, DSlib* ptrDSlib);
+    //! データブロック転送のリクエストを行いつつMPI_Irecvを発行する
+    bool CommRequest2(DSlib* ptrDSlib, std::list<CommDataBlockManager*>* RecvBuff, const int& fence);
 
     //! @brief *Dataが示す領域に保持されているデータから、BlockIDに相当するブロックのデータを取り出して、SendBuffにパッキングする
     //! @param BlockID  [in]  必要な領域のブロックID
@@ -118,104 +85,18 @@ public:
     //! @param vlen     [in]  Dataの領域に格納されている物理量のベクトル長
     //! @param SendBuff [out] 送信バッファ
     //! @param SendSize [out] 送信サイズ
-    void CommPacking(const long& BlockID, REAL_TYPE* Data, int* Mask, const int& vlen, REAL_TYPE* SendBuff, CommDataBlockHeader* Header, int* SendSize, const int& MyRank);
+    void CommPacking(const long& BlockID, REAL_TYPE* Data, int* Mask, const int& vlen, REAL_TYPE* SendBuff, CommDataBlockHeader* Header, int* SendSize);
 
-    void PrintVectorSize(void)
-    {
-        int size = 0;
-        int i    = 0;
-        for(std::vector<std::vector<long>*>::iterator it = RequestedBlockIDs.begin(); it != RequestedBlockIDs.end(); ++it)
-        {
-            size += (*it)->capacity();
-            std::cerr<<"RequestedBlockIDs["<<i<<"].capacity = "<<(*it)->capacity()<<" ";
-            std::cerr<<"RequestedBlockIDs["<<i<<"].size     = "<<(*it)->size()<<std::endl;
-            i++;
-        }
-        std::cerr<<"RequestedBlockIDs.capacity = "<<RequestedBlockIDs.capacity()<<" ";
-        std::cerr<<"RequestedBlockIDs.size     = "<<RequestedBlockIDs.size()<<" ";
-        std::cerr<<"Allocated vector size in Communicator = "<<size*sizeof(long)+RequestedBlockIDs.capacity()*sizeof(size_t)<<std::endl;
-    }
-
-    void PurgeRequestedBlockIDs(void)
-    {
-        for(std::vector<std::vector<long>*>::iterator it = RequestedBlockIDs.begin(); it != RequestedBlockIDs.end(); ++it)
-        {
-            std::vector<long>().swap(**it);
-        }
-    }
-
-    //! Accessor
-    int GetMyRank()
-    {
-        return this->MyRank;
-    }
-
-    int GetNumProcs()
-    {
-        return this->NumProcs;
-    }
-
-    int GetSumSendRequestCounts()
-    {
-        int sum = 0;
-
-        for(int i = 0; i < NumProcs; i++)
-            sum += SendRequestCounts[i];
-        return sum;
-    }
-
-    int GetSumRecvRequestCounts()
-    {
-        int sum = 0;
-        for(int i = 0; i < NumProcs; i++)
-            sum += RecvRequestCounts[i];
-        return sum;
-    }
-
-    void SetSendRequestCounts(const int& SubDomainID, const int& Count)
-    {
-        SendRequestCounts[SubDomainID] = Count;
-    }
-
-    //単体テスト用Getter/Setter
-#ifdef DEBUG
-
-public:
-    void SetRecvRequestCounts(const int& SubDomainID, const int& Count)
-    {
-        RecvRequestCounts[SubDomainID] = Count;
-    }
-
-    int GetSendRequestCounts(const int& SubDomainID)
-    {
-        return this->SendRequestCounts[SubDomainID];
-    }
-
-    int GetRecvRequestCounts(const int& SubDomainID)
-    {
-        return this->RecvRequestCounts[SubDomainID];
-    }
-
-    void DumpRequestCounts(void)
-    {
-        for(int i = 0; i < NumProcs; i++)
-            std::cerr<<"Send,Recv = "<<SendRequestCounts[i]<<", "<<RecvRequestCounts[i]<<std::endl;
-    }
-
-    void SetRequestedBlockIDs(const int& SubDomainID, const int& BlockID)
-    {
-        RequestedBlockIDs.at(SubDomainID)->push_back(BlockID);
-    }
-#endif
+    //! 要求されたデータブロックを送信しつつRequestIDの受付領域を初期化する
+    void SendDataBlock(REAL_TYPE* Data, int* Mask, const int& vlen, std::list<CommDataBlockManager*>* SendBuff);
 
 private:
-    MPI_Comm                        Comm;              //!<  粒子-流体間の通信に使われるコミュニケータ
-    int                             NumProcs;          //!< Comm内の総プロセス数
-    int                             MyRank;            //!< 自RankのRank番号
-    MPI_Datatype                    MPI_DataBlockHeader; //!<  DataBlockのヘッダデータ送受信用データタイプ
-    int*                            SendRequestCounts; //!<  Rank i のプロセスへ要求するデータブロック数をSendRequestCounts[i]に保持する
-    int*                            RecvRequestCounts; //!<  Rank i のプロセスから受けとるデータブロックのリクエスト数をRecvRequestCounts[i]に保持する
-    std::vector<std::vector<long>*> RequestedBlockIDs; //!<  自Rankから各Rankへ転送するデータブロックのIDを保持する配列
+    MPI_Datatype MPI_DataBlockHeader; //!< DataBlockのヘッダデータ送受信用データタイプ
+    MPI_Datatype MPI_TypeDataBlock;   //!< DataBlockの送受信用データタイプ
+    long*        BlockIDsToSend;      //!< 自Rankから各Rankへ転送するデータブロックのIDを保持する領域
+    size_t       MaxRequestSize;      //!< 1プロセスから同時に受け付ける最大ブロックID数
+    int MaxDataBlockSize;             //!< 最も大きいデータブロックに含まれるセル数(袖領域も含む)
+    MPI_Win      window;              //!< ブロックIDの転送領域用MPI_Win変数
 };
 } // namespace DSlib
 #endif

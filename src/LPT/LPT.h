@@ -65,44 +65,35 @@ public:
     }
 
 private:
-    bool initialized; //!< LPT_Initialize()が正常に終了したかどうかを表すフラグ
-    int  NumPolling; //!< データブロックの到着をポーリングする回数
+    bool  initialized;  //!< LPT_Initialize()が正常に終了したかどうかを表すフラグ
+    int   NumPolling;   //!< データブロックの到着をポーリングする回数
+    float PollingRatio; //!< データブロックの到着をポーリングする割合
+                        //!< 要求したデータブロック数*PollingRatio < 到着したデータブロック数
+                        //!< となったらMPI_Testを止めてMPI_Waitに切り替える
 
-    //! データブロックの到着をポーリングする割合
-    //
-    //要求したデータブロック数*PollingRatio < 到着したデータブロック数
-    //となったらMPI_Testを止めてMPI_Waitに切り替える
-    float PollingRatio;
+    std::vector<PPlib::StartPoint*> StartPoints;  //!<ソルバー側からLPT_SetStartPoint*() 経由で渡されてきた開始点のインスタンスを一時保存するコンテナ
+                                                  //!<PPlibのインスタンス生成後にそっちに渡して中身は破棄する
 
-    //! @brief ソルバー側からLPT_SetStartPoint*() 経由で渡されてきた開始点のインスタンスを一時保存するvector
-    //! PPlibのインスタンス生成後にそっちに渡して中身は破棄する
-    std::vector<PPlib::StartPoint*> StartPoints;
+    int CacheSize;                                //!< データブロックのキャッシュに使う領域の最大サイズ。単位はMByte
 
-    //! @brief データブロックのキャッシュに使う領域のサイズ。単位はMByte
-    //! 実際はsizeof(DataBlock)でまるめられる
-    int CacheSize;
+    int*   Mask;                                  //!< セルが固体(=0)か流体(=1)かを示すマスク配列
+    double CurrentTime;                           //!< 現在時刻
+    unsigned int CurrentTimeStep;                 //!< 現在のタイムステップ
 
-    //! @brief キャッシュから1度に追い出すサイズ
-    //! 単位はMByteで指定し、sizeof(DataBlock)で丸められる
-    //! CommBufferSize <= CacheSize でなければならない
-    //! CacheSizeを越えた値が指定された場合はCacheSizeと同じ値に変更する
-    int CommBufferSize;
+    DSlib::DSlib* ptrDSlib;                       //!< DSlibのオブジェクトへのポインタ
+    DSlib::DecompositionManager* ptrDM;           //!< DecompositionManagerのオブジェクトへのポインタ
+    PPlib::PPlib*                ptrPPlib;        //!< PPlibのオブジェクトへのポインタ
+    DSlib::Communicator*         ptrComm;         //!< Communicatorのオブジェクトへのポインタ
 
-    int*                         Mask; //!< セルが固体(=0)か流体(=1)かを示すマスク配列
-    double                       CurrentTime; //!< 現在時刻
-    unsigned int                 CurrentTimeStep; //!< 現在のタイムステップ
+    REAL_TYPE RefLength;                          //!< 代表長さ
+    REAL_TYPE RefVelocity;                        //!< 代表速度
+    bool      OutputDimensional;                  //!<ファイル出力を有次元で行うかどうかのフラグ
 
-    DSlib::DSlib*                ptrDSlib; //!< DSlibのオブジェクトへのポインタ
-    DSlib::DecompositionManager* ptrDM;    //!< DecompositionManagerのオブジェクトへのポインタ
-    PPlib::PPlib*                ptrPPlib; //!< PPlibのオブジェクトへのポインタ
-
-    REAL_TYPE                    RefLength; //!< 代表長さ
-    REAL_TYPE                    RefVelocity; //!< 代表速度
-    REAL_TYPE                    RefTime; //!< 時刻スケール
+    MPI_Win   window_for_rerun_flag;                       //!< データブロックの再送フラグを通信するためのwindows
+    bool      work_for_rerun_flag;                         //!< データブロックの再送フラグを通信するためのワーク領域(粒子プロセスのrank0のみが使用)
+    int       root_rank_for_rerun_flag;                    //!< データブロックの再送フラグのBcastを行うroot rank
 
 public:
-    DSlib::Communicator*         ptrComm; //!< Communicatorのオブジェクトへのポインタ
-
     //!  @brief 粒子計算に必要なパラメータを受け取り、DSlib, PPlib等のインスタンスを生成する
     //! 開始点のインスタンス生成およびデータ分散もこの関数内で処理する
     //! @param args [in] 引数構造体
@@ -117,7 +108,7 @@ public:
     //! @brief  呼び出された時点での粒子データをファイルに出力する
     //! ファイル名は "LPT::OutputFileName + Rank番号" とし
     //! プロセス毎に異なるファイルに出力する
-    int LPT_OutputParticleData(const int& TimeStep, const double& Time);
+    int LPT_OutputParticleData(const int& TimeStep, const double& Time, float* v00);
 
     //! 粒子データを出力し、LPTの内部で保持している全ての開始点, 粒子, 流速データを破棄する
     int LPT_Post(void);
@@ -158,7 +149,16 @@ private:
     //! 送受信バッファの管理に使っていたCommDataBlockManagerのオブジェクトを削除する
     //
     //オブジェクトが保持する個々の領域はデストラクタ内でdeleteされる
-    void DeleteCommBuff(std::list<DSlib::CommDataBlockManager*>* SendBuff, std::list<DSlib::CommDataBlockManager*>* RecvBuff);
+    inline void DeleteCommBuff(std::list<DSlib::CommDataBlockManager*>* SendBuff, std::list<DSlib::CommDataBlockManager*>* RecvBuff);
+
+    //! PPlib::Particlesに含まれる全ての粒子移動を再計算する
+    inline void ReCalcParticlesAll(PPlib::PP_Transport& Transport, const double& deltaT, const int& divT, const double& CurrentTime, const int& CurrentTimeStep);
+
+    //! 計算済の粒子をPPlib::Particlesに戻す
+    inline void MoveBackToParticleContainer(std::vector<std::list<PPlib::ParticleData*>*>& calced, std::vector<PPlib::ParticleData*>& moved);
+
+    //! 指定したデータブロックの到着を確認
+    bool is_arrived(DSlib::CommDataBlockManager* RecvBuffManager, const int& polling_counter);
 };
 } // namespace LPT
 #endif

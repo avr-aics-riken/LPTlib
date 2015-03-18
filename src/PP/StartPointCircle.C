@@ -15,34 +15,29 @@
 
 namespace PPlib
 {
-std::string Circle::TextPrint(void) const
+std::string Circle::TextPrint(const REAL_TYPE& RefLength, const double& RefTime) const
 {
     std::ostringstream oss;
-    oss<<typeid(*this).name()<<std::endl;
-    oss<<"Coord1               = "<<this->Coord1[0]<<","<<this->Coord1[1]<<","<<this->Coord1[2]<<std::endl;
+    oss<<"Circle"<<std::endl;
+    oss<<"Coord1               = "<<this->Coord1[0]*RefLength<<","<<this->Coord1[1]*RefLength<<","<<this->Coord1[2]*RefLength<<std::endl;
     oss<<"NormalVector         = "<<this->NormalVector[0]<<","<<this->NormalVector[1]<<","<<this->NormalVector[2]<<std::endl;
-    oss<<"Radius               = "<<this->Radius<<std::endl;
+    oss<<"Radius               = "<<this->Radius*RefLength<<std::endl;
     oss<<"SumStartPoints       = "<<this->SumStartPoints<<std::endl;
-    oss<<"StartTime            = "<<this->StartTime<<std::endl;
-    oss<<"ReleaseTime          = "<<this->ReleaseTime<<std::endl;
-    oss<<"TimeSpan             = "<<this->TimeSpan<<std::endl;
-    oss<<"LatestEmitTime       = "<<this->LatestEmitTime<<std::endl;
-    oss<<"ID                   = "<<this->ID[0]<<","<<this->ID[1]<<std::endl;
-    oss<<"LatestEmitParticleID = "<<this->LatestEmitParticleID<<std::endl;
+    oss<<this->PrintTimeAndID(RefTime);
     return oss.str();
 }
 
-void Circle::ReadText(std::istream& stream)
+void Circle::ReadText(std::istream& stream, const REAL_TYPE& RefLength, const double& RefTime)
 {
     std::string work;
     //Coord1
     std::getline(stream, work, '=');
     std::getline(stream, work, ',');
-    this->Coord1[0] = std::atof(work.c_str());
+    this->Coord1[0] = std::atof(work.c_str())/RefLength;
     std::getline(stream, work, ',');
-    this->Coord1[1] = std::atof(work.c_str());
+    this->Coord1[1] = std::atof(work.c_str())/RefLength;
     std::getline(stream, work);
-    this->Coord1[2] = std::atof(work.c_str());
+    this->Coord1[2] = std::atof(work.c_str())/RefLength;
     //NormalVector
     std::getline(stream, work, '=');
     std::getline(stream, work, ',');
@@ -55,40 +50,14 @@ void Circle::ReadText(std::istream& stream)
     //Radius
     std::getline(stream, work, '=');
     std::getline(stream, work);
-    this->Radius = std::atof(work.c_str());
+    this->Radius = std::atof(work.c_str())/RefLength;
 
     //SumStartPoints
     std::getline(stream, work, '=');
     std::getline(stream, work);
     this->SumStartPoints = std::atoi(work.c_str());
 
-    //StartTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->StartTime = std::atof(work.c_str());
-    //ReleaseTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->ReleaseTime = std::atof(work.c_str());
-    //TimeSpan
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->TimeSpan = std::atof(work.c_str());
-    //LatestEmitTime
-    std::getline(stream, work, '=');
-    std::getline(stream, work);
-    this->LatestEmitTime = std::atof(work.c_str());
-    //ID
-    std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
-    this->ID[0] = std::atoi(work.c_str());
-    std::getline(stream, work);
-    this->ID[1] = std::atoi(work.c_str());
-
-    //LatestEmitParticleID
-    std::getline(stream, work, '=');
-    std::getline(stream, work, ',');
-    this->LatestEmitParticleID = std::atoi(work.c_str());
+    this->ReadTimeAndID(stream, RefTime);
 }
 
 void Circle::NormalizeVector(REAL_TYPE* v)
@@ -286,7 +255,7 @@ void Circle::Divider(std::vector<StartPoint*>* StartPoints, const int& MaxNumSta
         ReminderCentralAngle = ((double)NumReminder/(double)SumStartPoints)*2*M_PI;
         Circle* NewCircle = CircleFactory(this->Coord1, this->SumStartPoints, this->Radius, this->NormalVector, this->StartTime, this->ReleaseTime, this->TimeSpan, this->ParticleLifeTime);
         NewCircle->theta_min = 2*M_PI-ReminderCentralAngle;
-        double  tick = (2*M_PI-ReminderCentralAngle)/NumParts/NumGridPoints;
+        double  tick      = (2*M_PI-ReminderCentralAngle)/NumParts/NumGridPoints;
 
         while(NumReminder > NewCircle->CalcSumStartPoints())
         {

@@ -11,7 +11,6 @@
 #include <vector>
 #include <mpi.h>
 
-#include "Cache.h"
 #include "Communicator.h"
 #include "DecompositionManager.h"
 #include "DSlib.h"
@@ -40,139 +39,100 @@ int Irecv(float* buf, int count, int source, int tag, MPI_Comm comm, MPI_Request
     return MPI_Irecv(buf, count, MPI_FLOAT, source, tag, comm, request);
 }
 
-void Communicator::CommRequestsAlltoall()
-{
-    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
-    PM.start("AlltoAllRequest");
-    int                ierr = MPI_Alltoall(SendRequestCounts, 1, MPI_INT, RecvRequestCounts, 1, MPI_INT, Comm);
-    if(ierr != MPI_SUCCESS)
-    {
-        LPT::LPT_LOG::GetInstance()->ERROR("MPI_Alltoall returns error in DSlib::Communicator::CommRequestsAlltoall() ierr = ", ierr);
-    }
-    LPT::LPT_LOG::GetInstance()->LOG("AlltoAll request done");
-    PM.stop("AlltoAllRequest");
-}
-
-void Communicator::CommRequest(DSlib* ptrDSlib)
+bool Communicator::CommRequest2(DSlib* ptrDSlib, std::list<CommDataBlockManager*>* RecvBuff, const int& fence)
 {
     LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
     PM.start("P2PRequest");
-    int                tag                = 0;
-    MPI_Request*       array_of_requests  = new MPI_Request[NumProcs];
-    MPI_Request*       array_of_requests2 = new MPI_Request[NumProcs];
-
-    for(int rank = 0; rank < NumProcs; rank++)
+    bool need_to_rerun    = false;
+    int  Myrank           = LPT::MPI_Manager::GetInstance()->get_myrank_p();
+    int  RecvBuffMemSize  = 0;
+    if(LPT::MPI_Manager::GetInstance()->is_particle_proc())
     {
-        RequestedBlockIDs.at(rank)->resize(RecvRequestCounts[rank]);
-        std::vector<long>(*(RequestedBlockIDs.at(rank))).swap(*(RequestedBlockIDs.at(rank)));
-    }
-
-    //粒子プロセスから流体プロセスに必要なデータブロックのID配列(RequestID)を送る
-    //prepare to recieve P2P request
-    for(int rank = 0; rank < NumProcs; rank++)
-    {
-        int src = (MyRank+rank) >= NumProcs ? (MyRank+rank)-NumProcs : (MyRank+rank);
-
-        if(RecvRequestCounts[src] > 0)
+        for(int rank_f = 0; rank_f < LPT::MPI_Manager::GetInstance()->get_nproc_f(); rank_f++)
         {
-            int ierr = MPI_Irecv(&*(RequestedBlockIDs.at(src)->begin()), RecvRequestCounts[src], MPI_LONG, src, tag, Comm, &array_of_requests[src]);
-        }
-    }
-    //Send P2P request
-    for(int rank = 0; rank < NumProcs; rank++)
-    {
-        int dest = (MyRank-rank) < 0 ? (MyRank-rank)+NumProcs : (MyRank-rank);
+            std::vector<long>& queue = *(ptrDSlib->RequestQueues.at(rank_f));
+            int num_request          = queue.size();
+            if(num_request > MaxRequestSize)
+            {
+                //既定サイズを越えていたら戻り値をtrueに変える
+                need_to_rerun = true;
+                num_request   = MaxRequestSize;
+            }
+            if(num_request > 0)
+            {
+                int dst = LPT::MPI_Manager::GetInstance()->get_rank_f2w(rank_f);
+                MPI_Put(&*(queue.begin()), num_request, MPI_LONG, dst, MaxRequestSize*Myrank, num_request, MPI_LONG, window);
 
-        if(SendRequestCounts[dest] > 0)
-        {
-            int ierr = MPI_Isend(&*(ptrDSlib->RequestQueues.at(dest)->begin()), SendRequestCounts[dest], MPI_LONG, dest, tag, Comm, &array_of_requests2[dest]);
-        }
-    }
+                int tag = 0;
+                for(int i = 0; i < num_request; ++i)
+                {
+                    CommDataBlockManager* tmp = new CommDataBlockManager(MaxDataBlockSize);
+                    RecvBuffMemSize += MaxDataBlockSize;
 
-    MPI_Status* array_of_statuses = new MPI_Status[NumProcs];
+                    int ierr1 = Irecv(tmp->Buff, MaxDataBlockSize, dst, tag++, MPI_COMM_WORLD, &(tmp->Request0));
+                    if(ierr1 != MPI_SUCCESS)LPT::LPT_LOG::GetInstance()->ERROR("return value from Irecv = ", ierr1);
 
-/// @attention  MPI_Waitallすると受信数が0の相手に対してIrecvを発行していないので、エラーになる。次行のようには書かないこと
-///  MPI_Waitall(NumProcs, array_of_requests, array_of_statuses);
-    for(int rank = 0; rank < NumProcs; rank++)
-    {
-        int src = (MyRank+rank) >= NumProcs ? (MyRank+rank)-NumProcs : (MyRank+rank);
+                    int ierr2 = MPI_Irecv(tmp->Header, 1, MPI_DataBlockHeader, dst, tag++, MPI_COMM_WORLD, &(tmp->Request1));
+                    if(ierr2 != MPI_SUCCESS)LPT::LPT_LOG::GetInstance()->ERROR("return value from MPI_Irecv = ", ierr2);
 
-        if(RecvRequestCounts[src] > 0)
-        {
-            int ierr = MPI_Wait(&array_of_requests[src], &array_of_statuses[src]);
-        }
-    }
+                    if(ierr1 == MPI_SUCCESS && ierr2 == MPI_SUCCESS)RecvBuff->push_back(tmp);
 
-    for(int rank = 0; rank < NumProcs; rank++)
-    {
-        LPT::LPT_LOG::GetInstance()->LOG("rank = ", rank);
-        if(ptrDSlib->RequestQueues.at(rank)->size() != 0)
-        {
-            LPT::LPT_LOG::GetInstance()->LOG("Request IDs = ", &*(ptrDSlib->RequestQueues.at(rank)->begin()), ptrDSlib->RequestQueues.at(rank)->size());
+                    //リクエストを送信したブロックIDをDSlib::RequestedBlocksに登録
+                    ptrDSlib->AddRequestedBlocks(queue.at(i));
+                }
+                // 要求したブロックIDをDSlib::RequestQueuesから削除
+                // num_requestの最大値はqueue.size()なので、第二引数がqueue.end()を越える可能性は無い
+                queue.erase(queue.begin(), queue.begin()+num_request);
+            }
         }
     }
 
-    delete[]array_of_requests;
-    delete[]array_of_requests2;
-    delete[]array_of_statuses;
-    PM.stop("P2PRequest");
-    LPT::LPT_LOG::GetInstance()->LOG("P2P request done");
-}
-
-void Communicator::CommDataF2P(REAL_TYPE* Data, int* Mask, const int& vlen, std::list<CommDataBlockManager*>* SendBuff, std::list<CommDataBlockManager*>* RecvBuff)
-{
-    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
-    PM.start("CommDataF2P");
-    //流体プロセスから粒子プロセスに要求されたデータブロックを1つづつ送る
-    //prepare to recieve Datablocks
-    DecompositionManager* ptrDM = DecompositionManager::GetInstance();
-    int                   count = vlen*ptrDM->GetLargestBlockSize();
-
-    int                   RecvBuffMemSize = 0;
-
-    for(int rank = 0; rank < NumProcs; rank++)
-    {
-        int src = (MyRank+rank) >= NumProcs ? (MyRank+rank)-NumProcs : (MyRank+rank);
-        int tag = 0;
-
-        for(int i = 0; i < SendRequestCounts[src]; i++)
-        {
-            CommDataBlockManager* tmp = new CommDataBlockManager(count);
-
-            RecvBuffMemSize += count;
-            int                   ierr = Irecv(tmp->Buff, count, src, tag++, Comm, &(tmp->Request0));
-
-            if(ierr != MPI_SUCCESS) LPT::LPT_LOG::GetInstance()->ERROR("return value from Irecv = ", ierr);
-            int                   ierr2 = MPI_Irecv(tmp->Header, 1, MPI_DataBlockHeader, src, tag++, Comm, &(tmp->Request1));
-
-            if(ierr2 != MPI_SUCCESS) LPT::LPT_LOG::GetInstance()->ERROR("return value from MPI_Irecv = ", ierr2);
-            RecvBuff->push_back(tmp);
-        }
-    }
     RecvBuffMemSize *= sizeof(REAL_TYPE);
     LPT::LPT_LOG::GetInstance()->LOG("Memory size for Recv Buffer = ", RecvBuffMemSize);
 
-    //Send Datablocks
+    LPT::LPT_LOG::GetInstance()->LOG("P2P request done");
+    PM.stop("P2PRequest");
+    return need_to_rerun;
+}
+
+void Communicator::SendDataBlock(REAL_TYPE* Data, int* Mask, const int& vlen, std::list<CommDataBlockManager*>* SendBuff)
+{
+    LPT::PMlibWrapper& PM = LPT::PMlibWrapper::GetInstance();
+    PM.start("CommDataF2P");
+
     int SendBuffMemSize = 0;
 
-    for(int rank = 0; rank < NumProcs; rank++)
+    //CommRequest2()で行なったデータブロックIDの通信を完了させる
+    MPI_Win_fence(0, window);
+    if(LPT::MPI_Manager::GetInstance()->is_fluid_proc())
     {
-        int dest = (MyRank-rank) < 0 ? (MyRank-rank)+NumProcs : (MyRank-rank);
-        int tag  = 0;
-
-        for(int i = 0; i < RecvRequestCounts[dest]; i++)
+        for(int rank_p = 0; rank_p < LPT::MPI_Manager::GetInstance()->get_nproc_p(); rank_p++)
         {
-            CommDataBlockManager* tmp = new CommDataBlockManager(count);
-            int                   SendSize;
-            CommPacking(RequestedBlockIDs.at(dest)->at(i), Data, Mask, vlen, tmp->Buff, tmp->Header, &SendSize, MyRank);
-            SendBuffMemSize += count;
-            int                   ierr = Isend(tmp->Buff, SendSize, dest, tag++, Comm, &(tmp->Request0));
+            int tag                   = 0;
+            long*         BlockIDList = BlockIDsToSend+rank_p*MaxRequestSize;
+            int dst                   = LPT::MPI_Manager::GetInstance()->get_rank_p2w(rank_p);
 
-            if(ierr != MPI_SUCCESS) LPT::LPT_LOG::GetInstance()->ERROR("return value from Isend = ", ierr);
-            int                   ierr2 = MPI_Isend(tmp->Header, 1, MPI_DataBlockHeader, dest, tag++, Comm, &(tmp->Request1));
+            //IDリストの先頭から-1が入っているところまでを順に読み取って、流速データのパッキング
+            //MPI_Isendの送信、IDリストの初期化を行う
+            for(int i = 0; i < MaxRequestSize; i++)
+            {
+                long BlockID = BlockIDList[i];
+                if(BlockID == -1)break;
+                BlockIDList[i] = -1;
 
-            if(ierr2 != MPI_SUCCESS) LPT::LPT_LOG::GetInstance()->ERROR("return value from MPI_Isend = ", ierr2);
-            SendBuff->push_back(tmp);
+                CommDataBlockManager* tmp = new CommDataBlockManager(MaxDataBlockSize);
+                int SendSize;
+                CommPacking(BlockID, Data, Mask, vlen, tmp->Buff, tmp->Header, &SendSize);
+                SendBuffMemSize += MaxDataBlockSize;
+
+                int ierr1 = Isend(tmp->Buff, SendSize, dst, tag++, MPI_COMM_WORLD, &(tmp->Request0));
+                if(ierr1 != MPI_SUCCESS)LPT::LPT_LOG::GetInstance()->ERROR("return value from Isend = ", ierr1);
+
+                int ierr2 = MPI_Isend(tmp->Header, 1, MPI_DataBlockHeader, dst, tag++, MPI_COMM_WORLD, &(tmp->Request1));
+                if(ierr2 != MPI_SUCCESS)LPT::LPT_LOG::GetInstance()->ERROR("return value from MPI_Isend = ", ierr2);
+
+                if(ierr1 == MPI_SUCCESS && ierr2 == MPI_SUCCESS)SendBuff->push_back(tmp);
+            }
         }
     }
 
@@ -181,15 +141,16 @@ void Communicator::CommDataF2P(REAL_TYPE* Data, int* Mask, const int& vlen, std:
     PM.stop("CommDataF2P");
 }
 
-void Communicator::CommPacking(const long& BlockID, REAL_TYPE* Data, int* Mask, const int& vlen, REAL_TYPE* SendBuff, CommDataBlockHeader* Header, int* SendSize, const int& MyRank)
+void Communicator::CommPacking(const long& BlockID, REAL_TYPE* Data, int* Mask, const int& vlen, REAL_TYPE* SendBuff, CommDataBlockHeader* Header, int* SendSize)
 {
     DecompositionManager* ptrDM = DecompositionManager::GetInstance();
-    int                   halo  = ptrDM->GetGuideCellSize();
-    int                   SubDomainSize[3];
-
-    SubDomainSize[0] = ptrDM->GetSubDomainSizeX(MyRank)+2*halo;
-    SubDomainSize[1] = ptrDM->GetSubDomainSizeY(MyRank)+2*halo;
-    SubDomainSize[2] = ptrDM->GetSubDomainSizeZ(MyRank)+2*halo;
+    int halo                    = ptrDM->GetGuideCellSize();
+    int MyRank                  = LPT::MPI_Manager::GetInstance()->get_myrank_f();
+    if(!LPT::MPI_Manager::GetInstance()->is_fluid_proc())
+    {
+        //そもそもcomm_fluidに属していなければ呼ばれないはず
+        MPI_Abort(MPI_COMM_WORLD, -1);
+    }
 
     Header->BlockID       = BlockID;
     Header->SubDomainID   = MyRank;
@@ -207,9 +168,12 @@ void Communicator::CommPacking(const long& BlockID, REAL_TYPE* Data, int* Mask, 
     Header->OriginCell[2] = ptrDM->GetBlockOriginCellZ(BlockID);
 
     int BlockLocalOffset = ptrDM->GetBlockLocalOffset(BlockID, MyRank);
+    int SubDomainSize[3];
+    SubDomainSize[0] = ptrDM->GetSubDomainSizeX(MyRank)+2*halo;
+    SubDomainSize[1] = ptrDM->GetSubDomainSizeY(MyRank)+2*halo;
+    SubDomainSize[2] = ptrDM->GetSubDomainSizeZ(MyRank)+2*halo;
 
     int indexS = 0;
-
     // 袖領域も含めて転送する
     for(int i = 0; i < vlen; i++)
     {

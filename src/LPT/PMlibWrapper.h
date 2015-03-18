@@ -56,12 +56,12 @@ public:
     void Initialize(const std::string& argPMlibOutputFileName, const std::string& argPMlibDetailedOutputFileName)
     {
 #ifdef USE_PMLIB
-        if(initialized) return;
+        if(initialized)return;
 
         initialized                 = true;
         PMlibOutputFileName         = argPMlibOutputFileName;
         PMlibDetailedOutputFileName = argPMlibDetailedOutputFileName;
-        PM.setRankInfo(MPI_Manager::GetInstance()->get_myrank());
+        PM.setRankInfo(MPI_Manager::GetInstance()->get_myrank_p());
         PM.initialize();
 
         //排他区間
@@ -96,7 +96,7 @@ public:
         //PP_Transport::Calc()内で呼びだされるルーチンにも区間を設定したことがあったが
         //1call あたり1e-6以下の実行時間となっておりタイマの解像度以下だったため測定には使えかった。
 
-        PM.setParallelMode("FlatMPI", 1, MPI_Manager::GetInstance()->get_nproc());
+        PM.setParallelMode("FlatMPI", 1, MPI_Manager::GetInstance()->get_nproc_p());
 #endif
     }
 
@@ -117,12 +117,12 @@ public:
     void Finalize(void)
     {
 #ifdef USE_PMLIB
-        if(finalized) return;
+        if(finalized)return;
 
         finalized = true;
 
         PM.gather();
-        if(MPI_Manager::GetInstance()->get_myrank() == 0)
+        if(MPI_Manager::GetInstance()->get_myrank_p() == 0)
         {
             FILE* fp1;
             FILE* fp2;
@@ -132,8 +132,8 @@ public:
 
             std::string hostname("HOSTNAME");
             std::string operator_name("USER");
-            if(std::getenv("HOSTNAME") != NULL) hostname = std::getenv("HOSTNAME");
-            if(std::getenv("USER") != NULL) operator_name = std::getenv("USER");
+            if(std::getenv("HOSTNAME") != NULL)hostname = std::getenv("HOSTNAME");
+            if(std::getenv("USER") != NULL)operator_name = std::getenv("USER");
 
             PM.print(fp1, hostname, operator_name);
             PM.printDetail(fp2);
